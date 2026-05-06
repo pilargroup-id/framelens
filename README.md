@@ -1,3 +1,20 @@
+# Status service
+.\framelens-service.exe status
+# atau
+net status FrameLens
+
+# Start service
+.\framelens-service.exe start
+# atau
+net start FrameLens
+
+# Stop service
+.\framelens-service.exe stop
+# atau
+net stop FrameLens
+
+
+
 # 🖼️ FrameLens — AI Image Generator
 
 A web-based AI image generation app powered by Google Gemini, built with a Python backend and React + Vite frontend.
