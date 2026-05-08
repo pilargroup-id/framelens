@@ -1,10 +1,9 @@
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded'
 import PhotoLibraryRoundedIcon from '@mui/icons-material/PhotoLibraryRounded'
-import ZoomOutMapRoundedIcon from '@mui/icons-material/ZoomOutMapRounded'
 
 export const defaultNavigationPath = '/'
 
-export const implementedNavigationPaths = ['/', '/image-editor', '/upscale']
+export const implementedNavigationPaths = ['/', '/image-editor']
 
 export const primaryNavigationItems = [
   {
@@ -18,12 +17,6 @@ export const primaryNavigationItems = [
     label: 'Image Generator',
     href: '/image-editor',
     icon: AutoAwesomeRoundedIcon,
-  },
-  {
-    id: 'upscale',
-    label: 'Upscale Image',
-    href: '/upscale',
-    icon: ZoomOutMapRoundedIcon,
   },
 ]
 
