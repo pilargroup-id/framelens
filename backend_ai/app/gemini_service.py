@@ -46,6 +46,16 @@ def save_inline_image(
 
     image = Image.open(io.BytesIO(data))
     image.load()
+
+    target_resolution = parse_resolution(requested_resolution)
+    if target_resolution:
+        target_w, target_h = target_resolution
+        if (image.width, image.height) != (target_w, target_h):
+            scale = min(target_w / image.width, target_h / image.height)
+            new_w = round(image.width * scale)
+            new_h = round(image.height * scale)
+            image = image.resize((new_w, new_h), Image.LANCZOS)
+
     if output_format == "JPEG":
         image = image.convert("RGB")
 
