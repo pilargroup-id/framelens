@@ -46,6 +46,7 @@ def save_inline_image(
 
     image = Image.open(io.BytesIO(data))
     image.load()
+    print(f"[GEMINI NATIVE OUTPUT] {image.width}x{image.height} | mode={image.mode}")
 
     target_resolution = parse_resolution(requested_resolution)
     if target_resolution:
@@ -54,7 +55,12 @@ def save_inline_image(
             scale = min(target_w / image.width, target_h / image.height)
             new_w = round(image.width * scale)
             new_h = round(image.height * scale)
-            image = image.resize((new_w, new_h), Image.LANCZOS)
+            resized = image.resize((new_w, new_h), Image.LANCZOS)
+            base = image.convert("RGB") if output_format == "JPEG" else image
+            canvas_mode = "RGB" if base.mode == "RGB" else "RGBA"
+            canvas = Image.new(canvas_mode, (target_w, target_h), (255, 255, 255))
+            canvas.paste(resized.convert(canvas_mode), ((target_w - new_w) // 2, (target_h - new_h) // 2))
+            image = canvas
 
     if output_format == "JPEG":
         image = image.convert("RGB")
