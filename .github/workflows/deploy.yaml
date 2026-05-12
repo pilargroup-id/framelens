@@ -50,10 +50,14 @@ jobs:
       - name: Copy backend files
         shell: powershell
         run: |
+          Write-Host ">> Source path: $env:GITHUB_WORKSPACE\backend_ai"
+          Write-Host ">> Listing source..."
+          Get-ChildItem "$env:GITHUB_WORKSPACE\backend_ai" | Select-Object Name
           Write-Host ">> Copying backend_ai..."
-          Copy-Item -Path "backend_ai\*" `
+          Copy-Item -Path "$env:GITHUB_WORKSPACE\backend_ai\*" `
             -Destination "C:\ai-image-generator\backend_ai" `
-            -Recurse -Force -Exclude "outputs","venv","__pycache__"
+            -Recurse -Force -Exclude "outputs","venv","__pycache__" `
+            -ErrorAction Stop
           Write-Host ">> Done"
 
       # -------------------------
