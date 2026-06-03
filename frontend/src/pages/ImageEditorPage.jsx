@@ -352,11 +352,20 @@ const ASPECT_RATIO_OPTIONS = [
 ];
 
 const RESOLUTION_OPTIONS = [
-  { value: "original", label: "Original" },
-  { value: "1920x1080", label: "Full HD" },
-  { value: "2560x1440", label: "2K" },
-  { value: "3840x2160", label: "4K" },
+  { value: "original",  label: "Original" },
+  { value: "hd",       label: "HD  (~720p)" },
+  { value: "full-hd",  label: "Full HD  (~1080p)" },
+  { value: "2k",       label: "2K  (~1440p)" },
+  { value: "4k",       label: "4K  (~2160p)" },
 ];
+
+// Maps resolution key → max long-edge pixels (preserves aspect ratio)
+const RESOLUTION_MAX_PX = {
+  "hd":      1280,
+  "full-hd": 1920,
+  "2k":      2560,
+  "4k":      3840,
+};
 
 const BATCH_OPTIONS = [
   { value: 1, label: "1 Gambar" },
@@ -1046,8 +1055,10 @@ export default function ImageEditorPage() {
 
   const buildFinalPrompt = () => {
     const r = aspectRatio !== "original" ? ` Use aspect ratio ${aspectRatio}.` : "";
-    const res = resolution !== "original" ? ` Target resolution ${resolution}.` : "";
-    // ── NEW: add reference note if ref images exist
+    const maxPx = RESOLUTION_MAX_PX[resolution];
+    const res = maxPx
+      ? ` Output at the highest quality possible, with the longest side at most ${maxPx}px. Do NOT change the aspect ratio — keep the original image proportions exactly.`
+      : "";
     const ref = refFiles.length > 0
       ? ` Use the provided ${refFiles.length} reference image${refFiles.length > 1 ? "s" : ""} as visual/style reference.`
       : "";
@@ -1244,7 +1255,9 @@ export default function ImageEditorPage() {
     fd.append("prompt", finalPrompt);
     fd.append("batch_size", String(requestedBatch));
     fd.append("aspect_ratio", aspectRatio);
-    fd.append("resolution", resolution);
+    // Send max long-edge px to backend (or "original" if not set)
+    const maxPx = RESOLUTION_MAX_PX[resolution];
+    fd.append("resolution", maxPx ? String(maxPx) : "original");
 
     // ── NEW: append each reference image
     refFiles.forEach((refFile, idx) => {
@@ -1458,26 +1471,26 @@ export default function ImageEditorPage() {
               display:"flex", alignItems:{ xs:"flex-start", sm:"center" }, flexDirection:{ xs:"column", sm:"row" }, gap:1.5,
               px:2.5, py:1.6,
               borderRadius:"16px",
-              background:"linear-gradient(135deg,rgba(35,57,113,0.08),rgba(46,79,163,0.06))",
-              border:"1.5px solid rgba(35,57,113,0.22)",
-              boxShadow:"0 2px 12px rgba(35,57,113,0.07)",
+              background:"linear-gradient(135deg,#233971 0%,#2e4fa3 60%,#3d5fc0 100%)",
+              border:"none",
+              boxShadow:"0 8px 28px rgba(35,57,113,0.30),inset 0 1px 0 rgba(255,255,255,0.15)",
               animation:"slideUp 0.3s ease",
             }}
           >
             <Stack direction="row" spacing={1.2} alignItems="center" sx={{ flex:1, minWidth:0 }}>
-              <Box sx={{ width:36, height:36, borderRadius:"11px", flexShrink:0, background:"linear-gradient(135deg,#233971,#2e4fa3)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+              <Box sx={{ width:36, height:36, borderRadius:"11px", flexShrink:0, background:"rgba(255,255,255,0.18)", display:"flex", alignItems:"center", justifyContent:"center", border:"1px solid rgba(255,255,255,0.28)" }}>
                 <PhotoLibraryRoundedIcon sx={{ fontSize:18, color:"#fff" }}/>
               </Box>
               <Box sx={{ minWidth:0 }}>
-                <Typography sx={{ ...F, fontSize:"0.83rem", fontWeight:700, color:"#1a2d5a", lineHeight:1.3 }}>
+                <Typography sx={{ ...F, fontSize:"0.83rem", fontWeight:700, color:"#fff", lineHeight:1.3 }}>
                   Gambar &amp; prompt dari Gallery sudah dimuat
                 </Typography>
                 {fromGalleryInitName && (
-                  <Typography sx={{ ...F, fontSize:"0.71rem", color:"#5b7ec7", mt:"2px", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", maxWidth:360 }}>
+                  <Typography sx={{ ...F, fontSize:"0.71rem", color:"rgba(255,255,255,0.72)", mt:"2px", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", maxWidth:360 }}>
                     {fromGalleryInitName}
                   </Typography>
                 )}
-                <Typography sx={{ ...F, fontSize:"0.71rem", color:"#64748b", mt:"1px" }}>
+                <Typography sx={{ ...F, fontSize:"0.71rem", color:"rgba(255,255,255,0.60)", mt:"1px" }}>
                   Ubah prompt lalu klik Generate untuk buat versi baru.
                 </Typography>
               </Box>
@@ -1491,10 +1504,11 @@ export default function ImageEditorPage() {
                 textTransform:"none", fontWeight:700, fontSize:"0.80rem",
                 borderRadius:"12px",
                 color:"#233971",
-                border:"1.5px solid rgba(35,57,113,0.28)",
-                background:"rgba(255,255,255,0.85)",
+                border:"none",
+                background:"#fff",
                 px:2, py:0.7, flexShrink:0,
-                "&:hover":{ background:"#fff", borderColor:"rgba(35,57,113,0.5)" },
+                boxShadow:"0 4px 12px rgba(0,0,0,0.15)",
+                "&:hover":{ background:"rgba(255,255,255,0.88)", boxShadow:"0 6px 16px rgba(0,0,0,0.18)" },
               }}
             >
               Kembali ke Gallery
