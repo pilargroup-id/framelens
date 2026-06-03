@@ -960,6 +960,7 @@ export default function ImageEditorPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const [fromGallery, setFromGallery] = useState(Boolean(location.state?.fromGalleryUrl));
+  const fromGalleryInitName = location.state?.fromGalleryName || "";
 
   const [files, setFiles] = useState([]);
   const [prompt, setPrompt] = useState("");
@@ -1012,12 +1013,13 @@ export default function ImageEditorPage() {
     return () => refPreviewUrls.forEach((i) => URL.revokeObjectURL(i.url));
   }, [refPreviewUrls]);
 
-  // Auto-load image when navigated from Gallery
+  // Auto-load image + prompt when navigated from Gallery
   useEffect(() => {
-    const { fromGalleryUrl, fromGalleryName } = location.state || {};
+    const { fromGalleryUrl, fromGalleryName, fromGalleryPrompt } = location.state || {};
     if (!fromGalleryUrl) return;
-    // Clear the navigation state so refresh doesn't re-load
+    // Clear the navigation state so refresh doesn't re-trigger
     navigate(location.pathname, { replace: true, state: {} });
+    if (fromGalleryPrompt) setPrompt(fromGalleryPrompt);
     fetch(fromGalleryUrl)
       .then((r) => r.blob())
       .then((blob) => {
@@ -1453,18 +1455,33 @@ export default function ImageEditorPage() {
         {fromGallery && (
           <Box
             sx={{
-              display:"flex", alignItems:"center", gap:1.5,
-              px:2.5, py:1.4,
+              display:"flex", alignItems:{ xs:"flex-start", sm:"center" }, flexDirection:{ xs:"column", sm:"row" }, gap:1.5,
+              px:2.5, py:1.6,
               borderRadius:"16px",
               background:"linear-gradient(135deg,rgba(35,57,113,0.08),rgba(46,79,163,0.06))",
-              border:"1.5px solid rgba(35,57,113,0.18)",
+              border:"1.5px solid rgba(35,57,113,0.22)",
+              boxShadow:"0 2px 12px rgba(35,57,113,0.07)",
               animation:"slideUp 0.3s ease",
             }}
           >
-            <PhotoLibraryRoundedIcon sx={{ fontSize:18, color:"#233971", flexShrink:0 }}/>
-            <Typography sx={{ ...F, fontSize:"0.83rem", fontWeight:600, color:"#233971", flex:1 }}>
-              Gambar dari Gallery sudah dimuat — silakan edit lalu generate.
-            </Typography>
+            <Stack direction="row" spacing={1.2} alignItems="center" sx={{ flex:1, minWidth:0 }}>
+              <Box sx={{ width:36, height:36, borderRadius:"11px", flexShrink:0, background:"linear-gradient(135deg,#233971,#2e4fa3)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                <PhotoLibraryRoundedIcon sx={{ fontSize:18, color:"#fff" }}/>
+              </Box>
+              <Box sx={{ minWidth:0 }}>
+                <Typography sx={{ ...F, fontSize:"0.83rem", fontWeight:700, color:"#1a2d5a", lineHeight:1.3 }}>
+                  Gambar &amp; prompt dari Gallery sudah dimuat
+                </Typography>
+                {fromGalleryInitName && (
+                  <Typography sx={{ ...F, fontSize:"0.71rem", color:"#5b7ec7", mt:"2px", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", maxWidth:360 }}>
+                    {fromGalleryInitName}
+                  </Typography>
+                )}
+                <Typography sx={{ ...F, fontSize:"0.71rem", color:"#64748b", mt:"1px" }}>
+                  Ubah prompt lalu klik Generate untuk buat versi baru.
+                </Typography>
+              </Box>
+            </Stack>
             <Button
               size="small"
               startIcon={<ArrowBackRoundedIcon sx={{ fontSize:"16px !important" }}/>}

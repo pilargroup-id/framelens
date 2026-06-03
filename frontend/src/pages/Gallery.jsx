@@ -73,7 +73,7 @@
   const F = { fontFamily:"'Sora',sans-serif" };
 
   const IMG_H          = 180;
-  const CARD_H         = 390;
+  const CARD_H         = 420;
   const FILENAME_LINES = 1;
   const PROMPT_LINES   = 2;
 
@@ -637,7 +637,13 @@ function DatePickerBox({ label, value, onChange }) {
     const handleScrollTop = () => window.scrollTo({ top:0, behavior:"smooth" });
 
     const handleEditInEditor = (item) => {
-      navigate("/image-editor", { state: { fromGalleryUrl: item.imageUrl, fromGalleryName: item.fileName || item.filename || "gallery-image.png" } });
+      navigate("/image-editor", {
+        state: {
+          fromGalleryUrl:    item.imageUrl,
+          fromGalleryName:   item.fileName || item.filename || "gallery-image.png",
+          fromGalleryPrompt: item.prompt   || "",
+        },
+      });
     };
 
     const handleDownload = async (url, name="generated-image.png") => {
@@ -1209,64 +1215,69 @@ function DatePickerBox({ label, value, onChange }) {
 
                         <Box sx={{ flexShrink:0 }}>
                           {!selectMode ? (
-                            <Stack direction="row" spacing={0.7} alignItems="center">
+                            <Stack spacing={0.8}>
+                              {/* Edit — baris utama, full width */}
                               <Button
                                 size="small"
                                 variant="contained"
-                                startIcon={<VisibilityRoundedIcon sx={{ fontSize:"14px !important" }}/>}
-                                onClick={()=>openPreview(item)}
-                                sx={{
-                                  ...pill({ fontSize:"11px", py:0.65, flex:1, minWidth:0, boxShadow:"none" }),
-                                  background:"linear-gradient(135deg,#233971,#2e4fa3)",
-                                  "&:hover":{ opacity:0.88, boxShadow:"0 8px 20px rgba(35,57,113,0.28)" },
-                                }}
-                              >
-                                Preview
-                              </Button>
-
-                              <Button
-                                size="small"
-                                variant="outlined"
-                                startIcon={<EditRoundedIcon sx={{ fontSize:"14px !important" }}/>}
+                                fullWidth
+                                startIcon={<EditRoundedIcon sx={{ fontSize:"15px !important" }}/>}
                                 onClick={()=>handleEditInEditor(item)}
                                 sx={{
-                                  ...pill({ fontSize:"11px", py:0.65, flex:1, minWidth:0 }),
-                                  borderColor:"rgba(35,57,113,0.30)",
-                                  color:"#233971",
-                                  "&:hover":{ borderColor:"rgba(35,57,113,0.55)", background:"rgba(35,57,113,0.06)" },
+                                  ...pill({ fontSize:"12px", py:0.85, boxShadow:"none" }),
+                                  background:"linear-gradient(135deg,#1a2d5a,#233971,#2e4fa3)",
+                                  "&:hover":{ background:"linear-gradient(135deg,#0f1e3d,#1a2d5a,#233971)", boxShadow:"0 8px 20px rgba(35,57,113,0.28)" },
                                 }}
                               >
-                                Edit
+                                Edit &amp; Generate Ulang
                               </Button>
 
-                              <Button
-                                size="small"
-                                variant="outlined"
-                                startIcon={<DownloadRoundedIcon sx={{ fontSize:"14px !important" }}/>}
-                                onClick={()=>handleDownload(item.imageUrl, item.fileName||`generated-${item.id}.png`)}
-                                sx={{
-                                  ...pill({ fontSize:"11px", py:0.65, flex:1, minWidth:0 }),
-                                  borderColor:"rgba(35,57,113,0.30)",
-                                  color:"#233971",
-                                  "&:hover":{ borderColor:"rgba(35,57,113,0.55)", background:"rgba(35,57,113,0.06)" },
-                                }}
-                              >
-                                Download
-                              </Button>
+                              {/* Preview · Download · Delete — baris kedua */}
+                              <Stack direction="row" spacing={0.7} alignItems="center">
+                                <Button
+                                  size="small"
+                                  variant="outlined"
+                                  startIcon={<VisibilityRoundedIcon sx={{ fontSize:"13px !important" }}/>}
+                                  onClick={()=>openPreview(item)}
+                                  sx={{
+                                    ...pill({ fontSize:"11px", py:0.55, flex:1, minWidth:0 }),
+                                    borderColor:"rgba(35,57,113,0.25)",
+                                    color:"#233971",
+                                    "&:hover":{ borderColor:"rgba(35,57,113,0.5)", background:"rgba(35,57,113,0.05)" },
+                                  }}
+                                >
+                                  Preview
+                                </Button>
 
-                              <IconButton
-                                onClick={()=>openConfirm("single", item.id)}
-                                size="small"
-                                color="error"
-                                sx={{
-                                  borderRadius:"999px",
-                                  border:"1px solid #fecaca",
-                                  width:30, height:30, flexShrink:0, p:0,
-                                  "&:hover":{ background:"#fff1f2" },
-                                }}
-                              >
-                                <DeleteOutlineRoundedIcon sx={{ fontSize:14 }}/>
-                              </IconButton>
+                                <Button
+                                  size="small"
+                                  variant="outlined"
+                                  startIcon={<DownloadRoundedIcon sx={{ fontSize:"13px !important" }}/>}
+                                  onClick={()=>handleDownload(item.imageUrl, item.fileName||`generated-${item.id}.png`)}
+                                  sx={{
+                                    ...pill({ fontSize:"11px", py:0.55, flex:1, minWidth:0 }),
+                                    borderColor:"rgba(35,57,113,0.25)",
+                                    color:"#233971",
+                                    "&:hover":{ borderColor:"rgba(35,57,113,0.5)", background:"rgba(35,57,113,0.05)" },
+                                  }}
+                                >
+                                  Download
+                                </Button>
+
+                                <IconButton
+                                  onClick={()=>openConfirm("single", item.id)}
+                                  size="small"
+                                  color="error"
+                                  sx={{
+                                    borderRadius:"10px",
+                                    border:"1px solid #fecaca",
+                                    width:30, height:30, flexShrink:0, p:0,
+                                    "&:hover":{ background:"#fff1f2" },
+                                  }}
+                                >
+                                  <DeleteOutlineRoundedIcon sx={{ fontSize:14 }}/>
+                                </IconButton>
+                              </Stack>
                             </Stack>
                           ) : (
                             <Typography
