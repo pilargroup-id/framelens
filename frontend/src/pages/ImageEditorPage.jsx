@@ -1431,8 +1431,7 @@ export default function ImageEditorPage() {
   const cardShell = {
     borderRadius: "24px",
     border: "1px solid rgba(35,57,113,0.18)",
-    background: "transparent",
-    backdropFilter: "blur(2px)",
+    background: "#fff",
     boxShadow:
       "0 2px 8px rgba(0,0,0,0.05), 0 16px 40px -8px rgba(35,57,113,0.13), inset 0 1px 0 rgba(255,255,255,0.9)",
     overflow: "hidden",
@@ -1518,7 +1517,6 @@ export default function ImageEditorPage() {
 
         <Stack direction={{ xs: "column", lg: "row" }} spacing={3} alignItems="stretch">
           <Card elevation={0} sx={{ ...cardShell, flex: 1.05 }}>
-            <CardBg variant="left" />
 
             <Box sx={{ position: "absolute", bottom: 0, left: 0, width: 130, height: 130, borderRadius: "0 28px 0 24px", background: "linear-gradient(135deg,rgba(35,57,113,0.10) 0%,rgba(46,79,163,0.14) 100%)", display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none", zIndex: 1 }}>
               <LayersRoundedIcon sx={{ fontSize: 48, color: "#233971", opacity: 0.35, transform: "rotate(-8deg)" }} />
@@ -1913,7 +1911,6 @@ export default function ImageEditorPage() {
           </Card>
 
           <Card elevation={0} sx={{ ...cardShell, flex: 1 }}>
-            <CardBg variant="right" />
 
             <Box sx={{ position: "absolute", bottom: 0, left: 0, width: 130, height: 130, borderRadius: "0 28px 0 24px", background: "linear-gradient(135deg,rgba(35,57,113,0.10) 0%,rgba(26,82,118,0.14) 100%)", display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none", zIndex: 1 }}>
               <DownloadIcon sx={{ fontSize: 48, color: "#233971", opacity: 0.35, transform: "rotate(-8deg)" }} />
