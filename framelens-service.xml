@@ -1,3 +1,4 @@
+<!-- FrameLens Service Configuration -->
 <service>
   <id>FrameLens</id>
   <name>FrameLens API</name>
