@@ -6,10 +6,26 @@ const TOKEN_KEY = "fl_token";
 const USER_KEY = "fl_user";
 const APP_KEY = "framelens";
 
+const MOCK_USER = {
+  id: "dev-local",
+  internal_id: "dev-local",
+  username: "dev",
+  name: "Dev Local",
+  email: "dev@local.com",
+  phone: null,
+  department: null,
+  job_position: null,
+  apps: ["framelens"],
+  cv: null,
+};
+
+const isMockMode = import.meta.env.VITE_MOCK_AUTH === "true";
+
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
+    if (isMockMode) return MOCK_USER;
     try {
       const raw = localStorage.getItem(USER_KEY);
       return raw ? JSON.parse(raw) : null;
@@ -19,7 +35,7 @@ export function AuthProvider({ children }) {
   });
 
   const [token, setToken] = useState(() => localStorage.getItem(TOKEN_KEY));
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!isMockMode);
 
   const decodeJwt = (tkn) => {
     const parts = tkn.split(".");

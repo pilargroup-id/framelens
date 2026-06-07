@@ -432,8 +432,8 @@ function DatePickerBox({ label, value, onChange }) {
             }}
           >
             {value
-              ? new Date(value + "T00:00:00").toLocaleDateString("id-ID",{ day:"numeric", month:"short", year:"numeric" })
-              : "Pilih tanggal"}
+              ? new Date(value + "T00:00:00").toLocaleDateString("en-US",{ day:"numeric", month:"short", year:"numeric" })
+              : "Select date"}
           </Typography>
         </Box>
       </Box>
@@ -443,8 +443,8 @@ function DatePickerBox({ label, value, onChange }) {
   function DatePickerGroup({ dateFrom, setDateFrom, dateTo, setDateTo }) {
     return (
       <Stack direction={{ xs:"column",sm:"row" }} spacing={1.5} alignItems={{ xs:"stretch",sm:"center" }}>
-        <DatePickerBox label="Dari Tanggal"   value={dateFrom} onChange={setDateFrom}/>
-        <DatePickerBox label="Sampai Tanggal" value={dateTo}   onChange={setDateTo}/>
+        <DatePickerBox label="From Date" value={dateFrom} onChange={setDateFrom}/>
+        <DatePickerBox label="To Date"   value={dateTo}   onChange={setDateTo}/>
       </Stack>
     );
   }
@@ -678,11 +678,11 @@ function DatePickerBox({ label, value, onChange }) {
     const safePage     = Math.min(page, totalPages);
     const pagedGallery = filteredGallery.slice((safePage-1)*perPage, safePage*perPage);
     const formatDateLabel = (value) => value
-      ? new Date(value + "T00:00:00").toLocaleDateString("id-ID", { day:"numeric", month:"short", year:"numeric" })
+      ? new Date(value + "T00:00:00").toLocaleDateString("en-US", { day:"numeric", month:"short", year:"numeric" })
       : null;
     const dateRangeText = (!dateFrom && !dateTo)
-      ? "Semua waktu"
-      : `${dateFrom ? formatDateLabel(dateFrom) : "Mulai"} — ${dateTo ? formatDateLabel(dateTo) : "Sampai"}`;
+      ? "All time"
+      : `${dateFrom ? formatDateLabel(dateFrom) : "From"} — ${dateTo ? formatDateLabel(dateTo) : "To"}`;
 
     const pill = (extra={}) => ({
       borderRadius:"999px",
@@ -717,7 +717,7 @@ function DatePickerBox({ label, value, onChange }) {
                       Gallery Header
                     </Typography>
                     <Typography sx={{ ...F, fontSize:"0.72rem", color:"#64748b", mt:0.8 }}>
-                      Ringkasan jumlah item dan filter aktif pada galeri gambar.
+                      Item count summary and active filters for the image gallery.
                     </Typography>
                   </Box>
 
@@ -736,7 +736,7 @@ function DatePickerBox({ label, value, onChange }) {
                     >
                       Reset Filter
                     </Button>
-                    <Tooltip title="Hapus semua item gallery" placement="top">
+                    <Tooltip title="Delete all gallery items" placement="top">
                       <Button
                         onClick={()=>openConfirm("all")}
                         variant="contained"
@@ -749,7 +749,7 @@ function DatePickerBox({ label, value, onChange }) {
                           "&:hover":{ background:"linear-gradient(135deg,#dc2626,#ef4444)" },
                         }}
                       >
-                        Hapus Semua
+                        Delete All
                       </Button>
                     </Tooltip>
                   </Stack>
@@ -757,10 +757,10 @@ function DatePickerBox({ label, value, onChange }) {
 
                 <Stack direction={{ xs:"column", md:"row" }} spacing={2} alignItems={{ xs:"stretch", md:"flex-end" }}>
                   <Box sx={{ flex:1, minWidth:0 }}>
-                    <Typography sx={{ ...F, fontSize:"0.75rem", color:"#64748b", mb:1 }}>Cari prompt atau nama file</Typography>
+                    <Typography sx={{ ...F, fontSize:"0.75rem", color:"#64748b", mb:1 }}>Search by prompt or file name</Typography>
                     <TextField
                       fullWidth
-                      placeholder="Cari berdasarkan prompt atau nama file..."
+                      placeholder="Search by prompt or file name..."
                       value={search}
                       onChange={e=>handleSearchChange(e.target.value)}
                       InputProps={{ startAdornment:<SearchRoundedIcon sx={{ color:"#94a3b8", mr:1, fontSize:20 }}/> }}
@@ -785,11 +785,11 @@ function DatePickerBox({ label, value, onChange }) {
 
                 <Stack direction="row" spacing={2} alignItems="flex-start" justifyContent="space-between">
                   <Box sx={{ flexShrink:0 }}>
-                    <Typography sx={{ ...F, fontSize:"0.78rem", color:"#64748b", mb:0.5 }}>Total item</Typography>
+                    <Typography sx={{ ...F, fontSize:"0.78rem", color:"#64748b", mb:0.5 }}>Total items</Typography>
                     <Typography sx={{ ...F, fontSize:"1.9rem", fontWeight:800, color:"#0f172a" }}>{filteredGallery.length}</Typography>
                   </Box>
                   <Box sx={{ minWidth:0, textAlign:"right" }}>
-                    <Typography sx={{ ...F, fontSize:"0.78rem", color:"#64748b", mb:0.5 }}>Rentang</Typography>
+                    <Typography sx={{ ...F, fontSize:"0.78rem", color:"#64748b", mb:0.5 }}>Date Range</Typography>
                     <Typography sx={{ ...F, fontSize:{ xs:"0.85rem", sm:"1rem" }, fontWeight:700, color:"#0f172a", wordBreak:"break-word" }}>{dateRangeText}</Typography>
                   </Box>
                 </Stack>
@@ -809,7 +809,7 @@ function DatePickerBox({ label, value, onChange }) {
                   >
                     <Stack direction="row" spacing={1} alignItems="center">
                       <Typography sx={{ ...F, fontSize:"0.80rem", fontWeight:600, color:"#64748b", whiteSpace:"nowrap" }}>
-                        Tampilkan:
+                        Show:
                       </Typography>
                       <Stack direction="row" spacing={0.5}>
                         {PER_PAGE_OPTIONS.map(n=>(
@@ -848,15 +848,15 @@ function DatePickerBox({ label, value, onChange }) {
                           "&:hover":{ background:"linear-gradient(135deg,#0f1e3d,#1a2d5a,#233971)", boxShadow:"0 14px 32px rgba(35,57,113,0.34)" },
                         }}
                       >
-                        Pilih Gambar
+                        Select Images
                       </Button>
                     )}
 
                     {selectMode && (
                       <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
                         <Chip
-                          icon={<CheckBoxRoundedIcon sx={{ fontSize:"16px !important", color:"#fff !important" }}/>} 
-                          label={selectedIds.size>0 ? `${selectedIds.size} Dipilih` : "Mode Pilih Aktif"}
+                          icon={<CheckBoxRoundedIcon sx={{ fontSize:"16px !important", color:"#fff !important" }}/>}
+                          label={selectedIds.size>0 ? `${selectedIds.size} Selected` : "Select Mode Active"}
                           sx={{ ...F, fontWeight:800, color:"#fff", background:"linear-gradient(135deg,#233971,#2e4fa3)", borderRadius:"999px", boxShadow:"0 8px 20px rgba(35,57,113,0.22)" }}
                         />
                         <IconButton
@@ -902,10 +902,10 @@ function DatePickerBox({ label, value, onChange }) {
                     </Box>
                     <Box>
                       <Typography sx={{ ...F, fontWeight:800, fontSize:"0.88rem", color:"#1a2d5a", lineHeight:1.2 }}>
-                        {selectedIds.size>0 ? `${selectedIds.size} gambar dipilih` : "Pilih gambar yang ingin dihapus"}
+                        {selectedIds.size>0 ? `${selectedIds.size} image${selectedIds.size>1?"s":""} selected` : "Select images to delete"}
                       </Typography>
                       <Typography sx={{ ...F, fontSize:"0.72rem", color:"#233971", mt:"2px" }}>
-                        Tap gambar untuk memilih / batalkan
+                        Tap an image to select / deselect
                       </Typography>
                     </Box>
                   </Stack>
@@ -922,7 +922,7 @@ function DatePickerBox({ label, value, onChange }) {
                         "&:hover":{ borderColor:"#233971", background:"rgba(35,57,113,0.06)" },
                       }}
                     >
-                      {allSelected ? "Batal Semua" : "Pilih Semua"}
+                      {allSelected ? "Deselect All" : "Select All"}
                     </Button>
 
                     {selectedIds.size>0 && (
@@ -937,7 +937,7 @@ function DatePickerBox({ label, value, onChange }) {
                           "&:hover":{ background:"linear-gradient(135deg,#dc2626,#ef4444)" },
                         }}
                       >
-                        Hapus {selectedIds.size} Terpilih
+                        Delete {selectedIds.size} Selected
                       </Button>
                     )}
 
@@ -974,11 +974,11 @@ function DatePickerBox({ label, value, onChange }) {
                   </Box>
 
                   <Typography variant="h6" sx={{ ...F, fontWeight:800, color:"#0f172a" }}>
-                    Belum ada hasil generate
+                    No generated results yet
                   </Typography>
 
                   <Typography sx={{ ...F, color:"#64748b", maxWidth:520, lineHeight:1.75 }}>
-                    Setelah image berhasil dibuat dari halaman editor, hasilnya akan otomatis masuk ke gallery ini.
+                    Once an image is generated from the editor page, it will automatically appear in this gallery.
                   </Typography>
 
                   <Paper
@@ -995,10 +995,10 @@ function DatePickerBox({ label, value, onChange }) {
                       </Box>
                       <Box textAlign="left">
                         <Typography sx={{ ...F, fontWeight:700, fontSize:"0.78rem", color:"#1a2d5a", mb:"3px" }}>
-                          Info Penyimpanan
+                          Storage Info
                         </Typography>
                         <Typography sx={{ ...F, fontSize:"0.76rem", color:"#64748b", lineHeight:1.7 }}>
-                          Data gallery diambil dari backend melalui API. Kamu bisa filter berdasarkan tanggal untuk lihat history gambar.
+                          Gallery data is fetched from the backend via API. You can filter by date to view image history.
                         </Typography>
                       </Box>
                     </Stack>
@@ -1058,6 +1058,7 @@ function DatePickerBox({ label, value, onChange }) {
 
                       {/* ── Image area ── */}
                       <Box
+                        onClick={()=>!selectMode && openPreview(item)}
                         sx={{
                           position:"relative",
                           flexShrink:0,
@@ -1066,6 +1067,7 @@ function DatePickerBox({ label, value, onChange }) {
                           zIndex:1,
                           background:"linear-gradient(135deg,#dce8f7,#e6edf9)",
                           borderRadius:"20px 20px 0 0",
+                          cursor: selectMode ? "pointer" : "zoom-in",
                         }}
                       >
                         <Box
@@ -1193,7 +1195,7 @@ function DatePickerBox({ label, value, onChange }) {
                             </Typography>
                           ) : (
                             <Typography sx={{ ...F, color:"#cbd5e1", fontSize:"0.72rem", fontStyle:"italic" }}>
-                              Tidak ada prompt tersedia.
+                              No prompt available.
                             </Typography>
                           )}
                         </Box>
@@ -1229,7 +1231,7 @@ function DatePickerBox({ label, value, onChange }) {
                                   "&:hover":{ background:"linear-gradient(135deg,#0f1e3d,#1a2d5a,#233971)", boxShadow:"0 8px 20px rgba(35,57,113,0.28)" },
                                 }}
                               >
-                                Edit &amp; Generate Ulang
+                                Edit &amp; Regenerate
                               </Button>
 
                               {/* Preview · Download · Delete — baris kedua */}
@@ -1287,7 +1289,7 @@ function DatePickerBox({ label, value, onChange }) {
                                 textAlign:"center", py:0.5,
                               }}
                             >
-                              {isSelected ? "✓ Dipilih" : "Tap untuk pilih"}
+                              {isSelected ? "✓ Selected" : "Tap to select"}
                             </Typography>
                           )}
                         </Box>
@@ -1324,10 +1326,10 @@ function DatePickerBox({ label, value, onChange }) {
                     </Box>
                     <Box>
                       <Typography sx={{ ...F, fontWeight:700, fontSize:"0.82rem", color:"#0f172a" }}>
-                        Halaman {safePage} dari {totalPages}
+                        Page {safePage} of {totalPages}
                       </Typography>
                       <Typography sx={{ ...F, fontSize:"0.70rem", color:"#94a3b8" }}>
-                        {filteredGallery.length} gambar · tampil {Math.min((safePage-1)*perPage+1,filteredGallery.length)}–{Math.min(safePage*perPage,filteredGallery.length)}
+                        {filteredGallery.length} images · showing {Math.min((safePage-1)*perPage+1,filteredGallery.length)}–{Math.min(safePage*perPage,filteredGallery.length)}
                       </Typography>
                     </Box>
                   </Stack>
@@ -1417,7 +1419,7 @@ function DatePickerBox({ label, value, onChange }) {
                 <Box sx={{ width:36, height:36, borderRadius:"11px", background:"linear-gradient(135deg,#233971,#2e4fa3)", display:"flex", alignItems:"center", justifyContent:"center" }}>
                   <VisibilityRoundedIcon sx={{ color:"#fff", fontSize:18 }}/>
                 </Box>
-                Preview Hasil Generate
+                Generated Image Preview
               </Stack>
             </DialogTitle>
 
@@ -1428,7 +1430,7 @@ function DatePickerBox({ label, value, onChange }) {
                   <Stack direction="row" spacing={1} justifyContent="space-between" alignItems="center">
                     <Stack direction="row" spacing={0.8} alignItems="center">
                       <Typography sx={{ ...F, fontSize:"0.72rem", color:"#94a3b8", fontWeight:600 }}>
-                        🖱️ Scroll = zoom · Drag = geser · Pinch = zoom mobile
+                        Scroll = zoom · Drag to pan · Pinch = zoom (mobile)
                       </Typography>
                     </Stack>
                     <Stack direction="row" spacing={0.8} alignItems="center">
@@ -1574,7 +1576,7 @@ function DatePickerBox({ label, value, onChange }) {
                         }}
                       >
                         <Typography sx={{ ...F, color:"#94a3b8", fontSize:"0.82rem", fontStyle:"italic" }}>
-                          Tidak ada prompt tersedia.
+                          No prompt available.
                         </Typography>
                       </Box>
                     )}
@@ -1586,41 +1588,49 @@ function DatePickerBox({ label, value, onChange }) {
                     </Stack>
                   </Paper>
 
-                  <Stack direction="row" spacing={1.5} flexWrap="wrap" useFlexGap>
+                  <Stack direction={{ xs:"column", sm:"row" }} spacing={1.2}>
                     <Button
                       variant="contained"
+                      fullWidth
                       startIcon={<EditRoundedIcon/>}
                       onClick={()=>{ setPreviewItem(null); handleEditInEditor(previewItem); }}
                       sx={{
-                        borderRadius:"999px", textTransform:"none", fontWeight:700, ...F,
-                        background:"linear-gradient(135deg,#233971,#2e4fa3)", boxShadow:"none",
-                        "&:hover":{ background:"linear-gradient(135deg,#1a2d5a,#233971)", boxShadow:"0 8px 20px rgba(35,57,113,0.28)" },
+                        borderRadius:"14px", textTransform:"none", fontWeight:700, ...F, py:1.2,
+                        background:"linear-gradient(135deg,#233971,#2e4fa3)",
+                        boxShadow:"0 6px 18px rgba(35,57,113,0.28)",
+                        "&:hover":{ background:"linear-gradient(135deg,#1a2d5a,#233971)", boxShadow:"0 10px 24px rgba(35,57,113,0.36)", transform:"translateY(-1px)" },
+                        transition:"all 0.2s",
                       }}
                     >
-                      Edit di Editor
+                      Edit in Editor
                     </Button>
                     <Button
                       variant="contained"
+                      fullWidth
                       startIcon={<DownloadRoundedIcon/>}
                       onClick={()=>handleDownload(previewItem.imageUrl, previewItem.fileName||`generated-${previewItem.id}.png`)}
                       sx={{
-                        borderRadius:"999px", textTransform:"none", fontWeight:700, ...F,
-                        background:"linear-gradient(135deg,#10b981,#34d399)", boxShadow:"none",
-                        "&:hover":{ background:"linear-gradient(135deg,#059669,#10b981)", boxShadow:"0 8px 20px rgba(16,185,129,0.28)" },
+                        borderRadius:"14px", textTransform:"none", fontWeight:700, ...F, py:1.2,
+                        background:"linear-gradient(135deg,#10b981,#34d399)",
+                        boxShadow:"0 6px 18px rgba(16,185,129,0.25)",
+                        "&:hover":{ background:"linear-gradient(135deg,#059669,#10b981)", boxShadow:"0 10px 24px rgba(16,185,129,0.32)", transform:"translateY(-1px)" },
+                        transition:"all 0.2s",
                       }}
                     >
-                      Download Gambar
+                      Download Image
                     </Button>
                     <Button
                       variant="outlined"
+                      fullWidth
                       onClick={()=>setPreviewItem(null)}
                       sx={{
-                        borderRadius:"999px", textTransform:"none", fontWeight:700, ...F,
+                        borderRadius:"14px", textTransform:"none", fontWeight:700, ...F, py:1.2,
                         borderColor:"rgba(35,57,113,0.25)", color:"#64748b",
-                        "&:hover":{ background:"rgba(232,237,248,0.8)" },
+                        "&:hover":{ background:"rgba(232,237,248,0.8)", borderColor:"rgba(35,57,113,0.4)" },
+                        transition:"all 0.2s",
                       }}
                     >
-                      Tutup
+                      Close
                     </Button>
                   </Stack>
                 </Stack>
@@ -1672,17 +1682,17 @@ function DatePickerBox({ label, value, onChange }) {
               <Box>
                 <Typography sx={{ ...F, fontWeight:800, fontSize:"1.05rem", color:"#0f172a", mb:0.8 }}>
                   {confirmDialog.type === "all"
-                    ? "Hapus Semua Gambar?"
+                    ? "Delete All Images?"
                     : confirmDialog.type === "selected"
-                    ? `Hapus ${confirmDialog.count} Gambar Terpilih?`
-                    : "Hapus Gambar Ini?"}
+                    ? `Delete ${confirmDialog.count} Selected Images?`
+                    : "Delete This Image?"}
                 </Typography>
                 <Typography sx={{ ...F, fontSize:"0.82rem", color:"#64748b", lineHeight:1.7 }}>
                   {confirmDialog.type === "all"
-                    ? "Semua item di gallery akan dihapus permanen dan tidak bisa dikembalikan."
+                    ? "All gallery items will be permanently deleted and cannot be recovered."
                     : confirmDialog.type === "selected"
-                    ? `${confirmDialog.count} gambar yang dipilih akan dihapus permanen.`
-                    : "Gambar ini akan dihapus permanen dan tidak bisa dikembalikan."}
+                    ? `${confirmDialog.count} selected image${confirmDialog.count>1?"s":""} will be permanently deleted.`
+                    : "This image will be permanently deleted and cannot be recovered."}
                 </Typography>
               </Box>
 
@@ -1699,7 +1709,7 @@ function DatePickerBox({ label, value, onChange }) {
                     "&:hover":{ background:"rgba(232,237,248,0.8)", borderColor:"rgba(35,57,113,0.3)" },
                   }}
                 >
-                  Batal
+                  Cancel
                 </Button>
                 <Button
                   fullWidth
@@ -1713,7 +1723,7 @@ function DatePickerBox({ label, value, onChange }) {
                     "&:hover":{ background:"linear-gradient(135deg,#dc2626,#ef4444)", boxShadow:"0 10px 24px rgba(239,68,68,0.35)" },
                   }}
                 >
-                  Ya, Hapus
+                  Yes, Delete
                 </Button>
               </Stack>
             </Stack>
@@ -1723,7 +1733,7 @@ function DatePickerBox({ label, value, onChange }) {
         {/* ══ SCROLL TO TOP ══ */}
         <Zoom in={showScrollTop}>
           <Box sx={{ position:"fixed", right:{ xs:16,md:26 }, bottom:{ xs:18,md:28 }, zIndex:1400 }}>
-            <Tooltip title="Scroll ke atas" placement="left">
+            <Tooltip title="Scroll to top" placement="left">
               <IconButton
                 onClick={handleScrollTop}
                 sx={{

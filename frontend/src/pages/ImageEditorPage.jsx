@@ -156,179 +156,12 @@ function CardBg({ variant = "left" }) {
 
 const PRESETS = [
   {
-    key: "change-color",
-    label: "Ganti Warna",
-    icon: <PaletteIcon />,
-    group: "color",
-    prompt:
-      "Change only the product color. Do not change shape, size, position, angle, lighting, shadow, branding, material details, or background. Keep the image identical except for the requested color/material.",
-  },
-  {
-    key: "multi-color",
-    label: "Varian Warna",
-    icon: <PaletteIcon />,
-    group: "color",
-    prompt:
-      "Create multiple product color variants while keeping the exact same product shape, proportions, logo, texture, lighting, shadows, and background. Change color only.",
-  },
-  {
-    key: "front-view",
-    label: "Hadap Depan",
-    icon: <FlipCameraAndroidIcon />,
-    group: "angle",
-    prompt:
-      "Rotate or reposition the product so it faces directly forward. Preserve the exact same product identity, proportions, material, lighting, shadows, reflections, and background composition.",
-  },
-  {
-    key: "rotate-left",
-    label: "Samping Kiri",
-    icon: <FlipCameraAndroidIcon />,
-    group: "angle",
-    prompt:
-      "Rotate the product to a left-side view. Preserve the exact same product identity, shape, scale, material, lighting, reflections, shadows, and background.",
-  },
-  {
-    key: "rotate-right",
-    label: "Samping Kanan",
-    icon: <FlipCameraAndroidIcon />,
-    group: "angle",
-    prompt: "Rotate the product to a right-side view. Keep everything identical except the viewing angle.",
-  },
-  {
-    key: "rotate-back",
-    label: "Belakang",
-    icon: <FlipCameraAndroidIcon />,
-    group: "angle",
-    prompt:
-      "Rotate the product to show the back side. Maintain identical product structure, material, lighting, shadows, and environment.",
-  },
-  {
-    key: "rotate-top",
-    label: "Tampak Atas",
-    icon: <FlipCameraAndroidIcon />,
-    group: "angle",
-    prompt:
-      "Show the product from a top view. Keep the exact same product identity, proportions, lighting consistency, reflections, and background.",
-  },
-  {
-    key: "rotate-bottom",
-    label: "Tampak Bawah",
-    icon: <FlipCameraAndroidIcon />,
-    group: "angle",
-    prompt:
-      "Show the product from a bottom view. Preserve the exact same product structure, lighting, and environment.",
-  },
-  {
-    key: "center-position",
-    label: "Geser Tengah",
-    icon: <CenterFocusStrongIcon />,
-    group: "position",
-    prompt:
-      "Move the product slightly to the center while keeping the same scale, perspective, lighting, shadows, and background unchanged.",
-  },
-  {
-    key: "my - Prompt",
+    key: "my-prompt",
     label: "My Prompt",
     icon: <CenterFocusStrongIcon />,
     group: "position",
     prompt:
-      "Desain banner marketplace profesional untuk produk e-commerce.Produk utama adalah (Produk), objek ditempatkan di kiri dengan tampilan objek besar, bersih, pencahayaan realistis, dan gaya komersial premium. Buatkan latar belakang relevan dengan produk, buatkan dengan rasio gambar 1:1 untuk marketplace, jangan ada tulisan apapun.",
-  },
-  {
-    key: "clean-catalog",
-    label: "Clean Catalog",
-    icon: <ImageIcon />,
-    group: "bg",
-    prompt:
-      "Create a clean and professional catalog-style result. Preserve the exact product identity, shape, logo, reflections, and proportions. Only apply the requested edit.",
-  },
-  {
-    key: "white-bg",
-    label: "BG Putih",
-    icon: <ImageIcon />,
-    group: "bg",
-    prompt:
-      "Change the background to a clean white background. Keep the product exactly the same with natural shadow and lighting.",
-  },
-  {
-    key: "remove-bg",
-    label: "Remove BG",
-    icon: <ImageIcon />,
-    group: "bg",
-    prompt:
-      "Remove the background completely and keep only the product with clean edges. Preserve shadows if possible.",
-  },
-  {
-    key: "soft-bg",
-    label: "BG Soft",
-    icon: <ImageIcon />,
-    group: "bg",
-    prompt:
-      "Replace the background with a soft gradient professional background suitable for product showcase. Keep product unchanged.",
-  },
-  {
-    key: "sharp-enhance",
-    label: "Lebih Tajam",
-    icon: <AutoAwesomeIcon />,
-    group: "enhance",
-    prompt:
-      "Enhance the image clarity and sharpness. Improve details and texture while preserving the original product shape, lighting, and composition.",
-  },
-  {
-    key: "lighting-enhance",
-    label: "Lighting",
-    icon: <AutoAwesomeIcon />,
-    group: "enhance",
-    prompt:
-      "Improve lighting to make the product look more professional. Keep shadows natural and do not change product structure or position.",
-  },
-  {
-    key: "minimal-shadow",
-    label: "Shadow Soft",
-    icon: <AutoAwesomeIcon />,
-    group: "enhance",
-    prompt:
-      "Reduce heavy shadows and create a soft minimal shadow effect while keeping the product realistic.",
-  },
-  {
-    key: "premium-look",
-    label: "Premium",
-    icon: <AutoAwesomeIcon />,
-    group: "enhance",
-    prompt:
-      "Make the product look premium and high-end with subtle lighting improvements, soft reflections, and clean composition. Do not alter the product identity.",
-  },
-  {
-    key: "instagram-style",
-    label: "Instagram",
-    icon: <ImageIcon />,
-    group: "enhance",
-    prompt:
-      "Create a modern Instagram-style visual with clean composition, aesthetic lighting, and slight enhancement without changing the product identity.",
-  },
-  {
-    key: "marketplace-safe",
-    label: "Safe Edit",
-    icon: <StorefrontIcon />,
-    group: "safe",
-    prompt:
-      "This is a product image for online marketplace. Do not redesign, recreate, or hallucinate. Keep the exact same product identity, logo, proportions, materials, and details. Only apply the requested transformation such as angle, color, or background.",
-  },
-  {
-    key: "strict-edit",
-    label: "Strict Edit",
-    icon: <TuneIcon />,
-    group: "safe",
-    prompt:
-      "Edit only what is requested. Do not change product shape, logo, branding, proportions, or material. Keep everything identical except the specified modification.",
-  },
-  {
-    key: "ready",
-    label: "Ready",
-    icon: <BoltIcon />,
-    group: "safe",
-    prompt:
-      "Optimize the image for e-commerce marketplace. Ensure clean background, proper lighting, centered positioning, and high clarity while preserving the original product identity.",
+      "Design a professional marketplace banner for an e-commerce product. The main product is (Product), placed on the left with a large, clean object, realistic lighting, and premium commercial style. Create a background relevant to the product, use a 1:1 image ratio for marketplace, no text whatsoever.",
   },
 ];
 
@@ -582,7 +415,7 @@ function PreviewBox({ src, alt, aspectRatio, minHeight = 240, onPreview }) {
             <AutoAwesomeIcon sx={{ fontSize: 24, color: "#7a9bd4" }} />
           </Box>
           <Typography sx={{ fontFamily: "'Sora',sans-serif", fontSize: "0.82rem", color: "#94a3b8", fontWeight: 500 }}>
-            Hasil AI akan muncul di sini
+            AI result will appear here
           </Typography>
         </Stack>
       )}
@@ -725,11 +558,11 @@ function ReferenceImageSection({ refPreviews, onAdd, onRemove, onPreview, dragAc
         <Stack direction="row" spacing={1} alignItems="center">
           <AddPhotoAlternateIcon sx={{ fontSize: 16, color: "#2a4a9e" }} />
           <Typography sx={{ ...F, fontWeight: 700, fontSize: "0.83rem", color: "#1e293b" }}>
-            Gambar Referensi
+            Reference Images
           </Typography>
           <Chip
             size="small"
-            label="Opsional"
+            label="Optional"
             sx={{
               ...F,
               fontWeight: 600,
@@ -743,7 +576,7 @@ function ReferenceImageSection({ refPreviews, onAdd, onRemove, onPreview, dragAc
           />
         </Stack>
         <Typography sx={{ ...F, fontSize: "0.75rem", color: "#94a3b8" }}>
-          Max 4 referensi
+          Max 4 references
         </Typography>
       </Stack>
 
@@ -784,10 +617,10 @@ function ReferenceImageSection({ refPreviews, onAdd, onRemove, onPreview, dragAc
             </Box>
             <Box textAlign="center">
               <Typography sx={{ ...F, fontWeight: 700, fontSize: "0.85rem", color: "#1e293b" }}>
-                Upload gambar referensi (style, visual, mood)
+                Upload reference images (style, visual, mood)
               </Typography>
               <Typography sx={{ ...F, fontSize: "0.75rem", color: "#94a3b8" }}>
-                Drag & drop atau klik · PNG · JPG · WEBP · Hingga 4 gambar
+                Drag & drop or click · PNG · JPG · WEBP · Up to 4 images
               </Typography>
             </Box>
             <Button
@@ -814,7 +647,7 @@ function ReferenceImageSection({ refPreviews, onAdd, onRemove, onPreview, dragAc
                 transition: "all 0.2s ease",
               }}
             >
-              Pilih Referensi
+              Select Reference
               <input
                 ref={inputRef}
                 hidden
@@ -925,7 +758,7 @@ function ReferenceImageSection({ refPreviews, onAdd, onRemove, onPreview, dragAc
                   <Stack spacing={0.3} alignItems="center">
                     <AddPhotoAlternateIcon sx={{ fontSize: 18, color: "#2a4a9e" }} />
                     <Typography sx={{ fontFamily: "'Sora',sans-serif", fontSize: "0.6rem", fontWeight: 700, color: "#2a4a9e" }}>
-                      + Tambah
+                      + Add
                     </Typography>
                   </Stack>
                   <input
@@ -952,7 +785,7 @@ function ReferenceImageSection({ refPreviews, onAdd, onRemove, onPreview, dragAc
                 py: 0.5,
               }}
             >
-              <strong>{refPreviews.length}</strong> gambar referensi aktif — akan disertakan saat generate
+              <strong>{refPreviews.length}</strong> reference image{refPreviews.length > 1 ? "s" : ""} active — will be included when generating
             </Alert>
           </Stack>
         )}
@@ -1139,12 +972,12 @@ export default function ImageEditorPage() {
     );
 
     if (!valid.length) {
-      setError("File harus berupa PNG, JPG, JPEG, atau WEBP.");
+      setError("File must be PNG, JPG, JPEG, or WEBP.");
       return;
     }
 
     if (valid.length > 4) {
-      setError("Maksimal upload 4 gambar.");
+      setError("Maximum 4 images allowed.");
       return;
     }
 
@@ -1164,7 +997,7 @@ export default function ImageEditorPage() {
     );
 
     if (!valid.length) {
-      setError("File referensi harus berupa PNG, JPG, JPEG, atau WEBP.");
+      setError("Reference file must be PNG, JPG, JPEG, or WEBP.");
       return;
     }
 
@@ -1244,7 +1077,7 @@ export default function ImageEditorPage() {
       };
       localStorage.setItem("generated_images_gallery", JSON.stringify([item, ...old]));
     } catch (e) {
-      console.error("Gagal simpan ke gallery:", e);
+      console.error("Failed to save to gallery:", e);
     }
   };
 
@@ -1277,12 +1110,12 @@ export default function ImageEditorPage() {
 
   const handleSubmit = async () => {
     if (!files.length) {
-      setError("Silakan upload gambar terlebih dahulu.");
+      setError("Please upload an image first.");
       return;
     }
 
     if (!prompt.trim()) {
-      setError("Prompt wajib diisi.");
+      setError("Prompt is required.");
       return;
     }
 
@@ -1305,7 +1138,7 @@ export default function ImageEditorPage() {
           requestedBatch: batchCount,
         });
 
-        if (!generatedItems.length) throw new Error("image_url tidak ditemukan.");
+        if (!generatedItems.length) throw new Error("No image_url found in response.");
 
         if (generatedItems.length === 1 && batchCount > 1) {
           const fallbackItems = [generatedItems[0]];
@@ -1346,7 +1179,7 @@ export default function ImageEditorPage() {
             requestedBatch: 1,
           });
 
-          if (!generatedItems.length) throw new Error(`image_url tidak ditemukan untuk file ${cf.name}.`);
+          if (!generatedItems.length) throw new Error(`No image_url found for file ${cf.name}.`);
 
           results.push(
             createResultItem({
@@ -1369,13 +1202,13 @@ export default function ImageEditorPage() {
       setResultMeta(results[0] || null);
       setSuccess(
         files.length === 1 && batchCount > 1
-          ? `Berhasil generate ${results.length} gambar.`
+          ? `Successfully generated ${results.length} images.`
           : results.length > 1
-          ? `Batch ${results.length} gambar berhasil diproses.`
-          : "Gambar berhasil diproses."
+          ? `Batch of ${results.length} images processed successfully.`
+          : "Image processed successfully."
       );
     } catch (err) {
-      setError(err?.response?.data?.detail || err?.message || "Terjadi kesalahan.");
+      setError(err?.response?.data?.detail || err?.message || "An error occurred.");
     } finally {
       setLoading(false);
     }
@@ -1396,7 +1229,7 @@ export default function ImageEditorPage() {
       a.click();
       a.remove();
     } catch {
-      setError("Gagal download hasil gambar.");
+      setError("Failed to download result image.");
     }
   };
 
@@ -1407,7 +1240,7 @@ export default function ImageEditorPage() {
       setCopied(true);
       setTimeout(() => setCopied(false), 1800);
     } catch {
-      setError("Gagal menyalin prompt.");
+      setError("Failed to copy prompt.");
     }
   };
 
@@ -1448,7 +1281,7 @@ export default function ImageEditorPage() {
     group: g,
     meta: GROUP_META[g],
     items: PRESETS.filter((p) => p.group === g),
-  }));
+  })).filter((g) => g.items.length > 0);
 
   return (
     <Box sx={{ position: "relative", ...F }}>
@@ -1482,7 +1315,7 @@ export default function ImageEditorPage() {
               </Box>
               <Box sx={{ minWidth:0 }}>
                 <Typography sx={{ ...F, fontSize:"0.83rem", fontWeight:700, color:"#0f172a", lineHeight:1.3 }}>
-                  Gambar &amp; prompt dari Gallery sudah dimuat
+                  Image &amp; prompt from Gallery loaded
                 </Typography>
                 {fromGalleryInitName && (
                   <Typography sx={{ ...F, fontSize:"0.71rem", color:"#64748b", mt:"2px", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", maxWidth:360 }}>
@@ -1490,7 +1323,7 @@ export default function ImageEditorPage() {
                   </Typography>
                 )}
                 <Typography sx={{ ...F, fontSize:"0.71rem", color:"#94a3b8", mt:"1px" }}>
-                  Ubah prompt lalu klik Generate untuk buat versi baru.
+                  Edit the prompt and click Generate to create a new version.
                 </Typography>
               </Box>
             </Stack>
@@ -1510,7 +1343,7 @@ export default function ImageEditorPage() {
                 "&:hover":{ background:"rgba(35,57,113,0.05)", borderColor:"rgba(35,57,113,0.5)" },
               }}
             >
-              Kembali ke Gallery
+              Back to Gallery
             </Button>
           </Box>
         )}
@@ -1530,10 +1363,10 @@ export default function ImageEditorPage() {
               <Stack spacing={3}>
                 <Box>
                   <Typography variant="h6" sx={{ ...F, fontWeight: 800, color: "#0f172a", lineHeight: 1 }}>
-                    Input Editor
+                    Image Editor
                   </Typography>
                   <Typography sx={{ ...F, fontSize: "0.82rem", color: "#64748b", mt: "2px" }}>
-                    Upload gambar & isi prompt untuk diedit AI
+                    Upload image & enter prompt for AI editing
                   </Typography>
                 </Box>
 
@@ -1541,7 +1374,7 @@ export default function ImageEditorPage() {
 
                 <Box>
                   <Typography sx={{ ...F, fontWeight: 700, fontSize: "0.83rem", color: "#1e293b", mb: 1.2 }}>
-                    Upload Gambar
+                    Upload Image
                   </Typography>
                   <Paper
                     variant="outlined"
@@ -1570,8 +1403,8 @@ export default function ImageEditorPage() {
                         <CloudUploadIcon sx={{ fontSize: 26, color: dragActive ? "#fff" : "#233971", transition: "color 0.25s" }} />
                       </Box>
                       <Box textAlign="center">
-                        <Typography sx={{ ...F, fontWeight: 700, fontSize: "0.9rem", color: "#1e293b" }}>Upload image untuk mulai edit</Typography>
-                        <Typography sx={{ ...F, fontSize: "0.78rem", color: "#94a3b8" }}>Drag & drop atau klik · PNG · JPG · WEBP · Max 4 gambar</Typography>
+                        <Typography sx={{ ...F, fontWeight: 700, fontSize: "0.9rem", color: "#1e293b" }}>Upload image to start editing</Typography>
+                        <Typography sx={{ ...F, fontSize: "0.78rem", color: "#94a3b8" }}>Drag & drop or click · PNG · JPG · WEBP · Max 4 images</Typography>
                       </Box>
                       <Button
                         variant="contained"
@@ -1596,7 +1429,7 @@ export default function ImageEditorPage() {
                           transition: "all 0.2s ease",
                         }}
                       >
-                        Pilih Gambar
+                        Select Image
                         <input
                           ref={fileInputRef}
                           hidden
@@ -1620,7 +1453,7 @@ export default function ImageEditorPage() {
                             "& .MuiAlert-icon": { color: "#233971" },
                           }}
                         >
-                          <strong>{files.length}</strong> gambar dipilih{files.length === 1 ? "" : " · multi upload aktif"}
+                          <strong>{files.length}</strong> image{files.length === 1 ? "" : "s"} selected{files.length === 1 ? "" : " · multi upload active"}
                         </Alert>
                       )}
                     </Stack>
@@ -1651,7 +1484,7 @@ export default function ImageEditorPage() {
                       options: BATCH_OPTIONS,
                       icon: <LayersRoundedIcon sx={{ color: "#233971", mr: 1, fontSize: 18 }} />,
                       accentColor: "#233971",
-                      helper: isSingleSourceMode ? "" : "Saat multi upload, tiap file diproses 1 hasil",
+                      helper: isSingleSourceMode ? "" : "In multi upload mode, each file produces 1 result",
                     },
                     {
                       label: "Aspect Ratio",
@@ -1705,8 +1538,8 @@ export default function ImageEditorPage() {
 
                 <Box>
                   <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1.5}>
-                    <Typography sx={{ ...F, fontWeight: 700, fontSize: "0.83rem", color: "#1e293b" }}>Preset Prompt</Typography>
-                    <Typography sx={{ ...F, fontSize: "0.75rem", color: "#94a3b8" }}>Klik preset → isi prompt otomatis</Typography>
+                    <Typography sx={{ ...F, fontWeight: 700, fontSize: "0.83rem", color: "#1e293b" }}>Prompt Presets</Typography>
+                    <Typography sx={{ ...F, fontSize: "0.75rem", color: "#94a3b8" }}>Click preset → auto-fill prompt</Typography>
                   </Stack>
                   <Stack spacing={1.5}>
                     {grouped.map(({ group, meta, items }) => (
@@ -1760,10 +1593,10 @@ export default function ImageEditorPage() {
 
                 <Box>
                   <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
-                    <Typography sx={{ ...F, fontWeight: 700, fontSize: "0.83rem", color: "#1e293b" }}>Prompt Edit</Typography>
+                    <Typography sx={{ ...F, fontWeight: 700, fontSize: "0.83rem", color: "#1e293b" }}>Edit Prompt</Typography>
                     <Stack direction="row" spacing={1} alignItems="center">
-                      <Typography sx={{ ...F, fontSize: "0.74rem", color: "#94a3b8" }}>{buildFinalPrompt().length} karakter</Typography>
-                      <Tooltip title={copied ? "Tersalin!" : "Copy prompt"}>
+                      <Typography sx={{ ...F, fontSize: "0.74rem", color: "#94a3b8" }}>{buildFinalPrompt().length} chars</Typography>
+                      <Tooltip title={copied ? "Copied!" : "Copy prompt"}>
                         <span>
                           <IconButton
                             size="small"
@@ -1799,7 +1632,7 @@ export default function ImageEditorPage() {
                     <textarea
                       value={prompt}
                       onChange={(e) => setPrompt(e.target.value)}
-                      placeholder="Contoh: Rotate the product to a left-side view and keep the exact same identity, lighting, and background."
+                      placeholder="Example: Rotate the product to a left-side view and keep the exact same identity, lighting, and background."
                       rows={6}
                       style={{
                         display: "block",
@@ -1892,7 +1725,7 @@ export default function ImageEditorPage() {
                       }}
                     />
                     <Typography sx={{ ...F, fontSize: "0.78rem", color: "#233971", mt: 0.8, fontWeight: 500 }}>
-                      Sedang memproses gambar…
+                      Processing image…
                     </Typography>
                   </Box>
                 )}
@@ -1928,7 +1761,7 @@ export default function ImageEditorPage() {
                     Preview Result
                   </Typography>
                   <Typography sx={{ ...F, fontSize: "0.82rem", color: "#64748b", mt: "2px" }}>
-                    Bandingkan before & after — klik gambar untuk preview penuh
+                    Compare before & after — click image to preview full size
                   </Typography>
                 </Box>
 
@@ -1990,7 +1823,7 @@ export default function ImageEditorPage() {
                           <ImageIcon sx={{ fontSize: 24, color: "#7a9bd4" }} />
                         </Box>
                         <Typography sx={{ ...F, fontSize: "0.82rem", color: "#94a3b8", fontWeight: 500 }}>
-                          Belum ada gambar upload
+                          No image uploaded yet
                         </Typography>
                       </Stack>
                     )}
@@ -2035,12 +1868,12 @@ export default function ImageEditorPage() {
                       <Stack direction="row" spacing={0.8} alignItems="center">
                         <AddPhotoAlternateIcon sx={{ fontSize: 14, color: "#2a4a9e" }} />
                         <Typography sx={{ ...F, fontWeight: 700, fontSize: "0.83rem", color: "#1e293b" }}>
-                          Gambar Referensi
+                          Reference Images
                         </Typography>
                       </Stack>
                       <Chip
                         size="small"
-                        label={`${refPreviewUrls.length} aktif`}
+                        label={`${refPreviewUrls.length} active`}
                         sx={{
                           ...F,
                           fontWeight: 700,
@@ -2149,7 +1982,7 @@ export default function ImageEditorPage() {
 
                   {resultMeta?.width && resultMeta?.height && (
                     <Typography sx={{ ...F, mt: 1, fontSize: "0.76rem", color: "#64748b", fontWeight: 600 }}>
-                      Ukuran hasil: {resultMeta.width} x {resultMeta.height}px
+                      Output size: {resultMeta.width} x {resultMeta.height}px
                     </Typography>
                   )}
 
@@ -2167,7 +2000,7 @@ export default function ImageEditorPage() {
                         }}
                       />
                       <Typography sx={{ ...F, fontSize: "0.78rem", color: "#94a3b8" }}>
-                        AI sedang memproses…
+                        AI is processing…
                       </Typography>
                     </Box>
                   )}
@@ -2176,7 +2009,7 @@ export default function ImageEditorPage() {
                 {!!batchResults.length && (
                   <Box>
                     <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1.2}>
-                      <Typography sx={{ ...F, fontWeight: 700, fontSize: "0.83rem", color: "#1e293b" }}>Hasil Batch</Typography>
+                      <Typography sx={{ ...F, fontWeight: 700, fontSize: "0.83rem", color: "#1e293b" }}>Batch Results</Typography>
                       <Chip
                         size="small"
                         label={`${batchResults.length} result`}
@@ -2237,7 +2070,7 @@ export default function ImageEditorPage() {
                     transition: "all 0.25s ease",
                   }}
                 >
-                  Download Hasil
+                  Download Result
                 </Button>
               </Stack>
             </CardContent>
