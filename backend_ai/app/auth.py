@@ -8,6 +8,7 @@ JWT_SECRET        = os.getenv("JWT_SECRET", "")
 JWT_ALGORITHM     = "HS256"
 FRAMELENS_APP_KEY = os.getenv("FRAMELENS_APP_KEY", "framelens")
 PILARGROUP_API_URL = os.getenv("PILARGROUP_API_URL", "https://pilargroup.id/api")
+APP_ENV           = os.getenv("APP_ENV", "production")
 
 security = HTTPBearer()
 
@@ -38,7 +39,10 @@ async def verify_token(
     if FRAMELENS_APP_KEY not in apps:
         raise HTTPException(status_code=403, detail="Akun kamu tidak punya akses ke Framelens.")
 
-    # 3. Verify ke pilargroup — cek token_version / force logout
+    # 3. Verify ke pilargroup — skip saat local dev (APP_ENV=local)
+    if APP_ENV == "local":
+        return payload
+
     try:
         async with httpx.AsyncClient(timeout=5.0) as client:
             res = await client.get(
