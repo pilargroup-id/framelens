@@ -1242,12 +1242,22 @@ function DatePickerBox({ label, value, onChange }) {
                                 <Tooltip title="Delete image" placement="top">
                                   <button
                                     type="button"
-                                    className="users-table__accordion-button users-table__accordion-button--danger"
-                                    style={{ padding:"0.45rem 0.55rem", gap:0, flexShrink:0, minHeight:"32px" }}
+                                    style={{
+                                      width:"32px", height:"32px", minWidth:"32px",
+                                      display:"flex", alignItems:"center", justifyContent:"center",
+                                      flexShrink:0, padding:0,
+                                      borderRadius:"8px",
+                                      border:"1.5px solid rgba(239,68,68,0.38)",
+                                      background:"rgba(239,68,68,0.06)",
+                                      color:"#ef4444", cursor:"pointer",
+                                      transition:"background 0.15s, border-color 0.15s",
+                                    }}
+                                    onMouseEnter={e=>{ e.currentTarget.style.background="rgba(239,68,68,0.14)"; e.currentTarget.style.borderColor="rgba(239,68,68,0.6)"; }}
+                                    onMouseLeave={e=>{ e.currentTarget.style.background="rgba(239,68,68,0.06)"; e.currentTarget.style.borderColor="rgba(239,68,68,0.38)"; }}
                                     onClick={()=>openConfirm("single", item.id)}
                                     aria-label="Delete image"
                                   >
-                                    <DeleteOutlineRoundedIcon style={{ fontSize:15 }}/>
+                                    <DeleteOutlineRoundedIcon style={{ fontSize:15, pointerEvents:"none" }}/>
                                   </button>
                                 </Tooltip>
                               </div>
