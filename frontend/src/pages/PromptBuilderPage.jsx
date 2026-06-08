@@ -15,8 +15,10 @@ import {
   TextField,
   Typography,
   Tooltip,
+  Collapse,
 } from "@mui/material"
 import AutoFixHighRoundedIcon from "@mui/icons-material/AutoFixHighRounded"
+import CloseRoundedIcon from "@mui/icons-material/CloseRounded"
 import PaletteRoundedIcon from "@mui/icons-material/PaletteRounded"
 import AddRoundedIcon from "@mui/icons-material/AddRounded"
 import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded"
@@ -119,6 +121,40 @@ const inputSx = {
 const sectionLabel = { ...F, fontWeight: 700, fontSize: "0.83rem", color: "#1e293b" }
 const sectionSub   = { ...F, fontSize: "0.78rem", color: "#64748b" }
 
+function SectionHeader({ label, chip, sectionKey, isHidden, onToggle, children }) {
+  return (
+    <Stack direction="row" justifyContent="space-between" alignItems="center" mb={isHidden ? 0 : 1.5}>
+      <Stack direction="row" spacing={1} alignItems="center">
+        <Typography sx={sectionLabel}>{label}</Typography>
+        {chip && !isHidden && chip}
+      </Stack>
+      <Stack direction="row" spacing={0.8} alignItems="center">
+        {children}
+        <Tooltip title={isHidden ? `Tambahkan kembali ${label}` : `Hapus ${label} dari prompt`}>
+          <IconButton
+            size="small"
+            onClick={() => onToggle(sectionKey)}
+            sx={{
+              width: 24, height: 24,
+              borderRadius: "8px",
+              border: isHidden ? "1.5px solid rgba(35,57,113,0.35)" : "1.5px solid rgba(239,68,68,0.3)",
+              color: isHidden ? "#233971" : "#ef4444",
+              background: isHidden ? "rgba(35,57,113,0.06)" : "rgba(239,68,68,0.05)",
+              "&:hover": {
+                background: isHidden ? "rgba(35,57,113,0.12)" : "rgba(239,68,68,0.1)",
+                borderColor: isHidden ? "#233971" : "#ef4444",
+              },
+              "& svg": { fontSize: "14px !important" },
+            }}
+          >
+            {isHidden ? <AddRoundedIcon /> : <CloseRoundedIcon />}
+          </IconButton>
+        </Tooltip>
+      </Stack>
+    </Stack>
+  )
+}
+
 const VIEW_ANGLES    = ["Front View", "Side View", "Back View", "3/4 View", "Top View", "Isometric"]
 const ASPECT_RATIOS  = ["1:1", "4:3", "16:9", "9:16", "3:4", "2:3"]
 const LIGHTING_TYPES = ["Premium Dramatic Lighting", "Soft Natural Lighting", "Studio Lighting", "Golden Hour", "High-Key Lighting", "Low-Key Lighting"]
@@ -205,6 +241,14 @@ export default function PromptBuilderPage() {
   const [newTarget, setNewTarget]   = useState("")
   const [newElement, setNewEl]      = useState("")
   const [newUsp, setNewUsp]         = useState("")
+  const [hidden, setHidden]         = useState(new Set())
+
+  const toggleHide = (key) => setHidden(prev => {
+    const next = new Set(prev)
+    next.has(key) ? next.delete(key) : next.add(key)
+    return next
+  })
+  const isHidden = (key) => hidden.has(key)
 
   const set = (path, value) => {
     setData(prev => {
@@ -217,7 +261,15 @@ export default function PromptBuilderPage() {
     })
   }
 
-  const generateOutput = () => JSON.stringify(data, null, 2) + "\n\n" + instructions
+  const SECTION_KEYS = ["design_analysis", "product", "target_market", "layout", "background", "product_display", "headline_section", "usp_section", "color_palette", "visual_effects", "visual_priority", "design_formula", "rendering_style"]
+
+  const generateOutput = () => {
+    const filtered = Object.fromEntries(
+      Object.entries(data).filter(([k]) => !hidden.has(k))
+    )
+    const extras = instructions.trim() ? "\n\n" + instructions : ""
+    return JSON.stringify(filtered, null, 2) + extras
+  }
 
   const handleCopy = () => {
     navigator.clipboard.writeText(generateOutput())
@@ -267,151 +319,156 @@ export default function PromptBuilderPage() {
 
                 <Divider sx={{ borderColor: "rgba(35,57,113,0.12)" }} />
 
-                {/* ── Informasi Desain ── */}
+                {/* ── Design Info ── */}
                 <Box>
-                  <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1.5}>
-                    <Typography sx={sectionLabel}>Design Info</Typography>
-                    <Chip size="small" label="Design" sx={{ ...F, fontWeight: 700, fontSize: "0.7rem", borderRadius: "999px", background: "rgba(35,57,113,0.08)", color: "#233971", border: "1px solid rgba(35,57,113,0.22)" }} />
-                  </Stack>
-                  <Stack spacing={1.5}>
-                    <TextField select fullWidth label="Design Type" size="small" value={data.design_analysis.design_type} onChange={e => set("design_analysis.design_type", e.target.value)} sx={inputSx}>
-                      {DESIGN_TYPES.map(v => <MenuItem key={v} value={v} sx={F}>{v}</MenuItem>)}
-                    </TextField>
-                    <Stack direction="row" spacing={1.5}>
-                      <TextField select fullWidth label="Aspect Ratio" size="small" value={data.design_analysis.aspect_ratio} onChange={e => set("design_analysis.aspect_ratio", e.target.value)} sx={inputSx}>
-                        {ASPECT_RATIOS.map(v => <MenuItem key={v} value={v} sx={F}>{v}</MenuItem>)}
+                  <SectionHeader label="Design Info" sectionKey="design_analysis" isHidden={isHidden("design_analysis")} onToggle={toggleHide}
+                    chip={<Chip size="small" label="Design" sx={{ ...F, fontWeight: 700, fontSize: "0.7rem", borderRadius: "999px", background: "rgba(35,57,113,0.08)", color: "#233971", border: "1px solid rgba(35,57,113,0.22)" }} />}
+                  />
+                  <Collapse in={!isHidden("design_analysis")}>
+                    <Stack spacing={1.5}>
+                      <TextField select fullWidth label="Design Type" size="small" value={data.design_analysis.design_type} onChange={e => set("design_analysis.design_type", e.target.value)} sx={inputSx}>
+                        {DESIGN_TYPES.map(v => <MenuItem key={v} value={v} sx={F}>{v}</MenuItem>)}
                       </TextField>
-                      <TextField fullWidth label="Visual Style" size="small" value={data.design_analysis.visual_style} onChange={e => set("design_analysis.visual_style", e.target.value)} sx={inputSx} />
-                    </Stack>
-                  </Stack>
-                </Box>
-
-                <Divider sx={{ borderColor: "rgba(35,57,113,0.12)" }} />
-
-                {/* ── Informasi Produk ── */}
-                <Box>
-                  <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1.5}>
-                    <Typography sx={sectionLabel}>Product Info</Typography>
-                    <Chip size="small" label="Product" sx={{ ...F, fontWeight: 700, fontSize: "0.7rem", borderRadius: "999px", background: "rgba(35,57,113,0.08)", color: "#233971", border: "1px solid rgba(35,57,113,0.22)" }} />
-                  </Stack>
-                  <Stack spacing={1.5}>
-                    <TextField fullWidth label="Product Name" size="small" value={data.product.name} onChange={e => set("product.name", e.target.value)} helperText="Write in capitals. Example: VIZOR SAFETY VEST" sx={inputSx} />
-                    <Stack direction="row" spacing={1.5}>
-                      <TextField fullWidth label="Product Category" size="small" value={data.product.category} onChange={e => set("product.category", e.target.value)} sx={inputSx} />
-                      <TextField select fullWidth label="View Angle" size="small" value={data.product.view_angle} onChange={e => set("product.view_angle", e.target.value)} sx={inputSx}>
-                        {VIEW_ANGLES.map(v => <MenuItem key={v} value={v} sx={F}>{v}</MenuItem>)}
-                      </TextField>
-                    </Stack>
-                  </Stack>
-                </Box>
-
-                <Divider sx={{ borderColor: "rgba(35,57,113,0.12)" }} />
-
-                {/* ── Headline & Teks ── */}
-                <Box>
-                  <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1.5}>
-                    <Typography sx={sectionLabel}>Headline & Text</Typography>
-                    <Chip size="small" label="Text" sx={{ ...F, fontWeight: 700, fontSize: "0.7rem", borderRadius: "999px", background: "rgba(35,57,113,0.08)", color: "#233971", border: "1px solid rgba(35,57,113,0.22)" }} />
-                  </Stack>
-                  <Stack spacing={1.5}>
-                    <Box>
-                      <Typography sx={{ ...sectionSub, mb: 0.8 }}>Main Title Text</Typography>
-                      <Stack direction="row" spacing={1.5} alignItems="center">
-                        <TextField fullWidth size="small" placeholder="Example: VIZOR SAFETY VEST" value={data.headline_section.hierarchy.product_name.text} onChange={e => set("headline_section.hierarchy.product_name.text", e.target.value)} sx={inputSx} />
-                        <Box sx={{ flexShrink: 0 }}>
-                          <Typography sx={{ ...sectionSub, mb: 0.5, fontSize: "0.72rem" }}>Color</Typography>
-                          <Box sx={{ position: "relative", width: 46, height: 34, borderRadius: "10px", border: "1.5px solid rgba(35,57,113,0.25)", overflow: "hidden", cursor: "pointer", boxShadow: "0 2px 6px rgba(35,57,113,0.12)", "&:hover": { borderColor: "rgba(35,57,113,0.45)" } }}>
-                            <input type="color" value={data.headline_section.hierarchy.product_name.color} onChange={e => set("headline_section.hierarchy.product_name.color", e.target.value)}
-                              style={{ position: "absolute", inset: "-4px", width: "calc(100% + 8px)", height: "calc(100% + 8px)", border: "none", cursor: "pointer", padding: 0 }} />
-                          </Box>
-                        </Box>
+                      <Stack direction="row" spacing={1.5}>
+                        <TextField select fullWidth label="Aspect Ratio" size="small" value={data.design_analysis.aspect_ratio} onChange={e => set("design_analysis.aspect_ratio", e.target.value)} sx={inputSx}>
+                          {ASPECT_RATIOS.map(v => <MenuItem key={v} value={v} sx={F}>{v}</MenuItem>)}
+                        </TextField>
+                        <TextField fullWidth label="Visual Style" size="small" value={data.design_analysis.visual_style} onChange={e => set("design_analysis.visual_style", e.target.value)} sx={inputSx} />
                       </Stack>
-                    </Box>
-                    <Box>
-                      <Typography sx={{ ...sectionSub, mb: 0.8 }}>Tagline / Headline</Typography>
-                      <Stack direction="row" spacing={1.5} alignItems="center">
-                        <TextField fullWidth size="small" placeholder="Example: High Visibility, Safety Assured" value={data.headline_section.hierarchy.headline.text} onChange={e => set("headline_section.hierarchy.headline.text", e.target.value)} sx={inputSx} />
-                        <Box sx={{ flexShrink: 0 }}>
-                          <Typography sx={{ ...sectionSub, mb: 0.5, fontSize: "0.72rem" }}>Color</Typography>
-                          <Box sx={{ position: "relative", width: 46, height: 34, borderRadius: "10px", border: "1.5px solid rgba(35,57,113,0.25)", overflow: "hidden", cursor: "pointer", boxShadow: "0 2px 6px rgba(35,57,113,0.12)", "&:hover": { borderColor: "rgba(35,57,113,0.45)" } }}>
-                            <input type="color" value={data.headline_section.hierarchy.headline.color} onChange={e => set("headline_section.hierarchy.headline.color", e.target.value)}
-                              style={{ position: "absolute", inset: "-4px", width: "calc(100% + 8px)", height: "calc(100% + 8px)", border: "none", cursor: "pointer", padding: 0 }} />
-                          </Box>
-                        </Box>
-                      </Stack>
-                    </Box>
-                  </Stack>
-                </Box>
-
-                <Divider sx={{ borderColor: "rgba(35,57,113,0.12)" }} />
-
-                {/* ── Target Pasar ── */}
-                <Box>
-                  <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1.5}>
-                    <Typography sx={sectionLabel}>Target Market</Typography>
-                    <Typography sx={{ ...sectionSub, fontSize: "0.75rem" }}>{data.target_market.length} active targets</Typography>
-                  </Stack>
-                  <Box sx={{ display: "flex", flexWrap: "wrap", gap: "6px", mb: 1.5 }}>
-                    {data.target_market.map((t, i) => (
-                      <Chip key={i} label={t} onDelete={() => rmTarget(i)} size="small"
-                        sx={{ borderRadius: "999px", ...F, fontWeight: 600, fontSize: "0.73rem", background: "rgba(35,57,113,0.08)", color: "#233971", border: "1px solid rgba(35,57,113,0.22)", "& .MuiChip-deleteIcon": { color: "rgba(35,57,113,0.45)", "&:hover": { color: "#233971" } } }} />
-                    ))}
-                  </Box>
-                  <Stack direction="row" spacing={1}>
-                    <Box sx={{ flex: 1, borderRadius: "14px", border: "1.5px solid rgba(35,57,113,0.22)", background: "rgba(255,255,255,0.72)", backdropFilter: "blur(8px)", "&:focus-within": { borderColor: "#233971", boxShadow: "0 0 0 3px rgba(35,57,113,0.10)" }, overflow: "hidden" }}>
-                      <input value={newTarget} onChange={e => setNewTarget(e.target.value)} onKeyDown={e => e.key === "Enter" && addTarget()} placeholder="Add target market..." style={{ display: "block", width: "100%", boxSizing: "border-box", padding: "9px 14px", fontFamily: "Sora,sans-serif", fontSize: "14px", color: "#1e293b", background: "transparent", border: "none", outline: "none" }} />
-                    </Box>
-                    <Button variant="contained" onClick={addTarget} sx={{ borderRadius: "14px", minWidth: 42, px: 1.5, background: "linear-gradient(135deg,#233971,#2e4fa3)", boxShadow: "0 4px 12px rgba(35,57,113,0.32)", "&:hover": { background: "linear-gradient(135deg,#1a2d5a,#233971)", transform: "translateY(-1px)" }, transition: "all 0.2s" }}>
-                      <AddRoundedIcon />
-                    </Button>
-                  </Stack>
-                </Box>
-
-                <Divider sx={{ borderColor: "rgba(35,57,113,0.12)" }} />
-
-                {/* ── Latar Belakang ── */}
-                <Box>
-                  <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1.5}>
-                    <Typography sx={sectionLabel}>Background</Typography>
-                    <Chip size="small" label="Background" sx={{ ...F, fontWeight: 700, fontSize: "0.7rem", borderRadius: "999px", background: "rgba(35,57,113,0.08)", color: "#233971", border: "1px solid rgba(35,57,113,0.22)" }} />
-                  </Stack>
-                  <Stack spacing={1.5}>
-                    <Stack direction="row" spacing={1.5}>
-                      <TextField fullWidth label="Background Style" size="small" value={data.background.style} onChange={e => set("background.style", e.target.value)} sx={inputSx} />
-                      <TextField fullWidth label="Theme" size="small" value={data.background.theme} onChange={e => set("background.theme", e.target.value)} sx={inputSx} />
                     </Stack>
-                    <TextField select fullWidth label="Lighting" size="small" value={data.background.lighting} onChange={e => set("background.lighting", e.target.value)} sx={inputSx}>
-                      {LIGHTING_TYPES.map(v => <MenuItem key={v} value={v} sx={F}>{v}</MenuItem>)}
-                    </TextField>
-                    <Box>
-                      <Typography sx={{ ...sectionSub, mb: 1 }}>Background Elements</Typography>
-                      <Box sx={{ display: "flex", flexWrap: "wrap", gap: "6px", mb: 1.2 }}>
-                        {data.background.elements.map((el, i) => (
-                          <Chip key={i} label={el} onDelete={() => rmElement(i)} size="small"
-                            sx={{ borderRadius: "999px", ...F, fontWeight: 600, fontSize: "0.73rem", background: "rgba(22,101,52,0.08)", color: "#166534", border: "1px solid rgba(22,101,52,0.22)", "& .MuiChip-deleteIcon": { color: "rgba(22,101,52,0.45)", "&:hover": { color: "#166534" } } }} />
-                        ))}
+                  </Collapse>
+                </Box>
+
+                <Divider sx={{ borderColor: "rgba(35,57,113,0.12)" }} />
+
+                {/* ── Product Info ── */}
+                <Box>
+                  <SectionHeader label="Product Info" sectionKey="product" isHidden={isHidden("product")} onToggle={toggleHide}
+                    chip={<Chip size="small" label="Product" sx={{ ...F, fontWeight: 700, fontSize: "0.7rem", borderRadius: "999px", background: "rgba(35,57,113,0.08)", color: "#233971", border: "1px solid rgba(35,57,113,0.22)" }} />}
+                  />
+                  <Collapse in={!isHidden("product")}>
+                    <Stack spacing={1.5}>
+                      <TextField fullWidth label="Product Name" size="small" value={data.product.name} onChange={e => set("product.name", e.target.value)} helperText="Write in capitals. Example: VIZOR SAFETY VEST" sx={inputSx} />
+                      <Stack direction="row" spacing={1.5}>
+                        <TextField fullWidth label="Product Category" size="small" value={data.product.category} onChange={e => set("product.category", e.target.value)} sx={inputSx} />
+                        <TextField select fullWidth label="View Angle" size="small" value={data.product.view_angle} onChange={e => set("product.view_angle", e.target.value)} sx={inputSx}>
+                          {VIEW_ANGLES.map(v => <MenuItem key={v} value={v} sx={F}>{v}</MenuItem>)}
+                        </TextField>
+                      </Stack>
+                    </Stack>
+                  </Collapse>
+                </Box>
+
+                <Divider sx={{ borderColor: "rgba(35,57,113,0.12)" }} />
+
+                {/* ── Headline & Text ── */}
+                <Box>
+                  <SectionHeader label="Headline & Text" sectionKey="headline_section" isHidden={isHidden("headline_section")} onToggle={toggleHide}
+                    chip={<Chip size="small" label="Text" sx={{ ...F, fontWeight: 700, fontSize: "0.7rem", borderRadius: "999px", background: "rgba(35,57,113,0.08)", color: "#233971", border: "1px solid rgba(35,57,113,0.22)" }} />}
+                  />
+                  <Collapse in={!isHidden("headline_section")}>
+                    <Stack spacing={1.5}>
+                      <Box>
+                        <Typography sx={{ ...sectionSub, mb: 0.8 }}>Main Title Text</Typography>
+                        <Stack direction="row" spacing={1.5} alignItems="center">
+                          <TextField fullWidth size="small" placeholder="Example: VIZOR SAFETY VEST" value={data.headline_section.hierarchy.product_name.text} onChange={e => set("headline_section.hierarchy.product_name.text", e.target.value)} sx={inputSx} />
+                          <Box sx={{ flexShrink: 0 }}>
+                            <Typography sx={{ ...sectionSub, mb: 0.5, fontSize: "0.72rem" }}>Color</Typography>
+                            <Box sx={{ position: "relative", width: 46, height: 34, borderRadius: "10px", border: "1.5px solid rgba(35,57,113,0.25)", overflow: "hidden", cursor: "pointer", boxShadow: "0 2px 6px rgba(35,57,113,0.12)", "&:hover": { borderColor: "rgba(35,57,113,0.45)" } }}>
+                              <input type="color" value={data.headline_section.hierarchy.product_name.color} onChange={e => set("headline_section.hierarchy.product_name.color", e.target.value)}
+                                style={{ position: "absolute", inset: "-4px", width: "calc(100% + 8px)", height: "calc(100% + 8px)", border: "none", cursor: "pointer", padding: 0 }} />
+                            </Box>
+                          </Box>
+                        </Stack>
                       </Box>
-                      <Stack direction="row" spacing={1}>
-                        <Box sx={{ flex: 1, borderRadius: "14px", border: "1.5px solid rgba(35,57,113,0.22)", background: "rgba(255,255,255,0.72)", backdropFilter: "blur(8px)", "&:focus-within": { borderColor: "#233971", boxShadow: "0 0 0 3px rgba(35,57,113,0.10)" }, overflow: "hidden" }}>
-                          <input value={newElement} onChange={e => setNewEl(e.target.value)} onKeyDown={e => e.key === "Enter" && addElement()} placeholder="Example: Scaffolding, Heavy Equipment..." style={{ display: "block", width: "100%", boxSizing: "border-box", padding: "9px 14px", fontFamily: "Sora,sans-serif", fontSize: "14px", color: "#1e293b", background: "transparent", border: "none", outline: "none" }} />
-                        </Box>
-                        <Button variant="contained" onClick={addElement} sx={{ borderRadius: "14px", minWidth: 42, px: 1.5, background: "linear-gradient(135deg,#166534,#16a34a)", boxShadow: "0 4px 12px rgba(22,101,52,0.28)", "&:hover": { background: "linear-gradient(135deg,#14532d,#166534)", transform: "translateY(-1px)" }, transition: "all 0.2s" }}>
-                          <AddRoundedIcon />
-                        </Button>
-                      </Stack>
-                    </Box>
-                    <TextField fullWidth multiline rows={2} label="Background Purpose" size="small" value={data.background.purpose} onChange={e => set("background.purpose", e.target.value)} sx={inputSx} />
-                  </Stack>
+                      <Box>
+                        <Typography sx={{ ...sectionSub, mb: 0.8 }}>Tagline / Headline</Typography>
+                        <Stack direction="row" spacing={1.5} alignItems="center">
+                          <TextField fullWidth size="small" placeholder="Example: High Visibility, Safety Assured" value={data.headline_section.hierarchy.headline.text} onChange={e => set("headline_section.hierarchy.headline.text", e.target.value)} sx={inputSx} />
+                          <Box sx={{ flexShrink: 0 }}>
+                            <Typography sx={{ ...sectionSub, mb: 0.5, fontSize: "0.72rem" }}>Color</Typography>
+                            <Box sx={{ position: "relative", width: 46, height: 34, borderRadius: "10px", border: "1.5px solid rgba(35,57,113,0.25)", overflow: "hidden", cursor: "pointer", boxShadow: "0 2px 6px rgba(35,57,113,0.12)", "&:hover": { borderColor: "rgba(35,57,113,0.45)" } }}>
+                              <input type="color" value={data.headline_section.hierarchy.headline.color} onChange={e => set("headline_section.hierarchy.headline.color", e.target.value)}
+                                style={{ position: "absolute", inset: "-4px", width: "calc(100% + 8px)", height: "calc(100% + 8px)", border: "none", cursor: "pointer", padding: 0 }} />
+                            </Box>
+                          </Box>
+                        </Stack>
+                      </Box>
+                    </Stack>
+                  </Collapse>
                 </Box>
 
                 <Divider sx={{ borderColor: "rgba(35,57,113,0.12)" }} />
 
-                {/* ── Fitur USP ── */}
+                {/* ── Target Market ── */}
                 <Box>
-                  <Stack direction="row" justifyContent="space-between" alignItems="center" mb={0.5}>
-                    <Typography sx={sectionLabel}>Key Features (USP)</Typography>
-                    <Typography sx={{ ...sectionSub, fontSize: "0.75rem" }}>{data.usp_section.items.length} features</Typography>
-                  </Stack>
+                  <SectionHeader label="Target Market" sectionKey="target_market" isHidden={isHidden("target_market")} onToggle={toggleHide}>
+                    {!isHidden("target_market") && <Typography sx={{ ...sectionSub, fontSize: "0.75rem" }}>{data.target_market.length} active</Typography>}
+                  </SectionHeader>
+                  <Collapse in={!isHidden("target_market")}>
+                    <Box sx={{ display: "flex", flexWrap: "wrap", gap: "6px", mb: 1.5 }}>
+                      {data.target_market.map((t, i) => (
+                        <Chip key={i} label={t} onDelete={() => rmTarget(i)} size="small"
+                          sx={{ borderRadius: "999px", ...F, fontWeight: 600, fontSize: "0.73rem", background: "rgba(35,57,113,0.08)", color: "#233971", border: "1px solid rgba(35,57,113,0.22)", "& .MuiChip-deleteIcon": { color: "rgba(35,57,113,0.45)", "&:hover": { color: "#233971" } } }} />
+                      ))}
+                    </Box>
+                    <Stack direction="row" spacing={1}>
+                      <Box sx={{ flex: 1, borderRadius: "14px", border: "1.5px solid rgba(35,57,113,0.22)", background: "rgba(255,255,255,0.72)", backdropFilter: "blur(8px)", "&:focus-within": { borderColor: "#233971", boxShadow: "0 0 0 3px rgba(35,57,113,0.10)" }, overflow: "hidden" }}>
+                        <input value={newTarget} onChange={e => setNewTarget(e.target.value)} onKeyDown={e => e.key === "Enter" && addTarget()} placeholder="Add target market..." style={{ display: "block", width: "100%", boxSizing: "border-box", padding: "9px 14px", fontFamily: "Sora,sans-serif", fontSize: "14px", color: "#1e293b", background: "transparent", border: "none", outline: "none" }} />
+                      </Box>
+                      <Button variant="contained" onClick={addTarget} sx={{ borderRadius: "14px", minWidth: 42, px: 1.5, background: "linear-gradient(135deg,#233971,#2e4fa3)", boxShadow: "0 4px 12px rgba(35,57,113,0.32)", "&:hover": { background: "linear-gradient(135deg,#1a2d5a,#233971)", transform: "translateY(-1px)" }, transition: "all 0.2s" }}>
+                        <AddRoundedIcon />
+                      </Button>
+                    </Stack>
+                  </Collapse>
+                </Box>
+
+                <Divider sx={{ borderColor: "rgba(35,57,113,0.12)" }} />
+
+                {/* ── Background ── */}
+                <Box>
+                  <SectionHeader label="Background" sectionKey="background" isHidden={isHidden("background")} onToggle={toggleHide}
+                    chip={<Chip size="small" label="Background" sx={{ ...F, fontWeight: 700, fontSize: "0.7rem", borderRadius: "999px", background: "rgba(35,57,113,0.08)", color: "#233971", border: "1px solid rgba(35,57,113,0.22)" }} />}
+                  />
+                  <Collapse in={!isHidden("background")}>
+                    <Stack spacing={1.5}>
+                      <Stack direction="row" spacing={1.5}>
+                        <TextField fullWidth label="Background Style" size="small" value={data.background.style} onChange={e => set("background.style", e.target.value)} sx={inputSx} />
+                        <TextField fullWidth label="Theme" size="small" value={data.background.theme} onChange={e => set("background.theme", e.target.value)} sx={inputSx} />
+                      </Stack>
+                      <TextField select fullWidth label="Lighting" size="small" value={data.background.lighting} onChange={e => set("background.lighting", e.target.value)} sx={inputSx}>
+                        {LIGHTING_TYPES.map(v => <MenuItem key={v} value={v} sx={F}>{v}</MenuItem>)}
+                      </TextField>
+                      <Box>
+                        <Typography sx={{ ...sectionSub, mb: 1 }}>Background Elements</Typography>
+                        <Box sx={{ display: "flex", flexWrap: "wrap", gap: "6px", mb: 1.2 }}>
+                          {data.background.elements.map((el, i) => (
+                            <Chip key={i} label={el} onDelete={() => rmElement(i)} size="small"
+                              sx={{ borderRadius: "999px", ...F, fontWeight: 600, fontSize: "0.73rem", background: "rgba(22,101,52,0.08)", color: "#166534", border: "1px solid rgba(22,101,52,0.22)", "& .MuiChip-deleteIcon": { color: "rgba(22,101,52,0.45)", "&:hover": { color: "#166534" } } }} />
+                          ))}
+                        </Box>
+                        <Stack direction="row" spacing={1}>
+                          <Box sx={{ flex: 1, borderRadius: "14px", border: "1.5px solid rgba(35,57,113,0.22)", background: "rgba(255,255,255,0.72)", backdropFilter: "blur(8px)", "&:focus-within": { borderColor: "#233971", boxShadow: "0 0 0 3px rgba(35,57,113,0.10)" }, overflow: "hidden" }}>
+                            <input value={newElement} onChange={e => setNewEl(e.target.value)} onKeyDown={e => e.key === "Enter" && addElement()} placeholder="Example: Scaffolding, Heavy Equipment..." style={{ display: "block", width: "100%", boxSizing: "border-box", padding: "9px 14px", fontFamily: "Sora,sans-serif", fontSize: "14px", color: "#1e293b", background: "transparent", border: "none", outline: "none" }} />
+                          </Box>
+                          <Button variant="contained" onClick={addElement} sx={{ borderRadius: "14px", minWidth: 42, px: 1.5, background: "linear-gradient(135deg,#166534,#16a34a)", boxShadow: "0 4px 12px rgba(22,101,52,0.28)", "&:hover": { background: "linear-gradient(135deg,#14532d,#166534)", transform: "translateY(-1px)" }, transition: "all 0.2s" }}>
+                            <AddRoundedIcon />
+                          </Button>
+                        </Stack>
+                      </Box>
+                      <TextField fullWidth multiline rows={2} label="Background Purpose" size="small" value={data.background.purpose} onChange={e => set("background.purpose", e.target.value)} sx={inputSx} />
+                    </Stack>
+                  </Collapse>
+                </Box>
+
+                <Divider sx={{ borderColor: "rgba(35,57,113,0.12)" }} />
+
+                {/* ── Key Features (USP) ── */}
+                <Box>
+                  <SectionHeader label="Key Features (USP)" sectionKey="usp_section" isHidden={isHidden("usp_section")} onToggle={toggleHide}>
+                    {!isHidden("usp_section") && <Typography sx={{ ...sectionSub, fontSize: "0.75rem" }}>{data.usp_section.items.length} features</Typography>}
+                  </SectionHeader>
+                  <Collapse in={!isHidden("usp_section")}>
                   <Typography sx={{ ...sectionSub, mb: 1.5 }}>Displayed on the right side of the design as an icon list</Typography>
                   <Stack spacing={1.2}>
                     {data.usp_section.items.map((item, i) => (
@@ -437,6 +494,7 @@ export default function PromptBuilderPage() {
                       </Button>
                     </Stack>
                   </Stack>
+                  </Collapse>
                 </Box>
 
                 <Divider sx={{ borderColor: "rgba(35,57,113,0.12)" }} />

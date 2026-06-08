@@ -41,6 +41,8 @@
   import BlurOnIcon                     from "@mui/icons-material/BlurOn";
   import GradientIcon                   from "@mui/icons-material/Gradient";
   import EditRoundedIcon                from "@mui/icons-material/EditRounded";
+  import CreateButton from "../components/Template/button/CreateButton";
+  import "../style/templateComponents.css";
   import {
     GALLERY_DATE_FROM_PARAM_KEY,
     GALLERY_DATE_TO_PARAM_KEY,
@@ -1217,70 +1219,39 @@ function DatePickerBox({ label, value, onChange }) {
 
                         <Box sx={{ flexShrink:0 }}>
                           {!selectMode ? (
-                            <Stack spacing={0.8}>
-                              {/* Edit — baris utama, full width */}
-                              <Button
-                                size="small"
-                                variant="contained"
-                                fullWidth
-                                startIcon={<EditRoundedIcon sx={{ fontSize:"15px !important" }}/>}
+                            <div style={{ display:"grid", gap:"8px" }}>
+                              <button
+                                type="button"
+                                className="users-table-card__action"
+                                style={{ width:"100%", borderRadius:"14px", fontSize:"0.82rem", gap:"6px", fontFamily:"'Sora',sans-serif" }}
                                 onClick={()=>handleEditInEditor(item)}
-                                sx={{
-                                  ...pill({ fontSize:"12px", py:0.85, boxShadow:"none" }),
-                                  background:"linear-gradient(135deg,#1a2d5a,#233971,#2e4fa3)",
-                                  "&:hover":{ background:"linear-gradient(135deg,#0f1e3d,#1a2d5a,#233971)", boxShadow:"0 8px 20px rgba(35,57,113,0.28)" },
-                                }}
                               >
+                                <EditRoundedIcon style={{ fontSize:16, flexShrink:0 }}/>
                                 Edit &amp; Regenerate
-                              </Button>
-
-                              {/* Preview · Download · Delete — baris kedua */}
-                              <Stack direction="row" spacing={0.7} alignItems="center">
-                                <Button
-                                  size="small"
-                                  variant="outlined"
-                                  startIcon={<VisibilityRoundedIcon sx={{ fontSize:"13px !important" }}/>}
-                                  onClick={()=>openPreview(item)}
-                                  sx={{
-                                    ...pill({ fontSize:"11px", py:0.55, flex:1, minWidth:0 }),
-                                    borderColor:"rgba(35,57,113,0.25)",
-                                    color:"#233971",
-                                    "&:hover":{ borderColor:"rgba(35,57,113,0.5)", background:"rgba(35,57,113,0.05)" },
-                                  }}
-                                >
-                                  Preview
-                                </Button>
-
-                                <Button
-                                  size="small"
-                                  variant="outlined"
-                                  startIcon={<DownloadRoundedIcon sx={{ fontSize:"13px !important" }}/>}
+                              </button>
+                              <div style={{ display:"flex", gap:"7px" }}>
+                                <button
+                                  type="button"
+                                  className="users-table__accordion-button"
+                                  style={{ flex:1, fontSize:"0.78rem", gap:"5px", fontFamily:"'Sora',sans-serif" }}
                                   onClick={()=>handleDownload(item.imageUrl, item.fileName||`generated-${item.id}.png`)}
-                                  sx={{
-                                    ...pill({ fontSize:"11px", py:0.55, flex:1, minWidth:0 }),
-                                    borderColor:"rgba(35,57,113,0.25)",
-                                    color:"#233971",
-                                    "&:hover":{ borderColor:"rgba(35,57,113,0.5)", background:"rgba(35,57,113,0.05)" },
-                                  }}
                                 >
+                                  <DownloadRoundedIcon style={{ fontSize:14 }}/>
                                   Download
-                                </Button>
-
-                                <IconButton
-                                  onClick={()=>openConfirm("single", item.id)}
-                                  size="small"
-                                  color="error"
-                                  sx={{
-                                    borderRadius:"10px",
-                                    border:"1px solid #fecaca",
-                                    width:30, height:30, flexShrink:0, p:0,
-                                    "&:hover":{ background:"#fff1f2" },
-                                  }}
-                                >
-                                  <DeleteOutlineRoundedIcon sx={{ fontSize:14 }}/>
-                                </IconButton>
-                              </Stack>
-                            </Stack>
+                                </button>
+                                <Tooltip title="Delete image" placement="top">
+                                  <button
+                                    type="button"
+                                    className="users-table__accordion-button users-table__accordion-button--danger"
+                                    style={{ padding:"0.6rem 0.65rem", gap:0, flexShrink:0 }}
+                                    onClick={()=>openConfirm("single", item.id)}
+                                    aria-label="Delete image"
+                                  >
+                                    <DeleteOutlineRoundedIcon style={{ fontSize:16 }}/>
+                                  </button>
+                                </Tooltip>
+                              </div>
+                            </div>
                           ) : (
                             <Typography
                               sx={{
@@ -1406,21 +1377,33 @@ function DatePickerBox({ label, value, onChange }) {
             fullWidth
             PaperProps={{
               sx:{
-                borderRadius:"28px",
-                background:"rgba(255,255,255,0.97)",
-                backdropFilter:"blur(24px)",
-                border:"1px solid rgba(35,57,113,0.22)",
-                boxShadow:"0 32px 80px rgba(35,57,113,0.18)",
+                borderRadius:"24px",
+                background:"#ffffff",
+                overflow:"hidden",
+                border:"1px solid rgba(26,42,87,0.12)",
+                boxShadow:"0 28px 80px rgba(10,18,40,0.32)",
               }
             }}
           >
-            <DialogTitle sx={{ ...F, fontWeight:800, color:"#0f172a", pb:1, borderBottom:"1px solid rgba(226,232,240,0.6)" }}>
+            <DialogTitle sx={{
+              fontFamily:"'Manrope','Segoe UI',sans-serif",
+              fontWeight:700,
+              fontSize:"1.2rem",
+              color:"#fff",
+              background:"linear-gradient(180deg,rgba(24,43,88,1) 0%,rgba(27,55,112,0.96) 100%)",
+              borderBottom:"1px solid rgba(255,255,255,0.1)",
+              pb:1.5,
+              display:"flex",
+              alignItems:"center",
+              justifyContent:"space-between",
+            }}>
               <Stack direction="row" spacing={1.5} alignItems="center">
-                <Box sx={{ width:36, height:36, borderRadius:"11px", background:"linear-gradient(135deg,#233971,#2e4fa3)", display:"flex", alignItems:"center", justifyContent:"center" }}>
-                  <VisibilityRoundedIcon sx={{ color:"#fff", fontSize:18 }}/>
-                </Box>
+                <VisibilityRoundedIcon sx={{ color:"rgba(233,196,106,0.9)", fontSize:20 }}/>
                 Generated Image Preview
               </Stack>
+              <IconButton size="small" onClick={()=>setPreviewItem(null)} sx={{ width:32,height:32,borderRadius:"9px",border:"1px solid rgba(255,255,255,0.18)",background:"rgba(255,255,255,0.1)",color:"#fff","&:hover":{background:"rgba(255,255,255,0.18)"} }}>
+                <CloseRoundedIcon sx={{ fontSize:16 }}/>
+              </IconButton>
             </DialogTitle>
 
             <DialogContent sx={{ pt:2.5, maxHeight:"80vh", overflowY:"auto", overscrollBehavior:"contain" }}>
@@ -1639,96 +1622,63 @@ function DatePickerBox({ label, value, onChange }) {
           </Dialog>
         </Stack>
 
-        {/* ══ CONFIRM DELETE DIALOG ══ */}
-        <Dialog
-          open={confirmDialog.open}
-          onClose={closeConfirm}
-          maxWidth="xs"
-          fullWidth
-          PaperProps={{
-            sx:{
-              borderRadius:"24px",
-              background:"rgba(255,255,255,0.97)",
-              backdropFilter:"blur(24px)",
-              border:"1px solid rgba(254,202,202,0.6)",
-              boxShadow:"0 24px 60px rgba(239,68,68,0.14)",
-              m:{ xs:2, sm:"auto" },
-            }
-          }}
-        >
-          <DialogContent sx={{ p:{ xs:"28px 20px 24px", sm:"32px 32px 28px" } }}>
-            <Stack spacing={2.5} alignItems="center" textAlign="center">
-              <Box sx={{ position:"relative", width:72, height:72 }}>
-                <Box
-                  sx={{
-                    position:"absolute", inset:0,
-                    borderRadius:"50%",
-                    border:"2px dashed rgba(239,68,68,0.25)",
-                    animation:"spinSlow 8s linear infinite",
-                  }}
-                />
-                <Box
-                  sx={{
-                    width:"100%", height:"100%",
-                    borderRadius:"22px",
-                    background:"linear-gradient(135deg,rgba(239,68,68,0.10),rgba(248,113,113,0.08))",
-                    display:"flex", alignItems:"center", justifyContent:"center",
-                  }}
+        {/* ══ CONFIRM DELETE POPUP (template style) ══ */}
+        {confirmDialog.open && (
+          <div
+            className="dashboard-popup-overlay"
+            style={{ zIndex:1400 }}
+            onClick={(e) => { if (e.target === e.currentTarget) closeConfirm(); }}
+          >
+            <div className="dashboard-popup master-departments-delete-popup">
+              <div className="dashboard-popup__header">
+                <div>
+                  <p className="dashboard-popup__eyebrow">Konfirmasi</p>
+                  <h3 className="dashboard-popup__title">
+                    {confirmDialog.type === "all"
+                      ? "Delete All Images?"
+                      : confirmDialog.type === "selected"
+                      ? `Delete ${confirmDialog.count} Selected Images?`
+                      : "Delete This Image?"}
+                  </h3>
+                </div>
+                <button
+                  type="button"
+                  className="dashboard-popup__close"
+                  onClick={closeConfirm}
+                  aria-label="Close"
                 >
-                  <DeleteSweepRoundedIcon sx={{ fontSize:36, color:"#ef4444" }}/>
-                </Box>
-              </Box>
-
-              <Box>
-                <Typography sx={{ ...F, fontWeight:800, fontSize:"1.05rem", color:"#0f172a", mb:0.8 }}>
-                  {confirmDialog.type === "all"
-                    ? "Delete All Images?"
-                    : confirmDialog.type === "selected"
-                    ? `Delete ${confirmDialog.count} Selected Images?`
-                    : "Delete This Image?"}
-                </Typography>
-                <Typography sx={{ ...F, fontSize:"0.82rem", color:"#64748b", lineHeight:1.7 }}>
+                  <CloseRoundedIcon style={{ fontSize:18 }}/>
+                </button>
+              </div>
+              <div className="dashboard-popup__body">
+                <p className="dashboard-popup__text">
                   {confirmDialog.type === "all"
                     ? "All gallery items will be permanently deleted and cannot be recovered."
                     : confirmDialog.type === "selected"
                     ? `${confirmDialog.count} selected image${confirmDialog.count>1?"s":""} will be permanently deleted.`
                     : "This image will be permanently deleted and cannot be recovered."}
-                </Typography>
-              </Box>
-
-              <Stack direction="row" spacing={1.2} width="100%">
-                <Button
-                  fullWidth
-                  variant="outlined"
+                </p>
+              </div>
+              <div className="dashboard-popup__actions">
+                <button
+                  type="button"
+                  className="dashboard-popup__button dashboard-popup__button--secondary"
                   onClick={closeConfirm}
-                  sx={{
-                    ...pill({ py:1.1 }),
-                    borderColor:"rgba(35,57,113,0.25)",
-                    color:"#64748b",
-                    background:"rgba(255,255,255,0.8)",
-                    "&:hover":{ background:"rgba(232,237,248,0.8)", borderColor:"rgba(35,57,113,0.3)" },
-                  }}
                 >
                   Cancel
-                </Button>
-                <Button
-                  fullWidth
-                  variant="contained"
+                </button>
+                <button
+                  type="button"
+                  className="dashboard-popup__button master-departments-delete-popup__button"
                   onClick={handleConfirmAction}
-                  startIcon={<DeleteSweepRoundedIcon/>}
-                  sx={{
-                    ...pill({ py:1.1 }),
-                    background:"linear-gradient(135deg,#ef4444,#f87171)",
-                    boxShadow:"0 6px 18px rgba(239,68,68,0.28)",
-                    "&:hover":{ background:"linear-gradient(135deg,#dc2626,#ef4444)", boxShadow:"0 10px 24px rgba(239,68,68,0.35)" },
-                  }}
                 >
+                  <DeleteSweepRoundedIcon style={{ fontSize:18, verticalAlign:"middle", marginRight:4 }}/>
                   Yes, Delete
-                </Button>
-              </Stack>
-            </Stack>
-          </DialogContent>
-        </Dialog>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* ══ SCROLL TO TOP ══ */}
         <Zoom in={showScrollTop}>
