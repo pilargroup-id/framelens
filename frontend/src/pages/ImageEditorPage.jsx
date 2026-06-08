@@ -44,6 +44,13 @@ import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate";
 import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 import PhotoLibraryRoundedIcon from "@mui/icons-material/PhotoLibraryRounded";
 import api from "../api/client";
+import framingGosave from "../assets/framming/Framing GOSAVE.png";
+import framingBrand from "../assets/framming/Keperluan Brand Toko Online.png";
+
+const FRAMES = [
+  { key: "gosave",  label: "GOSAVE Border",   src: framingGosave },
+  { key: "brand",   label: "Brand Toko Online", src: framingBrand },
+];
 
 /* ─── Google Fonts ─── */
 const FontStyle = () => (
@@ -826,6 +833,9 @@ export default function ImageEditorPage() {
   const [refFiles, setRefFiles] = useState([]);
   const [dragActiveRef, setDragActiveRef] = useState(false);
 
+  // ── Frame size reference (auto-sets aspect ratio to match the frame dimensions)
+  const [selectedFrame, setSelectedFrame] = useState(null);
+
   const openLightbox = (payload) => {
     if (typeof payload === "string") {
       setLightboxSrc(payload);
@@ -1043,6 +1053,7 @@ export default function ImageEditorPage() {
     // ── NEW: clear ref files
     setRefFiles([]);
     setDragActiveRef(false);
+    setSelectedFrame(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
     if (refFileInputRef.current) refFileInputRef.current.value = "";
   };
@@ -1242,6 +1253,34 @@ export default function ImageEditorPage() {
     } catch {
       setError("Failed to copy prompt.");
     }
+  };
+
+  const handleFrameSelect = (frame) => {
+    if (selectedFrame?.key === frame.key) {
+      setSelectedFrame(null);
+      return;
+    }
+    setSelectedFrame(frame);
+    const img = new Image();
+    img.onload = () => {
+      const w = img.naturalWidth;
+      const h = img.naturalHeight;
+      const ratio = w / h;
+      const RATIO_MAP = [
+        { label: "1:1",  value: 1 / 1 },
+        { label: "4:5",  value: 4 / 5 },
+        { label: "3:4",  value: 3 / 4 },
+        { label: "9:16", value: 9 / 16 },
+        { label: "16:9", value: 16 / 9 },
+        { label: "3:2",  value: 3 / 2 },
+        { label: "4:3",  value: 4 / 3 },
+      ];
+      const closest = RATIO_MAP.reduce((best, r) =>
+        Math.abs(r.value - ratio) < Math.abs(best.value - ratio) ? r : best
+      );
+      setAspectRatio(closest.label);
+    };
+    img.src = frame.src;
   };
 
   const handleDrop = (e) => {
@@ -1474,6 +1513,62 @@ export default function ImageEditorPage() {
                   inputRef={refFileInputRef}
                   F={F}
                 />
+
+                {/* ── Frame Size Reference ── */}
+                <Box>
+                  <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1.2}>
+                    <Stack direction="row" spacing={0.8} alignItems="center">
+                      <PhotoSizeSelectLargeIcon sx={{ fontSize: 15, color: "#233971" }} />
+                      <Typography sx={{ ...F, fontWeight: 700, fontSize: "0.83rem", color: "#1e293b" }}>
+                        Frame Size Reference
+                      </Typography>
+                      <Chip size="small" label="Auto aspect ratio" sx={{ ...F, fontWeight: 600, fontSize: "0.65rem", borderRadius: "999px", height: 18, background: "rgba(35,57,113,0.07)", color: "#233971", border: "1px solid rgba(35,57,113,0.18)" }} />
+                    </Stack>
+                    {selectedFrame && (
+                      <Button size="small" onClick={() => { setSelectedFrame(null); setAspectRatio("original"); }}
+                        sx={{ ...F, fontSize: "0.72rem", textTransform: "none", color: "#94a3b8", minWidth: "auto", p: "2px 8px", borderRadius: "999px", "&:hover": { color: "#ef4444", background: "rgba(239,68,68,0.06)" } }}>
+                        Reset
+                      </Button>
+                    )}
+                  </Stack>
+                  <Stack direction="row" spacing={1.5} flexWrap="wrap" useFlexGap>
+                    {FRAMES.map((frame) => {
+                      const isActive = selectedFrame?.key === frame.key;
+                      return (
+                        <Box key={frame.key} onClick={() => handleFrameSelect(frame)}
+                          sx={{
+                            display: "flex", flexDirection: "column", alignItems: "center", gap: "6px",
+                            cursor: "pointer", transition: "all 0.2s ease",
+                          }}
+                        >
+                          <Box sx={{
+                            position: "relative", width: 72, height: 72, borderRadius: "12px", overflow: "hidden",
+                            border: isActive ? "2.5px solid #233971" : "1.5px solid rgba(35,57,113,0.22)",
+                            background: "rgba(232,237,248,0.5)",
+                            boxShadow: isActive ? "0 4px 14px rgba(35,57,113,0.28)" : "none",
+                            transition: "all 0.2s ease",
+                            "&:hover": { borderColor: "#233971", transform: "scale(1.05)", boxShadow: "0 4px 14px rgba(35,57,113,0.2)" },
+                          }}>
+                            <Box component="img" src={frame.src} alt={frame.label} sx={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                            {isActive && (
+                              <Box sx={{ position: "absolute", top: 4, right: 4, width: 18, height: 18, borderRadius: "50%", background: "#233971", display: "flex", alignItems: "center", justifyContent: "center", border: "1.5px solid #fff" }}>
+                                <Typography sx={{ fontSize: "0.6rem", color: "#fff", fontWeight: 800, lineHeight: 1 }}>✓</Typography>
+                              </Box>
+                            )}
+                          </Box>
+                          <Typography sx={{ ...F, fontSize: "0.7rem", fontWeight: isActive ? 700 : 500, color: isActive ? "#233971" : "#64748b", textAlign: "center", maxWidth: 72, lineHeight: 1.2 }}>
+                            {frame.label}
+                          </Typography>
+                        </Box>
+                      );
+                    })}
+                  </Stack>
+                  {selectedFrame && (
+                    <Alert severity="info" sx={{ mt: 1.5, borderRadius: "10px", ...F, fontSize: "0.78rem", background: "rgba(35,57,113,0.07)", border: "1px solid rgba(35,57,113,0.18)", color: "#233971", "& .MuiAlert-icon": { color: "#233971" }, py: 0.5 }}>
+                      Aspect ratio auto-set to match <strong>{selectedFrame.label}</strong> frame dimensions
+                    </Alert>
+                  )}
+                </Box>
 
                 <Stack direction={{ xs: "column", md: "row" }} spacing={2}>
                   {[
