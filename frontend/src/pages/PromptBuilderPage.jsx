@@ -150,7 +150,6 @@ const DEFAULT_DATA = {
   layout: {
     structure: "Z Pattern",
     sections: {
-      top_left: { content: "Brand Header", width: "35%" },
       top_right: { content: "Product Name + Headline", width: "35%" },
       center_left: { content: "Hero Product", width: "70-80%" },
       right_side: { content: "USP Features", width: "20-25%" },
@@ -186,13 +185,10 @@ const DEFAULT_DATA = {
       { icon: "Reflective", title: "Strong Reflective" },
     ],
   },
-  branding: {
-    border: { type: "Brand Border", aspect_ratio: "1:1", preserve_layout: true, header_position: "Top Left" },
-  },
   color_palette: { primary: "#1E3A8A", secondary: "#FFD500", accent: "#FFFFFF", text_dark: "#000000" },
   visual_effects: { depth: true, layering: true, realistic_shadow: true, realistic_lighting: true, high_detail: true, premium_finish: true },
-  visual_priority: ["Safety Vest Product", "Product Name", "Headline", "USP Features", "Industrial Environment", "Branding"],
-  design_formula: { product_focus: "75%", headline: "10%", usp: "10%", branding: "3%", background_support: "2%" },
+  visual_priority: ["Safety Vest Product", "Product Name", "Headline", "USP Features", "Industrial Environment"],
+  design_formula: { product_focus: "75%", headline: "10%", usp: "10%", background_support: "5%" },
   rendering_style: {
     quality: "Highest Possible", photorealistic: true, commercial_grade: true, mobile_friendly: true,
     realistic_lighting: true, realistic_shadows: true, high_detail: true, scroll_stopping: true,
