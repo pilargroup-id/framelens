@@ -9,7 +9,6 @@ import {
   Chip,
   Divider,
   LinearProgress,
-  Menu,
   Stack,
   TextField,
   Typography,
@@ -43,14 +42,23 @@ import AutoFixHighRoundedIcon from "@mui/icons-material/AutoFixHighRounded";
 import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate";
 import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 import PhotoLibraryRoundedIcon from "@mui/icons-material/PhotoLibraryRounded";
-import CropFreeIcon from "@mui/icons-material/CropFree";
 import api from "../api/client";
 import framingGosave from "../assets/framming/Framing GOSAVE.png";
-import framingBrand from "../assets/framming/Keperluan Brand Toko Online.png";
+import framingBrand  from "../assets/framming/Keperluan Brand Toko Online.png";
 
 const FRAME_TEMPLATES = [
-  { key: "gosave", label: "GOSAVE Border", src: framingGosave },
-  { key: "brand",  label: "Brand Toko Online", src: framingBrand },
+  {
+    key: "gosave",
+    label: "GOSAVE Border",
+    src: framingGosave,
+    prompt: " This image will have the GOSAVE PASTI AMAN frame overlay composited on top. Compose accordingly: TOP-LEFT area (left 50% of width, top 25% of height) is reserved for the GOSAVE badge — place only environmental background or product shadow here, NO product or headline text. TOP-RIGHT area (right 50%, top 25%) should contain the product name and tagline in large bold text. CENTER and LOWER area (below top 25%) is the hero product photo zone — place the main product here, large and prominent. RIGHT COLUMN can hold feature icons or callout points. Keep all content at least 5% inset from each edge (frame border zone).",
+  },
+  {
+    key: "brand",
+    label: "Brand Toko Online",
+    src: framingBrand,
+    prompt: " This image will have the Brand Toko Online frame overlay composited on top. Compose accordingly: TOP-LEFT area (left 50% of width, top 25% of height) is reserved for the brand badge — place only background here, no product content. TOP-RIGHT area should contain the product name and headline. CENTER and LOWER area is the hero product photo zone. RIGHT COLUMN can hold feature icons or callout points. Keep all content at least 5% inset from each edge.",
+  },
 ];
 
 /* ─── Google Fonts ─── */
@@ -506,152 +514,25 @@ function BatchCard({ item, index, aspectRatio, onPreview, onDownload, F }) {
         >
           {index + 1}. {item.fileName}
         </Typography>
-        <Stack direction="row" spacing={1}>
-          <Button
-            size="small"
-            variant="outlined"
-            startIcon={<DownloadIcon />}
-            onClick={onDownload}
-            sx={{
-              flex: 1,
-              borderRadius: "999px",
-              textTransform: "none",
-              ...F,
-              fontWeight: 700,
-              borderColor: "rgba(35,57,113,0.25)",
-              color: "#233971",
-              "&:hover": { borderColor: "rgba(35,57,113,0.45)", background: "rgba(35,57,113,0.06)" },
-            }}
-          >
-            Download
-          </Button>
-          <RemoveFrameButton imgSrc={item.imageUrl} F={F} />
-        </Stack>
+        <Button
+          size="small"
+          variant="outlined"
+          startIcon={<DownloadIcon />}
+          onClick={onDownload}
+          sx={{
+            borderRadius: "999px",
+            textTransform: "none",
+            ...F,
+            fontWeight: 700,
+            borderColor: "rgba(35,57,113,0.25)",
+            color: "#233971",
+            "&:hover": { borderColor: "rgba(35,57,113,0.45)", background: "rgba(35,57,113,0.06)" },
+          }}
+        >
+          Download
+        </Button>
       </Stack>
     </Paper>
-  );
-}
-
-/* ─── Frame crop utilities ─── */
-async function getFrameInnerBounds(frameSrc) {
-  const resp = await fetch(frameSrc);
-  const blob = await resp.blob();
-  const blobUrl = URL.createObjectURL(blob);
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => {
-      const canvas = document.createElement("canvas");
-      canvas.width = img.naturalWidth;
-      canvas.height = img.naturalHeight;
-      const ctx = canvas.getContext("2d");
-      ctx.drawImage(img, 0, 0);
-      const { data, width, height } = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      URL.revokeObjectURL(blobUrl);
-      let minX = width, maxX = 0, minY = height, maxY = 0, found = false;
-      for (let y = 0; y < height; y++) {
-        for (let x = 0; x < width; x++) {
-          const alpha = data[(y * width + x) * 4 + 3];
-          if (alpha < 20) {
-            if (x < minX) minX = x;
-            if (x > maxX) maxX = x;
-            if (y < minY) minY = y;
-            if (y > maxY) maxY = y;
-            found = true;
-          }
-        }
-      }
-      if (!found) { reject(new Error("Tidak ada area transparan di frame")); return; }
-      resolve({
-        xRatio: minX / width,
-        yRatio: minY / height,
-        wRatio: (maxX - minX + 1) / width,
-        hRatio: (maxY - minY + 1) / height,
-      });
-    };
-    img.onerror = () => { URL.revokeObjectURL(blobUrl); reject(new Error("Gagal load frame")); };
-    img.src = blobUrl;
-  });
-}
-
-async function cropOutFrame(imgSrc, frameSrc) {
-  const bounds = await getFrameInnerBounds(frameSrc);
-  const resp = await fetch(imgSrc);
-  const blob = await resp.blob();
-  const blobUrl = URL.createObjectURL(blob);
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => {
-      const cx = Math.round(bounds.xRatio * img.naturalWidth);
-      const cy = Math.round(bounds.yRatio * img.naturalHeight);
-      const cw = Math.round(bounds.wRatio * img.naturalWidth);
-      const ch = Math.round(bounds.hRatio * img.naturalHeight);
-      const canvas = document.createElement("canvas");
-      canvas.width = cw;
-      canvas.height = ch;
-      canvas.getContext("2d").drawImage(img, cx, cy, cw, ch, 0, 0, cw, ch);
-      URL.revokeObjectURL(blobUrl);
-      canvas.toBlob(resolve, "image/png");
-    };
-    img.onerror = () => { URL.revokeObjectURL(blobUrl); reject(new Error("Gagal load gambar")); };
-    img.src = blobUrl;
-  });
-}
-
-function RemoveFrameButton({ imgSrc, F }) {
-  const [anchor, setAnchor] = useState(null);
-  const [busy, setBusy] = useState(false);
-
-  const handleSelect = async (frameSrc) => {
-    setAnchor(null);
-    setBusy(true);
-    try {
-      const blob = await cropOutFrame(imgSrc, frameSrc);
-      const url = URL.createObjectURL(blob);
-      const a = Object.assign(document.createElement("a"), {
-        href: url,
-        download: `no-frame-${Date.now()}.png`,
-      });
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 60000);
-    } catch (e) {
-      alert("Gagal hapus frame: " + e.message);
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  return (
-    <>
-      <Button
-        size="small"
-        variant="outlined"
-        disabled={!imgSrc || busy}
-        onClick={(e) => setAnchor(e.currentTarget)}
-        startIcon={<CropFreeIcon />}
-        sx={{
-          borderRadius: "999px",
-          textTransform: "none",
-          ...F,
-          fontWeight: 700,
-          fontSize: "0.78rem",
-          borderColor: "rgba(35,57,113,0.25)",
-          color: "#233971",
-          "&:hover": { borderColor: "rgba(35,57,113,0.45)", background: "rgba(35,57,113,0.06)" },
-        }}
-      >
-        {busy ? "Cropping…" : "Hapus Frame"}
-      </Button>
-      <Menu anchorEl={anchor} open={Boolean(anchor)} onClose={() => setAnchor(null)}>
-        {FRAME_TEMPLATES.map((ft) => (
-          <MenuItem key={ft.key} onClick={() => handleSelect(ft.src)}
-            sx={{ ...F, fontSize: "0.83rem" }}>
-            {ft.label}
-          </MenuItem>
-        ))}
-      </Menu>
-    </>
   );
 }
 
@@ -957,9 +838,10 @@ export default function ImageEditorPage() {
   const [lightboxSrc, setLightboxSrc] = useState("");
   const [lightboxMeta, setLightboxMeta] = useState(null);
 
-  // ── NEW: reference images state
+  // ── reference images state
   const [refFiles, setRefFiles] = useState([]);
   const [dragActiveRef, setDragActiveRef] = useState(false);
+  const [selectedFrame, setSelectedFrame] = useState(null);
 
   const openLightbox = (payload) => {
     if (typeof payload === "string") {
@@ -1030,7 +912,8 @@ export default function ImageEditorPage() {
     const ref = refFiles.length > 0
       ? ` Use the provided ${refFiles.length} reference image${refFiles.length > 1 ? "s" : ""} as visual/style reference.`
       : "";
-    return `${prompt.trim()}${ref}${r}${res}`.trim();
+    const framePrompt = selectedFrame ? selectedFrame.prompt : "";
+    return `${prompt.trim()}${ref}${framePrompt}${r}${res}`.trim();
   };
 
   const getAppOrigin = () => {
@@ -1175,9 +1058,9 @@ export default function ImageEditorPage() {
     setAspectRatio("original");
     setResolution("original");
     setBatchCount(1);
-    // ── NEW: clear ref files
     setRefFiles([]);
     setDragActiveRef(false);
+    setSelectedFrame(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
     if (refFileInputRef.current) refFileInputRef.current.value = "";
   };
@@ -1609,6 +1492,45 @@ export default function ImageEditorPage() {
                   inputRef={refFileInputRef}
                   F={F}
                 />
+
+                {/* ── Frame Template Selector ── */}
+                <Box>
+                  <Stack direction="row" spacing={0.8} alignItems="center" mb={1.2}>
+                    <PhotoSizeSelectLargeIcon sx={{ fontSize: 15, color: "#233971" }} />
+                    <Typography sx={{ ...F, fontWeight: 700, fontSize: "0.83rem", color: "#1e293b" }}>
+                      Frame Template
+                    </Typography>
+                    <Chip size="small" label="Auto-prompt" sx={{ ...F, fontWeight: 600, fontSize: "0.65rem", borderRadius: "999px", height: 18, background: "rgba(35,57,113,0.07)", color: "#233971", border: "1px solid rgba(35,57,113,0.18)" }} />
+                  </Stack>
+                  <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                    {FRAME_TEMPLATES.map((ft) => {
+                      const isActive = selectedFrame?.key === ft.key;
+                      return (
+                        <Chip
+                          key={ft.key}
+                          label={ft.label}
+                          onClick={() => setSelectedFrame(isActive ? null : ft)}
+                          variant={isActive ? "filled" : "outlined"}
+                          sx={{
+                            ...F,
+                            fontWeight: 700,
+                            fontSize: "0.8rem",
+                            cursor: "pointer",
+                            background: isActive ? "#233971" : "transparent",
+                            color: isActive ? "#fff" : "#233971",
+                            borderColor: "rgba(35,57,113,0.35)",
+                            "&:hover": { background: isActive ? "#1a2d5a" : "rgba(35,57,113,0.08)" },
+                          }}
+                        />
+                      );
+                    })}
+                  </Stack>
+                  {selectedFrame && (
+                    <Alert severity="info" sx={{ mt: 1.2, borderRadius: "10px", ...F, fontSize: "0.78rem", background: "rgba(35,57,113,0.06)", border: "1px solid rgba(35,57,113,0.18)", color: "#233971", "& .MuiAlert-icon": { color: "#233971" }, py: 0.5 }}>
+                      Prompt otomatis disesuaikan — AI akan menempatkan konten agar tidak nabrak area badge <strong>{selectedFrame.label}</strong>.
+                    </Alert>
+                  )}
+                </Box>
 
                 <Stack direction={{ xs: "column", md: "row" }} spacing={2}>
                   {[
@@ -2207,8 +2129,6 @@ export default function ImageEditorPage() {
                 >
                   Download Result
                 </Button>
-
-                <RemoveFrameButton imgSrc={resultUrl} F={F} />
               </Stack>
             </CardContent>
           </Card>
