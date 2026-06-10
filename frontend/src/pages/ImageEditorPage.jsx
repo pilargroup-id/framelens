@@ -9,6 +9,7 @@ import {
   Chip,
   Divider,
   LinearProgress,
+  Menu,
   Stack,
   TextField,
   Typography,
@@ -39,17 +40,17 @@ import ZoomInIcon from "@mui/icons-material/ZoomIn";
 import CloseIcon from "@mui/icons-material/Close";
 import ZoomInMapIcon from "@mui/icons-material/ZoomInMap";
 import AutoFixHighRoundedIcon from "@mui/icons-material/AutoFixHighRounded";
-// ── NEW: reference icon
 import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate";
 import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 import PhotoLibraryRoundedIcon from "@mui/icons-material/PhotoLibraryRounded";
+import CropFreeIcon from "@mui/icons-material/CropFree";
 import api from "../api/client";
 import framingGosave from "../assets/framming/Framing GOSAVE.png";
 import framingBrand from "../assets/framming/Keperluan Brand Toko Online.png";
 
-const FRAMES = [
-  { key: "gosave",  label: "GOSAVE Border",   src: framingGosave },
-  { key: "brand",   label: "Brand Toko Online", src: framingBrand },
+const FRAME_TEMPLATES = [
+  { key: "gosave", label: "GOSAVE Border", src: framingGosave },
+  { key: "brand",  label: "Brand Toko Online", src: framingBrand },
 ];
 
 /* ─── Google Fonts ─── */
@@ -505,25 +506,152 @@ function BatchCard({ item, index, aspectRatio, onPreview, onDownload, F }) {
         >
           {index + 1}. {item.fileName}
         </Typography>
-        <Button
-          size="small"
-          variant="outlined"
-          startIcon={<DownloadIcon />}
-          onClick={onDownload}
-          sx={{
-            borderRadius: "999px",
-            textTransform: "none",
-            ...F,
-            fontWeight: 700,
-            borderColor: "rgba(35,57,113,0.25)",
-            color: "#233971",
-            "&:hover": { borderColor: "rgba(35,57,113,0.45)", background: "rgba(35,57,113,0.06)" },
-          }}
-        >
-          Download
-        </Button>
+        <Stack direction="row" spacing={1}>
+          <Button
+            size="small"
+            variant="outlined"
+            startIcon={<DownloadIcon />}
+            onClick={onDownload}
+            sx={{
+              flex: 1,
+              borderRadius: "999px",
+              textTransform: "none",
+              ...F,
+              fontWeight: 700,
+              borderColor: "rgba(35,57,113,0.25)",
+              color: "#233971",
+              "&:hover": { borderColor: "rgba(35,57,113,0.45)", background: "rgba(35,57,113,0.06)" },
+            }}
+          >
+            Download
+          </Button>
+          <RemoveFrameButton imgSrc={item.imageUrl} F={F} />
+        </Stack>
       </Stack>
     </Paper>
+  );
+}
+
+/* ─── Frame crop utilities ─── */
+async function getFrameInnerBounds(frameSrc) {
+  const resp = await fetch(frameSrc);
+  const blob = await resp.blob();
+  const blobUrl = URL.createObjectURL(blob);
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0);
+      const { data, width, height } = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      URL.revokeObjectURL(blobUrl);
+      let minX = width, maxX = 0, minY = height, maxY = 0, found = false;
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          const alpha = data[(y * width + x) * 4 + 3];
+          if (alpha < 20) {
+            if (x < minX) minX = x;
+            if (x > maxX) maxX = x;
+            if (y < minY) minY = y;
+            if (y > maxY) maxY = y;
+            found = true;
+          }
+        }
+      }
+      if (!found) { reject(new Error("Tidak ada area transparan di frame")); return; }
+      resolve({
+        xRatio: minX / width,
+        yRatio: minY / height,
+        wRatio: (maxX - minX + 1) / width,
+        hRatio: (maxY - minY + 1) / height,
+      });
+    };
+    img.onerror = () => { URL.revokeObjectURL(blobUrl); reject(new Error("Gagal load frame")); };
+    img.src = blobUrl;
+  });
+}
+
+async function cropOutFrame(imgSrc, frameSrc) {
+  const bounds = await getFrameInnerBounds(frameSrc);
+  const resp = await fetch(imgSrc);
+  const blob = await resp.blob();
+  const blobUrl = URL.createObjectURL(blob);
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const cx = Math.round(bounds.xRatio * img.naturalWidth);
+      const cy = Math.round(bounds.yRatio * img.naturalHeight);
+      const cw = Math.round(bounds.wRatio * img.naturalWidth);
+      const ch = Math.round(bounds.hRatio * img.naturalHeight);
+      const canvas = document.createElement("canvas");
+      canvas.width = cw;
+      canvas.height = ch;
+      canvas.getContext("2d").drawImage(img, cx, cy, cw, ch, 0, 0, cw, ch);
+      URL.revokeObjectURL(blobUrl);
+      canvas.toBlob(resolve, "image/png");
+    };
+    img.onerror = () => { URL.revokeObjectURL(blobUrl); reject(new Error("Gagal load gambar")); };
+    img.src = blobUrl;
+  });
+}
+
+function RemoveFrameButton({ imgSrc, F }) {
+  const [anchor, setAnchor] = useState(null);
+  const [busy, setBusy] = useState(false);
+
+  const handleSelect = async (frameSrc) => {
+    setAnchor(null);
+    setBusy(true);
+    try {
+      const blob = await cropOutFrame(imgSrc, frameSrc);
+      const url = URL.createObjectURL(blob);
+      const a = Object.assign(document.createElement("a"), {
+        href: url,
+        download: `no-frame-${Date.now()}.png`,
+      });
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+    } catch (e) {
+      alert("Gagal hapus frame: " + e.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <>
+      <Button
+        size="small"
+        variant="outlined"
+        disabled={!imgSrc || busy}
+        onClick={(e) => setAnchor(e.currentTarget)}
+        startIcon={<CropFreeIcon />}
+        sx={{
+          borderRadius: "999px",
+          textTransform: "none",
+          ...F,
+          fontWeight: 700,
+          fontSize: "0.78rem",
+          borderColor: "rgba(35,57,113,0.25)",
+          color: "#233971",
+          "&:hover": { borderColor: "rgba(35,57,113,0.45)", background: "rgba(35,57,113,0.06)" },
+        }}
+      >
+        {busy ? "Cropping…" : "Hapus Frame"}
+      </Button>
+      <Menu anchorEl={anchor} open={Boolean(anchor)} onClose={() => setAnchor(null)}>
+        {FRAME_TEMPLATES.map((ft) => (
+          <MenuItem key={ft.key} onClick={() => handleSelect(ft.src)}
+            sx={{ ...F, fontSize: "0.83rem" }}>
+            {ft.label}
+          </MenuItem>
+        ))}
+      </Menu>
+    </>
   );
 }
 
@@ -833,9 +961,6 @@ export default function ImageEditorPage() {
   const [refFiles, setRefFiles] = useState([]);
   const [dragActiveRef, setDragActiveRef] = useState(false);
 
-  // ── Frame size reference (auto-sets aspect ratio to match the frame dimensions)
-  const [selectedFrame, setSelectedFrame] = useState(null);
-
   const openLightbox = (payload) => {
     if (typeof payload === "string") {
       setLightboxSrc(payload);
@@ -1053,7 +1178,6 @@ export default function ImageEditorPage() {
     // ── NEW: clear ref files
     setRefFiles([]);
     setDragActiveRef(false);
-    setSelectedFrame(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
     if (refFileInputRef.current) refFileInputRef.current.value = "";
   };
@@ -1253,34 +1377,6 @@ export default function ImageEditorPage() {
     } catch {
       setError("Failed to copy prompt.");
     }
-  };
-
-  const handleFrameSelect = (frame) => {
-    if (selectedFrame?.key === frame.key) {
-      setSelectedFrame(null);
-      return;
-    }
-    setSelectedFrame(frame);
-    const img = new Image();
-    img.onload = () => {
-      const w = img.naturalWidth;
-      const h = img.naturalHeight;
-      const ratio = w / h;
-      const RATIO_MAP = [
-        { label: "1:1",  value: 1 / 1 },
-        { label: "4:5",  value: 4 / 5 },
-        { label: "3:4",  value: 3 / 4 },
-        { label: "9:16", value: 9 / 16 },
-        { label: "16:9", value: 16 / 9 },
-        { label: "3:2",  value: 3 / 2 },
-        { label: "4:3",  value: 4 / 3 },
-      ];
-      const closest = RATIO_MAP.reduce((best, r) =>
-        Math.abs(r.value - ratio) < Math.abs(best.value - ratio) ? r : best
-      );
-      setAspectRatio(closest.label);
-    };
-    img.src = frame.src;
   };
 
   const handleDrop = (e) => {
@@ -1513,62 +1609,6 @@ export default function ImageEditorPage() {
                   inputRef={refFileInputRef}
                   F={F}
                 />
-
-                {/* ── Frame Size Reference ── */}
-                <Box>
-                  <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1.2}>
-                    <Stack direction="row" spacing={0.8} alignItems="center">
-                      <PhotoSizeSelectLargeIcon sx={{ fontSize: 15, color: "#233971" }} />
-                      <Typography sx={{ ...F, fontWeight: 700, fontSize: "0.83rem", color: "#1e293b" }}>
-                        Frame Size Reference
-                      </Typography>
-                      <Chip size="small" label="Auto aspect ratio" sx={{ ...F, fontWeight: 600, fontSize: "0.65rem", borderRadius: "999px", height: 18, background: "rgba(35,57,113,0.07)", color: "#233971", border: "1px solid rgba(35,57,113,0.18)" }} />
-                    </Stack>
-                    {selectedFrame && (
-                      <Button size="small" onClick={() => { setSelectedFrame(null); setAspectRatio("original"); }}
-                        sx={{ ...F, fontSize: "0.72rem", textTransform: "none", color: "#94a3b8", minWidth: "auto", p: "2px 8px", borderRadius: "999px", "&:hover": { color: "#ef4444", background: "rgba(239,68,68,0.06)" } }}>
-                        Reset
-                      </Button>
-                    )}
-                  </Stack>
-                  <Stack direction="row" spacing={1.5} flexWrap="wrap" useFlexGap>
-                    {FRAMES.map((frame) => {
-                      const isActive = selectedFrame?.key === frame.key;
-                      return (
-                        <Box key={frame.key} onClick={() => handleFrameSelect(frame)}
-                          sx={{
-                            display: "flex", flexDirection: "column", alignItems: "center", gap: "6px",
-                            cursor: "pointer", transition: "all 0.2s ease",
-                          }}
-                        >
-                          <Box sx={{
-                            position: "relative", width: 72, height: 72, borderRadius: "12px", overflow: "hidden",
-                            border: isActive ? "2.5px solid #233971" : "1.5px solid rgba(35,57,113,0.22)",
-                            background: "rgba(232,237,248,0.5)",
-                            boxShadow: isActive ? "0 4px 14px rgba(35,57,113,0.28)" : "none",
-                            transition: "all 0.2s ease",
-                            "&:hover": { borderColor: "#233971", transform: "scale(1.05)", boxShadow: "0 4px 14px rgba(35,57,113,0.2)" },
-                          }}>
-                            <Box component="img" src={frame.src} alt={frame.label} sx={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
-                            {isActive && (
-                              <Box sx={{ position: "absolute", top: 4, right: 4, width: 18, height: 18, borderRadius: "50%", background: "#233971", display: "flex", alignItems: "center", justifyContent: "center", border: "1.5px solid #fff" }}>
-                                <Typography sx={{ fontSize: "0.6rem", color: "#fff", fontWeight: 800, lineHeight: 1 }}>✓</Typography>
-                              </Box>
-                            )}
-                          </Box>
-                          <Typography sx={{ ...F, fontSize: "0.7rem", fontWeight: isActive ? 700 : 500, color: isActive ? "#233971" : "#64748b", textAlign: "center", maxWidth: 72, lineHeight: 1.2 }}>
-                            {frame.label}
-                          </Typography>
-                        </Box>
-                      );
-                    })}
-                  </Stack>
-                  {selectedFrame && (
-                    <Alert severity="info" sx={{ mt: 1.5, borderRadius: "10px", ...F, fontSize: "0.78rem", background: "rgba(35,57,113,0.07)", border: "1px solid rgba(35,57,113,0.18)", color: "#233971", "& .MuiAlert-icon": { color: "#233971" }, py: 0.5 }}>
-                      Aspect ratio auto-set to match <strong>{selectedFrame.label}</strong> frame dimensions
-                    </Alert>
-                  )}
-                </Box>
 
                 <Stack direction={{ xs: "column", md: "row" }} spacing={2}>
                   {[
@@ -2148,7 +2188,7 @@ export default function ImageEditorPage() {
                     ...F,
                     fontWeight: 700,
                     fontSize: "0.9rem",
-                    background: resultUrl ? "linear-gradient(135deg,#233971,#2e4fa3)" : "rgba(148,163,184,0.22)",
+                    background: resultUrl ? "linear-gradient(135deg,#233971,#2e4fa3)" : "rgba(148,163,248,0.22)",
                     boxShadow: resultUrl ? "0 8px 22px rgba(35,57,113,0.32)" : "none",
                     "&:hover": resultUrl
                       ? {
@@ -2167,6 +2207,8 @@ export default function ImageEditorPage() {
                 >
                   Download Result
                 </Button>
+
+                <RemoveFrameButton imgSrc={resultUrl} F={F} />
               </Stack>
             </CardContent>
           </Card>
