@@ -185,10 +185,17 @@ const DEFAULT_DATA = {
   target_market: ["Project Workers", "Field Technicians", "Construction Workers", "HSE Team", "Safety Officer"],
   layout: {
     structure: "Z Pattern",
+    frame_safe_zones: {
+      badge_reserved: "Top-left (x:0-50%, y:0-25%) — background/environment ONLY, absolutely NO product, logo, or text here",
+      headline_zone:  "Top-right (x:52-95%, y:5-24%) — product name + tagline text only",
+      hero_zone:      "Center (x:5-68%, y:27-94%) — hero product photo, large and prominent",
+      usp_zone:       "Right column (x:72-94%, y:27-94%) — USP feature icons, vertical list",
+      border_inset:   "All edges: minimum 5% clearance from canvas edge (frame border zone — keep clear)",
+    },
     sections: {
-      top_right: { content: "Product Name + Headline", width: "35%" },
-      center_left: { content: "Hero Product", width: "70-80%" },
-      right_side: { content: "USP Features", width: "20-25%" },
+      top_right:  { content: "Product Name + Headline", position: "x:52-95%, y:5-24%",  width: "43%" },
+      center:     { content: "Hero Product",            position: "x:5-68%, y:27-94%",   width: "63%" },
+      right_side: { content: "USP Features",            position: "x:72-94%, y:27-94%", width: "22%" },
     },
   },
   background: {
@@ -201,19 +208,19 @@ const DEFAULT_DATA = {
     purpose: "Show safety vest usage in high-risk work environments",
   },
   product_display: {
-    position: "Center Left", size: "60-70% of canvas", angle: "Front View", floating_effect: false,
+    position: "Center (x:5-68%, y:27-94%)", size: "60-70% of canvas", angle: "Front View", floating_effect: false,
     shadow: { type: "Realistic Ground Shadow", opacity: "35-45%" },
     lighting: { type: "Commercial Product Photography", reflection: "Controlled" },
   },
   headline_section: {
-    position: "Top Right", alignment: "Right",
+    position: "Top-right (x:52-95%, y:5-24%)", alignment: "Right",
     hierarchy: {
       product_name: { text: "VIZOR SAFETY VEST", font_weight: "Extra Bold", color: "#FFFFFF" },
       headline: { text: "High Visibility, Safety Assured", font_weight: "Medium", color: "#FFEE00" },
     },
   },
   usp_section: {
-    position: "Right Side", layout: "Vertical Icon List", spacing: "Consistent",
+    position: "Right column (x:72-94%, y:27-94%)", layout: "Vertical Icon List", spacing: "Consistent",
     icon_style: { shape: "Circle", background: "#1E3A8A", icon_color: "#FFFFFF", uniform_size: true },
     items: [
       { icon: "Mesh", title: "Premium Mesh Material" },
@@ -232,7 +239,7 @@ const DEFAULT_DATA = {
 }
 
 const DEFAULT_INSTRUCTIONS =
-  "Use aspect ratio 1:1. Output at the highest quality possible, with the longest side at most 1920px. Do NOT change the aspect ratio — keep the original image proportions exactly."
+  "Use aspect ratio 1:1. Output at the highest quality possible, with the longest side at most 1920px. Do NOT change the aspect ratio — keep the original image proportions exactly. CRITICAL: strictly follow frame_safe_zones — the badge_reserved area (top-left x:0-50%, y:0-25%) must contain ONLY background/environment, zero product content or text. Place product and text only in the designated hero_zone, headline_zone, and usp_zone."
 
 export default function PromptBuilderPage() {
   const [data, setData]             = useState(DEFAULT_DATA)
