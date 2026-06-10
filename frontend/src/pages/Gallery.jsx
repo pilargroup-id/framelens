@@ -5,7 +5,7 @@
   import {
     Box, Card, CardContent, Stack, Typography, Chip, Button,
     IconButton, Dialog, DialogContent, DialogTitle, TextField,
-    Paper, Tooltip, Divider, Zoom,
+    Paper, Tooltip, Divider, Zoom, Menu, MenuItem,
   } from "@mui/material";
   import PhotoLibraryRoundedIcon        from "@mui/icons-material/PhotoLibraryRounded";
   import DeleteOutlineRoundedIcon       from "@mui/icons-material/DeleteOutlineRounded";
@@ -41,7 +41,10 @@
   import BlurOnIcon                     from "@mui/icons-material/BlurOn";
   import GradientIcon                   from "@mui/icons-material/Gradient";
   import EditRoundedIcon                from "@mui/icons-material/EditRounded";
+  import CropFreeIcon                   from "@mui/icons-material/CropFree";
   import CreateButton from "../components/Template/button/CreateButton";
+  import framingGosave from "../assets/framming/Framing GOSAVE.png";
+  import framingBrand  from "../assets/framming/Keperluan Brand Toko Online.png";
   import "../style/templateComponents.css";
   import {
     GALLERY_DATE_FROM_PARAM_KEY,
@@ -73,6 +76,112 @@
   );
 
   const F = { fontFamily:"'Sora',sans-serif" };
+
+  const FRAME_TEMPLATES = [
+    { key: "gosave", label: "GOSAVE Border",    src: framingGosave },
+    { key: "brand",  label: "Brand Toko Online", src: framingBrand  },
+  ];
+
+  async function getFrameInnerBounds(frameSrc) {
+    const blob = await (await fetch(frameSrc)).blob();
+    const blobUrl = URL.createObjectURL(blob);
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        const ctx2 = canvas.getContext("2d");
+        ctx2.drawImage(img, 0, 0);
+        const { data, width, height } = ctx2.getImageData(0, 0, canvas.width, canvas.height);
+        URL.revokeObjectURL(blobUrl);
+        let minX = width, maxX = 0, minY = height, maxY = 0, found = false;
+        for (let y = 0; y < height; y++) {
+          for (let x = 0; x < width; x++) {
+            if (data[(y * width + x) * 4 + 3] < 20) {
+              if (x < minX) minX = x; if (x > maxX) maxX = x;
+              if (y < minY) minY = y; if (y > maxY) maxY = y;
+              found = true;
+            }
+          }
+        }
+        if (!found) { reject(new Error("Tidak ada area transparan di frame")); return; }
+        resolve({ xRatio: minX/width, yRatio: minY/height, wRatio:(maxX-minX+1)/width, hRatio:(maxY-minY+1)/height });
+      };
+      img.onerror = () => { URL.revokeObjectURL(blobUrl); reject(new Error("Gagal load frame")); };
+      img.src = blobUrl;
+    });
+  }
+
+  async function cropOutFrame(imgSrc, frameSrc) {
+    const b = await getFrameInnerBounds(frameSrc);
+    const blobUrl = URL.createObjectURL(await (await fetch(imgSrc)).blob());
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        const cx = Math.round(b.xRatio * img.naturalWidth);
+        const cy = Math.round(b.yRatio * img.naturalHeight);
+        const cw = Math.round(b.wRatio * img.naturalWidth);
+        const ch = Math.round(b.hRatio * img.naturalHeight);
+        const canvas = document.createElement("canvas");
+        canvas.width = cw; canvas.height = ch;
+        canvas.getContext("2d").drawImage(img, cx, cy, cw, ch, 0, 0, cw, ch);
+        URL.revokeObjectURL(blobUrl);
+        canvas.toBlob(resolve, "image/png");
+      };
+      img.onerror = () => { URL.revokeObjectURL(blobUrl); reject(new Error("Gagal load gambar")); };
+      img.src = blobUrl;
+    });
+  }
+
+  function RemoveFrameButton({ imgSrc, small = false }) {
+    const [anchor, setAnchor] = useState(null);
+    const [busy,   setBusy]   = useState(false);
+    const handleSelect = async (frameSrc) => {
+      setAnchor(null); setBusy(true);
+      try {
+        const blob = await cropOutFrame(imgSrc, frameSrc);
+        const url  = URL.createObjectURL(blob);
+        const a    = Object.assign(document.createElement("a"), { href: url, download: `no-frame-${Date.now()}.png` });
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 60000);
+      } catch (e) { alert("Gagal hapus frame: " + e.message); }
+      finally     { setBusy(false); }
+    };
+    return (
+      <>
+        <button
+          type="button"
+          disabled={!imgSrc || busy}
+          className="users-table__accordion-button"
+          style={{
+            flex: small ? undefined : 1,
+            fontSize: small ? "0.74rem" : "0.86rem",
+            gap: small ? "4px" : "7px",
+            fontFamily: "'Sora',sans-serif",
+            minHeight: small ? "32px" : "44px",
+            padding: small ? "0.45rem 0.7rem" : undefined,
+            borderRadius: small ? "8px" : "12px",
+            minWidth: small ? undefined : "120px",
+            opacity: busy ? 0.6 : 1,
+            cursor: busy ? "not-allowed" : "pointer",
+          }}
+          onClick={(e) => setAnchor(e.currentTarget)}
+        >
+          <CropFreeIcon style={{ fontSize: small ? 13 : 17 }}/>
+          {busy ? "Cropping…" : "Hapus Frame"}
+        </button>
+        <Menu anchorEl={anchor} open={Boolean(anchor)} onClose={() => setAnchor(null)}>
+          {FRAME_TEMPLATES.map((ft) => (
+            <MenuItem key={ft.key} onClick={() => handleSelect(ft.src)}
+              style={{ fontFamily:"'Sora',sans-serif", fontSize:"0.83rem" }}>
+              {ft.label}
+            </MenuItem>
+          ))}
+        </Menu>
+      </>
+    );
+  }
 
   const IMG_H          = 180;
   const CARD_H         = 420;
@@ -1239,6 +1348,7 @@ function DatePickerBox({ label, value, onChange }) {
                                   <DownloadRoundedIcon style={{ fontSize:13 }}/>
                                   Download
                                 </button>
+                                <RemoveFrameButton imgSrc={item.imageUrl} small />
                                 <Tooltip title="Delete image" placement="top">
                                   <button
                                     type="button"
@@ -1576,6 +1686,7 @@ function DatePickerBox({ label, value, onChange }) {
                       <DownloadRoundedIcon style={{ fontSize:17 }}/>
                       Download
                     </button>
+                    <RemoveFrameButton imgSrc={previewItem.imageUrl} />
                   </div>
                 </Stack>
               )}
