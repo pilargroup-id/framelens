@@ -5,7 +5,7 @@
   import {
     Box, Card, CardContent, Stack, Typography, Chip, Button,
     IconButton, Dialog, DialogContent, DialogTitle, TextField,
-    Paper, Tooltip, Divider, Zoom,
+    Paper, Tooltip, Divider, Zoom, MenuItem,
   } from "@mui/material";
   import PhotoLibraryRoundedIcon        from "@mui/icons-material/PhotoLibraryRounded";
   import DeleteOutlineRoundedIcon       from "@mui/icons-material/DeleteOutlineRounded";
