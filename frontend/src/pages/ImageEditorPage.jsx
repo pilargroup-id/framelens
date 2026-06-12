@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+﻿import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   Alert,
@@ -43,23 +43,6 @@ import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate";
 import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 import PhotoLibraryRoundedIcon from "@mui/icons-material/PhotoLibraryRounded";
 import api from "../api/client";
-import framingGosave from "../assets/framming/Framing GOSAVE.png";
-import framingBrand  from "../assets/framming/Keperluan Brand Toko Online.png";
-
-const FRAME_TEMPLATES = [
-  {
-    key: "gosave",
-    label: "GOSAVE Border",
-    src: framingGosave,
-    prompt: " This image will have the GOSAVE PASTI AMAN frame overlay composited on top. Compose accordingly: TOP-LEFT area (left 50% of width, top 25% of height) is reserved for the GOSAVE badge — place only environmental background or product shadow here, NO product or headline text. TOP-RIGHT area (right 50%, top 25%) should contain the product name and tagline in large bold text. CENTER and LOWER area (below top 25%) is the hero product photo zone — place the main product here, large and prominent. RIGHT COLUMN can hold feature icons or callout points. Keep all content at least 5% inset from each edge (frame border zone).",
-  },
-  {
-    key: "brand",
-    label: "Brand Toko Online",
-    src: framingBrand,
-    prompt: " This image will have the Brand Toko Online frame overlay composited on top. Compose accordingly: TOP-LEFT area (left 50% of width, top 25% of height) is reserved for the brand badge — place only background here, no product content. TOP-RIGHT area should contain the product name and headline. CENTER and LOWER area is the hero product photo zone. RIGHT COLUMN can hold feature icons or callout points. Keep all content at least 5% inset from each edge.",
-  },
-];
 
 /* ─── Google Fonts ─── */
 const FontStyle = () => (
@@ -845,8 +828,7 @@ export default function ImageEditorPage() {
   // ── reference images state
   const [refFiles, setRefFiles] = useState([]);
   const [dragActiveRef, setDragActiveRef] = useState(false);
-  const [selectedFrame, setSelectedFrame] = useState(null);
-
+  
   const openLightbox = (payload) => {
     if (typeof payload === "string") {
       setLightboxSrc(payload);
@@ -916,8 +898,7 @@ export default function ImageEditorPage() {
     const ref = refFiles.length > 0
       ? ` Use the provided ${refFiles.length} reference image${refFiles.length > 1 ? "s" : ""} as visual/style reference.`
       : "";
-    const framePrompt = selectedFrame ? selectedFrame.prompt : "";
-    return `${prompt.trim()}${ref}${framePrompt}${r}${res}`.trim();
+    return `${prompt.trim()}${ref}${r}${res}`.trim();
   };
 
   const getAppOrigin = () => {
@@ -1059,7 +1040,6 @@ export default function ImageEditorPage() {
     setBatchCount(1);
     setRefFiles([]);
     setDragActiveRef(false);
-    setSelectedFrame(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
     if (refFileInputRef.current) refFileInputRef.current.value = "";
   };
@@ -1490,45 +1470,6 @@ export default function ImageEditorPage() {
                   inputRef={refFileInputRef}
                   F={F}
                 />
-
-                {/* ── Frame Template Selector ── */}
-                <Box>
-                  <Stack direction="row" spacing={0.8} alignItems="center" mb={1.2}>
-                    <PhotoSizeSelectLargeIcon sx={{ fontSize: 15, color: "#233971" }} />
-                    <Typography sx={{ ...F, fontWeight: 700, fontSize: "0.83rem", color: "#1e293b" }}>
-                      Frame Template
-                    </Typography>
-                    <Chip size="small" label="Auto-prompt" sx={{ ...F, fontWeight: 600, fontSize: "0.65rem", borderRadius: "999px", height: 18, background: "rgba(35,57,113,0.07)", color: "#233971", border: "1px solid rgba(35,57,113,0.18)" }} />
-                  </Stack>
-                  <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                    {FRAME_TEMPLATES.map((ft) => {
-                      const isActive = selectedFrame?.key === ft.key;
-                      return (
-                        <Chip
-                          key={ft.key}
-                          label={ft.label}
-                          onClick={() => setSelectedFrame(isActive ? null : ft)}
-                          variant={isActive ? "filled" : "outlined"}
-                          sx={{
-                            ...F,
-                            fontWeight: 700,
-                            fontSize: "0.8rem",
-                            cursor: "pointer",
-                            background: isActive ? "#233971" : "transparent",
-                            color: isActive ? "#fff" : "#233971",
-                            borderColor: "rgba(35,57,113,0.35)",
-                            "&:hover": { background: isActive ? "#1a2d5a" : "rgba(35,57,113,0.08)" },
-                          }}
-                        />
-                      );
-                    })}
-                  </Stack>
-                  {selectedFrame && (
-                    <Alert severity="info" sx={{ mt: 1.2, borderRadius: "10px", ...F, fontSize: "0.78rem", background: "rgba(35,57,113,0.06)", border: "1px solid rgba(35,57,113,0.18)", color: "#233971", "& .MuiAlert-icon": { color: "#233971" }, py: 0.5 }}>
-                      Prompt otomatis disesuaikan — AI akan menempatkan konten agar tidak nabrak area badge <strong>{selectedFrame.label}</strong>.
-                    </Alert>
-                  )}
-                </Box>
 
                 <Stack direction={{ xs: "column", md: "row" }} spacing={2}>
                   {[
@@ -2135,3 +2076,4 @@ export default function ImageEditorPage() {
     </Box>
   );
 }
+

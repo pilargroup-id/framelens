@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
   Alert,
   Box,
@@ -29,6 +29,8 @@ import EditNoteRoundedIcon from "@mui/icons-material/EditNoteRounded"
 import ColorLensRoundedIcon from "@mui/icons-material/ColorLensRounded"
 import BrushRoundedIcon from "@mui/icons-material/BrushRounded"
 import ShoppingBagRoundedIcon from "@mui/icons-material/ShoppingBagRounded"
+import KeyboardArrowUpRoundedIcon from "@mui/icons-material/KeyboardArrowUpRounded"
+import KeyboardArrowDownRoundedIcon from "@mui/icons-material/KeyboardArrowDownRounded"
 
 /* ─── Fonts & Animations ─── */
 const FontStyle = () => (
@@ -116,6 +118,22 @@ const inputSx = {
 
 const sectionLabel = { ...F, fontWeight: 700, fontSize: "0.83rem", color: "#1e293b" }
 const sectionSub   = { ...F, fontSize: "0.78rem", color: "#64748b" }
+
+const darkEditorSx = {
+  "& .MuiOutlinedInput-root": {
+    borderRadius: "16px",
+    background: "rgba(15,23,42,0.98)",
+    backdropFilter: "blur(8px)",
+    color: "#e2e8f0",
+    fontFamily: "monospace",
+    "& fieldset": { borderColor: "rgba(148,163,184,0.24)" },
+    "&:hover fieldset": { borderColor: "rgba(148,163,184,0.42)" },
+    "&.Mui-focused fieldset": { borderColor: "#94a3b8", borderWidth: "1.5px" },
+    "& textarea": { color: "#e2e8f0", fontFamily: "monospace", fontSize: "0.78rem", lineHeight: 1.65 },
+  },
+  "& .MuiInputLabel-root": { ...F, color: "#cbd5e1", "&.Mui-focused": { color: "#e2e8f0" } },
+  "& .MuiFormHelperText-root": { ...F, color: "#94a3b8" },
+}
 
 function SectionHeader({ label, chip, sectionKey, isHidden, onToggle, children }) {
   return (
@@ -332,6 +350,10 @@ export default function PromptBuilderGTPage() {
   const [newUsp, setNewUsp]       = useState("")
   const [newNeg, setNewNeg]       = useState("")
   const [hidden, setHidden]       = useState(new Set())
+  const [searchQuery, setSearchQuery] = useState("")
+  const [matchIndex, setMatchIndex]   = useState(0)
+  const [manualPromptMode, setManualPromptMode] = useState(false)
+  const [manualPromptText, setManualPromptText] = useState("")
 
   const toggleHide = (key) => setHidden(prev => {
     const next = new Set(prev)
@@ -359,8 +381,60 @@ export default function PromptBuilderGTPage() {
     return JSON.stringify(filtered, null, 2) + extras
   }
 
+  const toggleManualPromptMode = () => {
+    if (!manualPromptMode) {
+      if (!manualPromptText) setManualPromptText(generateOutput())
+    }
+    setManualPromptMode(m => !m)
+  }
+
+  const outputText = manualPromptMode ? manualPromptText : generateOutput()
+
+  const normalizedSearch = searchQuery.trim().toLowerCase()
+  const searchActive = normalizedSearch.length > 0
+
+  const getMatchCount = (text, query) => {
+    if (!query) return 0
+    let count = 0, idx = 0
+    const lower = text.toLowerCase()
+    while ((idx = lower.indexOf(query, idx)) !== -1) { count++; idx++ }
+    return count
+  }
+
+  const matchCount = searchActive ? getMatchCount(outputText, normalizedSearch) : 0
+
+  useEffect(() => { setMatchIndex(0) }, [normalizedSearch])
+
+  useEffect(() => {
+    if (!searchActive || matchCount === 0) return
+    document.getElementById(`gt-match-${matchIndex}`)?.scrollIntoView({ behavior: "smooth", block: "nearest" })
+  }, [matchIndex, normalizedSearch, searchActive, matchCount])
+
+  const goPrev = () => setMatchIndex(i => (i - 1 + matchCount) % matchCount)
+  const goNext = () => setMatchIndex(i => (i + 1) % matchCount)
+
+  const highlightText = (text, query, activeIdx) => {
+    if (!query) return [<span key="all">{text}</span>]
+    const parts = []
+    const lower = text.toLowerCase()
+    let last = 0, idx = 0, spanKey = 0, matchNum = 0
+    while ((idx = lower.indexOf(query, last)) !== -1) {
+      if (idx > last) parts.push(<span key={spanKey++}>{text.slice(last, idx)}</span>)
+      const isActive = matchNum === activeIdx
+      parts.push(
+        <mark key={spanKey++} id={`gt-match-${matchNum}`} style={{ background: isActive ? "#f97316" : "#facc15", color: "#0f172a", borderRadius: "3px", padding: "0 2px", outline: isActive ? "2px solid #fb923c" : "none", outlineOffset: "1px" }}>
+          {text.slice(idx, idx + query.length)}
+        </mark>
+      )
+      last = idx + query.length
+      matchNum++
+    }
+    if (last < text.length) parts.push(<span key={spanKey++}>{text.slice(last)}</span>)
+    return parts
+  }
+
   const handleCopy = () => {
-    navigator.clipboard.writeText(generateOutput())
+    navigator.clipboard.writeText(outputText)
     setCopied(true)
     setTimeout(() => setCopied(false), 2500)
   }
@@ -754,6 +828,15 @@ export default function PromptBuilderGTPage() {
                       <Typography sx={sectionLabel}>Prompt Output</Typography>
                       <Typography sx={{ ...sectionSub, fontSize: "0.75rem", mt: "2px" }}>Click copy → ready to use</Typography>
                     </Box>
+                    <Stack direction="row" alignItems="center" spacing={1.5}>
+                      <FormControlLabel
+                        control={
+                          <Switch size="small" checked={manualPromptMode} onChange={toggleManualPromptMode}
+                            sx={{ "& .MuiSwitch-thumb": { bgcolor: manualPromptMode ? "#2e4fa3" : undefined }, "& .MuiSwitch-track": { bgcolor: manualPromptMode ? "rgba(35,57,113,0.4) !important" : undefined } }} />
+                        }
+                        label={<Typography sx={{ ...F, fontSize: "0.78rem", color: "#475569", fontWeight: 600 }}>Manual edit</Typography>}
+                        sx={{ m: 0 }}
+                      />
                     <Tooltip title={copied ? "Copied!" : "Copy full prompt"}>
                       <Button
                         variant="contained"
@@ -772,12 +855,36 @@ export default function PromptBuilderGTPage() {
                         {copied ? "Copied!" : "Copy Prompt"}
                       </Button>
                     </Tooltip>
+                    </Stack>
                   </Stack>
 
                   {copied && (
                     <Alert severity="success" sx={{ borderRadius: "12px", ...F, fontSize: "0.8rem", mb: 1.5, border: "1px solid rgba(35,57,113,0.18)", background: "rgba(232,237,248,0.9)", "& .MuiAlert-icon": { color: "#233971" }, color: "#233971" }}>
                       Prompt copied — paste directly into AI image generator!
                     </Alert>
+                  )}
+
+                  {manualPromptMode && (
+                    <Box sx={{ mb: 1.5 }}>
+                      <Typography sx={{ ...sectionSub, mb: 0.8 }}>
+                        Edit the prompt manually here. Copy will use this version until you turn manual edit off.
+                      </Typography>
+                      <TextField
+                        fullWidth
+                        multiline
+                        minRows={8}
+                        value={manualPromptText}
+                        onChange={e => setManualPromptText(e.target.value)}
+                        placeholder="Type your custom prompt here..."
+                        sx={{
+                          ...darkEditorSx,
+                          "& .MuiOutlinedInput-root": {
+                            ...darkEditorSx["& .MuiOutlinedInput-root"],
+                            alignItems: "flex-start",
+                          },
+                        }}
+                      />
+                    </Box>
                   )}
 
                   <Box sx={{
@@ -788,14 +895,62 @@ export default function PromptBuilderGTPage() {
                     overflow: "hidden",
                     boxShadow: "0 8px 24px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.06)",
                   }}>
-                    <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ px: 1.5, py: 0.8, borderBottom: "1px solid rgba(255,255,255,0.06)", background: "rgba(255,255,255,0.04)" }}>
-                      <Stack direction="row" spacing={0.6}>
+                    <Stack direction="row" alignItems="center" sx={{ px: 1.5, py: 0.8, borderBottom: "1px solid rgba(255,255,255,0.06)", background: "rgba(255,255,255,0.04)", gap: 1.5 }}>
+                      <Stack direction="row" spacing={0.6} flexShrink={0}>
                         {["#ef4444", "#f59e0b", "#22c55e"].map(c => <Box key={c} sx={{ width: 10, height: 10, borderRadius: "50%", bgcolor: c, opacity: 0.8 }} />)}
                       </Stack>
-                      <Typography sx={{ fontFamily: "monospace", fontSize: "0.68rem", color: "rgba(255,255,255,0.35)" }}>
+                      <Typography sx={{ fontFamily: "monospace", fontSize: "0.68rem", color: "rgba(255,255,255,0.35)", flexShrink: 0 }}>
                         prompt-gt.json
                       </Typography>
-                      <Box sx={{ width: 48 }} />
+                      <Box sx={{ flex: 1 }} />
+                      <TextField
+                        size="small"
+                        placeholder="Search JSON..."
+                        value={searchQuery}
+                        onChange={e => setSearchQuery(e.target.value)}
+                        onKeyDown={e => { if (e.key === "Enter") goNext() }}
+                        sx={{
+                          width: 150,
+                          "& .MuiOutlinedInput-root": {
+                            height: 26, borderRadius: "999px",
+                            background: "rgba(15,23,42,0.85)",
+                            color: "#e2e8f0", fontSize: "0.72rem",
+                            "& fieldset": { borderColor: "rgba(255,255,255,0.12)" },
+                            "&:hover fieldset": { borderColor: "rgba(255,255,255,0.24)" },
+                            "&.Mui-focused fieldset": { borderColor: "rgba(255,255,255,0.32)" },
+                          },
+                          "& input": {
+                            color: "#e2e8f0", padding: "4px 12px", fontSize: "0.72rem",
+                            "&:-webkit-autofill, &:-webkit-autofill:hover, &:-webkit-autofill:focus": {
+                              WebkitBoxShadow: "0 0 0 100px rgba(15,23,42,0.98) inset",
+                              WebkitTextFillColor: "#e2e8f0",
+                              transition: "background-color 5000s ease-in-out 0s",
+                            },
+                          },
+                          "& input::placeholder": { color: "rgba(226,232,240,0.45)", opacity: 1 },
+                        }}
+                      />
+                      {searchActive && (
+                        <Stack direction="row" spacing={0.4} alignItems="center" flexShrink={0}>
+                          <Typography sx={{ fontFamily: "monospace", fontSize: "0.65rem", color: matchCount > 0 ? "#facc15" : "rgba(226,232,240,0.45)", minWidth: 42, textAlign: "center" }}>
+                            {matchCount > 0 ? `${matchIndex + 1}/${matchCount}` : "0 hasil"}
+                          </Typography>
+                          <IconButton size="small" onClick={goPrev} disabled={matchCount === 0}
+                            sx={{ width: 22, height: 22, borderRadius: "6px", color: "#e2e8f0", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", "&:hover": { background: "rgba(255,255,255,0.12)" }, "&.Mui-disabled": { opacity: 0.3 }, "& svg": { fontSize: "16px !important" } }}>
+                            <KeyboardArrowUpRoundedIcon />
+                          </IconButton>
+                          <IconButton size="small" onClick={goNext} disabled={matchCount === 0}
+                            sx={{ width: 22, height: 22, borderRadius: "6px", color: "#e2e8f0", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", "&:hover": { background: "rgba(255,255,255,0.12)" }, "&.Mui-disabled": { opacity: 0.3 }, "& svg": { fontSize: "16px !important" } }}>
+                            <KeyboardArrowDownRoundedIcon />
+                          </IconButton>
+                        </Stack>
+                      )}
+                      {searchActive && (
+                        <IconButton size="small" onClick={() => setSearchQuery("")}
+                          sx={{ width: 22, height: 22, borderRadius: "6px", color: "rgba(226,232,240,0.5)", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", "&:hover": { background: "rgba(255,255,255,0.1)", color: "#e2e8f0" }, "& svg": { fontSize: "13px !important" } }}>
+                          <CloseRoundedIcon />
+                        </IconButton>
+                      )}
                     </Stack>
                     <Box component="pre" sx={{
                       m: 0, p: 2,
@@ -809,9 +964,10 @@ export default function PromptBuilderGTPage() {
                       wordBreak: "break-word",
                       lineHeight: 1.65,
                     }}>
-                      {generateOutput()}
+                      {searchActive ? highlightText(outputText, normalizedSearch, matchIndex) : outputText}
                     </Box>
                   </Box>
+
                 </Box>
 
               </Stack>

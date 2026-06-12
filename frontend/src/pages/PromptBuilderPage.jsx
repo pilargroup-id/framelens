@@ -1,4 +1,4 @@
-import { useState } from "react"
+﻿import { useState, useEffect } from "react"
 import {
   Alert,
   Box,
@@ -29,6 +29,8 @@ import EditNoteRoundedIcon from "@mui/icons-material/EditNoteRounded"
 import ColorLensRoundedIcon from "@mui/icons-material/ColorLensRounded"
 import BrushRoundedIcon from "@mui/icons-material/BrushRounded"
 import LayersRoundedIcon from "@mui/icons-material/LayersRounded"
+import KeyboardArrowUpRoundedIcon from "@mui/icons-material/KeyboardArrowUpRounded"
+import KeyboardArrowDownRoundedIcon from "@mui/icons-material/KeyboardArrowDownRounded"
 
 /* ─── Fonts & Animations ─── */
 const FontStyle = () => (
@@ -104,6 +106,37 @@ const nativeWrapSx = {
   "&:focus-within": { borderColor: "#233971", boxShadow: "0 0 0 3px rgba(35,57,113,0.10)" },
 }
 
+const darkEditorSx = {
+  "& .MuiOutlinedInput-root": {
+    borderRadius: "16px",
+    background: "rgba(15,23,42,0.98)",
+    backdropFilter: "blur(8px)",
+    color: "#e2e8f0",
+    fontFamily: "monospace",
+    "& fieldset": { borderColor: "rgba(148,163,184,0.24)" },
+    "&:hover fieldset": { borderColor: "rgba(148,163,184,0.42)" },
+    "&.Mui-focused fieldset": { borderColor: "#94a3b8", borderWidth: "1.5px" },
+    "& textarea": {
+      color: "#e2e8f0",
+      fontFamily: "monospace",
+      fontSize: "0.78rem",
+      lineHeight: 1.65,
+    },
+  },
+  "& .MuiInputLabel-root": { ...F, color: "#cbd5e1", "&.Mui-focused": { color: "#e2e8f0" } },
+  "& .MuiFormHelperText-root": { ...F, color: "#94a3b8" },
+}
+
+const colorSwatchBorder = "1px solid rgba(15,23,42,0.12)"
+
+const getColorPreview = (value) => {
+  const color = typeof value === "string" && value.trim() ? value.trim() : "#cbd5e1"
+  return {
+    background: color,
+    border: colorSwatchBorder,
+  }
+}
+
 function SectionHeader({ label, chip, sectionKey, isHidden, onToggle, children }) {
   return (
     <Stack direction="row" justifyContent="space-between" alignItems="center" mb={isHidden ? 0 : 1.5}>
@@ -151,115 +184,153 @@ const ADVANCED_SECTIONS = [
 
 const DEFAULT_DATA = {
   rule_number_one_most_important:
-    "This image is ONE SINGLE CONTINUOUS PHOTOGRAPH from edge to edge. The construction-site background photo fills 100% of the canvas with NOTHING covering it. There are NO panels, NO cards, NO bars, NO banners, NO boxes, NO ribbons, NO color blocks, NO gradient strips — not white, not black, not dark, not transparent, not any color — anywhere in the image, especially not at the top and not behind any text. All text is typed DIRECTLY onto the photo itself, exactly like a watermark on a photograph, with only a thin soft drop shadow on the letters for readability. If text placement would require a background shape to be readable, move or resize the text instead — NEVER add a shape.",
+    "Use the provided 1 reference image as the visual and style reference. Use aspect ratio 1:1. Output at the highest quality possible, with the longest side at most 1920px. Do NOT change the aspect ratio - keep the original image proportions exactly.",
 
   design_analysis: {
     design_type: "Marketplace Main Image",
     aspect_ratio: "1:1",
-    visual_style: "Industrial Safety Product Advertising — clean photographic style, typography directly over photo",
+    visual_style: "Industrial Safety Eyewear Product Advertising",
     objective: [
-      "Stop scrolling within 1-3 seconds",
-      "Instantly highlight the safety vest function",
-      "Showcase visibility and workplace safety benefits",
-      "Elevate product quality and professional perception",
-      "Drive clicks and marketplace conversions",
+      "Menghentikan scrolling dalam 1-3 detik",
+      "Menonjolkan fungsi perlindungan mata secara instan",
+      "Menunjukkan kombinasi tampilan fashion dan keamanan kerja",
+      "Meningkatkan persepsi produk yang modern, nyaman, dan profesional",
+      "Mendorong klik dan konversi marketplace",
     ],
   },
 
   visible_text_whitelist: {
     instruction: "ONLY the texts listed below may appear as visible text in the image. Nothing else.",
-    product_name: "VIZOR SAFETY VEST",
-    tagline: "High Visibility, Safety Assured",
-    usp_labels: ["Premium Mesh Material", "Functional Pocket", "Strong Reflective"],
+    product_name: "ECO BRAVA FASHION SAFETY GLASSES",
+    tagline: "Gaya Dalam Safety",
+    usp_labels: ["Anti UV", "Waterproof", "Anti-Dust"],
   },
 
   product: {
-    name: "VIZOR SAFETY VEST",
-    category: "Safety Vest",
-    view_angle: "Front View",
+    name: "ECO BRAVA FASHION SAFETY GLASSES",
+    category: "Safety Glasses",
+    view_angle: "Front 3/4 View",
     preservation:
-      "Preserve the exact shape, proportion, material, texture, logo, color, and all details of the original product photo. Do not redesign or alter the product.",
+      "Preserve exact shape, proportion, material, texture, logo, color, and all details. Do not redesign or alter the product.",
   },
 
   target_market_context:
-    "Project workers, field technicians, construction workers, HSE teams, and safety officers",
+    "Pekerja proyek, teknisi lapangan, operator mesin, pekerja industri, tim K3, Safety Officer",
 
   layout_instructions_do_not_render_as_text: {
-    note: "Everything in this section describes WHERE to place elements. These are layout directions only — never draw, print, or display any of these words inside the image.",
-    structure: "Z-pattern composition",
+    note: "Everything in this section describes WHERE to place elements. These are layout directions only - never draw, print, or display any of these words inside the image.",
+    structure: "Z Pattern",
     badge_reserved_area:
-      "The top-left area — from the left edge to the horizontal center, and from the top edge down to about one-sixth of the canvas height — shows ONLY the plain construction-site photo. No product, no logo, no text, no shapes there. Below that strip, the left side may be used normally.",
+      "The top-left area shows the GOSAVE Border Header. Keep a safe margin of at least 5 percent from the canvas edges.",
     headline_zone:
-      "Product name and tagline typed directly over the photo in the top-right area only (right half of the canvas), right-aligned, starting a little below the top edge and ending before the upper quarter of the canvas. The headline must NOT extend into the left half of the canvas.",
+      "Place the product name and headline in the top-right area, right-aligned.",
     hero_zone:
-      "The safety vest is the hero, placed large in the center and slightly left, starting below the top strip, extending down to near the bottom margin. It takes up roughly two-thirds of the canvas width, prominent and dominant.",
+      "Place the hero product in the center-left area, sized around 70-80 percent of the canvas.",
     usp_zone:
-      "A vertical list of three USP feature icons with short labels along the right side, evenly spaced, kept clearly inside the right margin.",
+      "Place the USP feature list vertically on the right side.",
     frame_clearance:
-      "Keep about a 4 percent clean margin on all four edges. No text, icons, or important product details touching or near the canvas border.",
+      "Keep all text and icons at least 5 percent away from every edge.",
   },
 
   background: {
-    style: "Construction and industrial work environment, photographed as one seamless wide shot",
-    theme: "High-visibility safety area",
-    lighting:
-      "Premium, evenly cinematic lighting across the whole frame — the same photographic scene continues uninterrupted from the very top edge to the very bottom edge",
-    depth_of_field: "Moderate background blur so the product stays in sharp focus",
-    elements: ["Construction site", "Scaffolding", "Industrial factory", "Safety barriers", "Heavy equipment", "Work zone"],
-    purpose: "Show the safety vest being relevant to high-risk work environments",
+    style: "Industrial Work Environment",
+    theme: "Modern Safety Workplace",
+    lighting: "Premium Dramatic Product Lighting",
+    depth_of_field: "Moderate Depth of Field",
+    elements: ["Construction Site", "Workshop Area", "Industrial Factory", "Safety Equipment Area", "Machinery Background", "Work Zone"],
+    purpose: "Menunjukkan penggunaan safety glasses pada lingkungan kerja dengan perlindungan maksimal",
   },
 
   product_display: {
-    position: "Large hero placement in the center, slightly left of the canvas, below the reserved top-left strip",
-    size: "Dominant — the vest is the largest element in the composition",
-    angle: "Front view",
-    shadow: "Soft realistic ground shadow beneath the product",
-    lighting: "Commercial product photography lighting with controlled reflections",
+    position: "Center Left",
+    size: "70-80% of canvas",
+    angle: "Front 3/4 View",
+    shadow: "Realistic Soft Ground Shadow",
+    lighting: "Commercial Product Photography with controlled lens reflection and rim light",
   },
 
   headline_styling: {
-    placement: "Top-right area only, right-aligned, typed directly on the photo",
+    placement: "Top Right",
+    alignment: "Right",
     product_name_style:
-      "Extra bold, clean white sans-serif, large, with a thin soft drop shadow on the letters only — the photo remains fully visible between and around the letters",
+      "Extra bold, clean white sans-serif, large, with a thin soft drop shadow",
     tagline_style:
-      "Medium weight, bright safety-yellow, smaller than the product name, same treatment — letters directly on the photo",
+      "Medium weight, safety-yellow, smaller than the product name",
   },
 
   usp_styling: {
-    placement: "Vertical icon list along the right side, with clear breathing room from the right edge",
+    placement: "Right Side",
+    layout: "Vertical Icon List",
     icon_style:
-      "Three uniform circular icons, deep navy blue with white pictograms. These three small circles are the ONLY graphic shapes allowed in the entire image.",
+      "Three uniform circular icons, deep navy blue with white pictograms. These three small circles are the only graphic shapes allowed in the entire image.",
     label_style:
-      "Short white text label below each icon, typed directly on the photo with a thin soft drop shadow, no shape behind it, never touching the right edge",
+      "Short white text label below each icon, typed directly on the photo with a thin soft drop shadow",
     icons: [
-      "Mesh fabric pictogram for 'Premium Mesh Material'",
-      "Pocket pictogram for 'Functional Pocket'",
-      "Light-reflection pictogram for 'Strong Reflective'",
+      "UV Protection",
+      "Water Drop",
+      "Dust Shield",
     ],
   },
 
   color_palette: {
-    note: "Use these as color directions only — never display color codes as text in the image.",
-    primary: "deep navy blue",
-    secondary: "safety yellow",
-    accent: "white",
-    text_dark: "black",
+    note: "Use these as color directions only - never display color codes as text in the image.",
+    primary: "#1E3A8A",
+    secondary: "#FFD500",
+    accent: "#FFFFFF",
+    text_dark: "#000000",
+    background_dark: "#1A1A1A",
+    lens_accent: "#C0C0C0",
+  },
+
+  visual_effects: {
+    depth: true,
+    layering: true,
+    realistic_shadow: true,
+    realistic_lighting: true,
+    high_detail: true,
+    premium_finish: true,
+    lens_reflection_effect: true,
+  },
+
+  visual_priority: [
+    "Safety Glasses Product",
+    "Product Name",
+    "Protection Features",
+    "USP Features",
+    "Industrial Environment",
+    "Branding",
+  ],
+
+  design_formula: {
+    product_focus: "75%",
+    headline: "10%",
+    usp: "10%",
+    branding: "3%",
+    background_support: "2%",
   },
 
   rendering_style: {
-    quality: "Highest possible, photorealistic, commercial grade",
-    effects: "Realistic lighting, realistic shadows, layered depth, premium finish, high detail",
+    quality: "Highest Possible",
+    photorealistic: true,
+    commercial_grade: true,
     mobile_friendly: true,
+    realistic_lighting: true,
+    realistic_shadows: true,
+    high_detail: true,
     scroll_stopping: true,
   },
 
   final_instructions:
-    "Use a 1:1 aspect ratio, longest side at most 1920px. Do NOT change the aspect ratio. REPEAT OF RULE NUMBER ONE: the photo background runs seamlessly edge to edge with zero panels, cards, bars, banners, or color blocks of any color behind any text — text sits directly on the photo like a watermark, with only a thin soft drop shadow. The only graphic shapes in the whole image are the three navy circular USP icons. TEXT RULE: only render the texts in 'visible_text_whitelist'; never display numbers, percentages, coordinates, color codes, field names, or instruction wording. LAYOUT RULE: keep the top-left strip (left half, top one-sixth of height) as pure untouched photo because a store badge will be overlaid there later; keep the headline strictly in the right half; keep all text and icons at least 4 percent away from every edge because a thin frame border will be overlaid around the image.",
+    "Use a 1:1 aspect ratio, longest side at most 1920px. Do NOT change the aspect ratio - keep the original image proportions exactly. Use the provided 1 reference image as visual and style reference. Do not invent new product styling, background concepts, or extra creative elements beyond the supplied prompt data.",
 }
 
 export default function PromptBuilderPage() {
   const [data, setData]           = useState(DEFAULT_DATA)
   const [copied, setCopied]       = useState(false)
+  const [manualPromptMode, setManualPromptMode] = useState(false)
+  const [manualPromptText, setManualPromptText] = useState("")
+  const [searchQuery, setSearchQuery] = useState("")
+  const [matchIndex, setMatchIndex] = useState(0)
   const [newElement, setNewEl]    = useState("")
   const [newUspLabel, setNewUspLabel] = useState("")
   const [newUspIcon, setNewUspIcon]   = useState("")
@@ -299,10 +370,81 @@ export default function PromptBuilderPage() {
     return JSON.stringify(filtered, null, 2)
   }
 
+  const outputText = manualPromptMode ? manualPromptText : generateOutput()
+
+  const normalizedSearch = searchQuery.trim().toLowerCase()
+  const searchActive = normalizedSearch.length > 0
+
+  const getMatchCount = (text, query) => {
+    if (!query) return 0
+    let count = 0
+    let idx = 0
+    const lower = text.toLowerCase()
+    while ((idx = lower.indexOf(query, idx)) !== -1) { count++; idx++ }
+    return count
+  }
+
+  const matchCount = searchActive ? getMatchCount(outputText, normalizedSearch) : 0
+
+  useEffect(() => { setMatchIndex(0) }, [normalizedSearch])
+
+  useEffect(() => {
+    if (!searchActive || matchCount === 0) return
+    const el = document.getElementById(`json-match-${matchIndex}`)
+    el?.scrollIntoView({ behavior: "smooth", block: "nearest" })
+  }, [matchIndex, normalizedSearch, searchActive, matchCount])
+
+  const goPrev = () => setMatchIndex(i => (i - 1 + matchCount) % matchCount)
+  const goNext = () => setMatchIndex(i => (i + 1) % matchCount)
+
+  const highlightText = (text, query, activeIdx) => {
+    if (!query) return [<span key="all">{text}</span>]
+    const parts = []
+    const lower = text.toLowerCase()
+    let last = 0
+    let idx = 0
+    let spanKey = 0
+    let matchNum = 0
+    while ((idx = lower.indexOf(query, last)) !== -1) {
+      if (idx > last) parts.push(<span key={spanKey++}>{text.slice(last, idx)}</span>)
+      const isActive = matchNum === activeIdx
+      parts.push(
+        <mark
+          key={spanKey++}
+          id={`json-match-${matchNum}`}
+          style={{
+            background: isActive ? "#f97316" : "#facc15",
+            color: "#0f172a",
+            borderRadius: "3px",
+            padding: "0 2px",
+            outline: isActive ? "2px solid #fb923c" : "none",
+            outlineOffset: "1px",
+          }}
+        >
+          {text.slice(idx, idx + query.length)}
+        </mark>
+      )
+      last = idx + query.length
+      matchNum++
+    }
+    if (last < text.length) parts.push(<span key={spanKey++}>{text.slice(last)}</span>)
+    return parts
+  }
+
   const handleCopy = () => {
-    navigator.clipboard.writeText(generateOutput())
+    navigator.clipboard.writeText(outputText)
     setCopied(true)
     setTimeout(() => setCopied(false), 2500)
+  }
+
+  const toggleManualPromptMode = () => {
+    setManualPromptMode(prev => {
+      const next = !prev
+      if (next && !manualPromptText.trim()) {
+        setManualPromptText(generateOutput())
+      }
+      return next
+    })
   }
 
   const addElement = () => {
@@ -381,7 +523,7 @@ export default function PromptBuilderPage() {
                 <Divider sx={{ borderColor: "rgba(35,57,113,0.12)" }} />
 
                 {/* ── Design Info ── */}
-                <Box>
+                <Box data-section-key="design_analysis">
                   <SectionHeader label="Design Info" sectionKey="design_analysis" isHidden={isHidden("design_analysis")} onToggle={toggleHide}
                     chip={<Chip size="small" label="Design" sx={{ ...F, fontWeight: 700, fontSize: "0.7rem", borderRadius: "999px", background: "rgba(35,57,113,0.08)", color: "#233971", border: "1px solid rgba(35,57,113,0.22)" }} />}
                   />
@@ -403,7 +545,7 @@ export default function PromptBuilderPage() {
                 <Divider sx={{ borderColor: "rgba(35,57,113,0.12)" }} />
 
                 {/* ── Visible Text Whitelist ── */}
-                <Box>
+                <Box data-section-key="visible_text_whitelist">
                   <SectionHeader label="Visible Text" sectionKey="visible_text_whitelist" isHidden={isHidden("visible_text_whitelist")} onToggle={toggleHide}
                     chip={<Chip size="small" label="Text" sx={{ ...F, fontWeight: 700, fontSize: "0.7rem", borderRadius: "999px", background: "rgba(35,57,113,0.08)", color: "#233971", border: "1px solid rgba(35,57,113,0.22)" }} />}
                   />
@@ -429,7 +571,7 @@ export default function PromptBuilderPage() {
                 <Divider sx={{ borderColor: "rgba(35,57,113,0.12)" }} />
 
                 {/* ── Key Features (USP) ── */}
-                <Box>
+                <Box data-section-key="visible_text_whitelist-usp">
                   <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1.5}>
                     <Stack direction="row" spacing={1} alignItems="center">
                       <Typography sx={sectionLabel}>Key Features (USP)</Typography>
@@ -471,9 +613,9 @@ export default function PromptBuilderPage() {
                           >
                             <DeleteOutlineRoundedIcon fontSize="small" />
                           </IconButton>
-                        </Stack>
-                      </Box>
-                    ))}
+                      </Stack>
+                    </Box>
+                  ))}
 
                     {/* Add new USP */}
                     <Box sx={{ border: "1.5px dashed rgba(35,57,113,0.25)", borderRadius: "16px", p: 1.5, background: "rgba(255,255,255,0.5)" }}>
@@ -511,7 +653,7 @@ export default function PromptBuilderPage() {
                 <Divider sx={{ borderColor: "rgba(35,57,113,0.12)" }} />
 
                 {/* ── Product Info ── */}
-                <Box>
+                <Box data-section-key="product">
                   <SectionHeader label="Product Info" sectionKey="product" isHidden={isHidden("product")} onToggle={toggleHide}
                     chip={<Chip size="small" label="Product" sx={{ ...F, fontWeight: 700, fontSize: "0.7rem", borderRadius: "999px", background: "rgba(35,57,113,0.08)", color: "#233971", border: "1px solid rgba(35,57,113,0.22)" }} />}
                   />
@@ -531,7 +673,7 @@ export default function PromptBuilderPage() {
                 <Divider sx={{ borderColor: "rgba(35,57,113,0.12)" }} />
 
                 {/* ── Target Market ── */}
-                <Box>
+                <Box data-section-key="target_market_context">
                   <SectionHeader label="Target Market" sectionKey="target_market_context" isHidden={isHidden("target_market_context")} onToggle={toggleHide} />
                   <Collapse in={!isHidden("target_market_context")}>
                     <TextField
@@ -548,7 +690,7 @@ export default function PromptBuilderPage() {
                 <Divider sx={{ borderColor: "rgba(35,57,113,0.12)" }} />
 
                 {/* ── Background ── */}
-                <Box>
+                <Box data-section-key="background">
                   <SectionHeader label="Background" sectionKey="background" isHidden={isHidden("background")} onToggle={toggleHide}
                     chip={<Chip size="small" label="Background" sx={{ ...F, fontWeight: 700, fontSize: "0.7rem", borderRadius: "999px", background: "rgba(35,57,113,0.08)", color: "#233971", border: "1px solid rgba(35,57,113,0.22)" }} />}
                   />
@@ -585,7 +727,7 @@ export default function PromptBuilderPage() {
                 <Divider sx={{ borderColor: "rgba(35,57,113,0.12)" }} />
 
                 {/* ── Final Instructions ── */}
-                <Box>
+                <Box data-section-key="final_instructions">
                   <SectionHeader label="Final Instructions" sectionKey="final_instructions" isHidden={isHidden("final_instructions")} onToggle={toggleHide}>
                     {!isHidden("final_instructions") && <Typography sx={{ ...sectionSub, fontSize: "0.75rem" }}>End of prompt</Typography>}
                   </SectionHeader>
@@ -668,14 +810,14 @@ export default function PromptBuilderPage() {
                 <Divider sx={{ borderColor: "rgba(35,57,113,0.12)" }} />
 
                 {/* ── Color Palette ── */}
-                <Box>
+                <Box data-section-key="color_palette">
                   <SectionHeader label="Color Palette" sectionKey="color_palette" isHidden={isHidden("color_palette")} onToggle={toggleHide}
                     chip={<Chip size="small" label="Colors" sx={{ ...F, fontWeight: 700, fontSize: "0.7rem", borderRadius: "999px", background: "rgba(35,57,113,0.08)", color: "#233971", border: "1px solid rgba(35,57,113,0.22)" }} />}
                   />
                   <Collapse in={!isHidden("color_palette")}>
                     <Stack spacing={1.2}>
                       <Typography sx={{ ...sectionSub, mb: 0.5 }}>
-                        Describe colors in words — AI interprets them, no hex codes displayed in image
+                        You can keep using hex values, but the swatch preview shows the color visually.
                       </Typography>
                       {[
                         { key: "primary",   label: "Primary Color",   placeholder: "e.g. deep navy blue" },
@@ -683,13 +825,26 @@ export default function PromptBuilderPage() {
                         { key: "accent",    label: "Accent Color",    placeholder: "e.g. white" },
                         { key: "text_dark", label: "Dark Text Color", placeholder: "e.g. black" },
                       ].map(({ key, label, placeholder }) => (
-                        <TextField
-                          key={key} fullWidth size="small" label={label}
-                          placeholder={placeholder}
-                          value={data.color_palette[key]}
-                          onChange={e => set(`color_palette.${key}`, e.target.value)}
-                          sx={inputSx}
-                        />
+                        <Stack key={key} direction="row" spacing={1.2} alignItems="center">
+                          <Box
+                            aria-hidden
+                            sx={{
+                              width: 42,
+                              height: 42,
+                              borderRadius: "14px",
+                              flexShrink: 0,
+                              ...getColorPreview(data.color_palette[key]),
+                              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.35), 0 4px 12px rgba(15,23,42,0.08)",
+                            }}
+                          />
+                          <TextField
+                            fullWidth size="small" label={label}
+                            placeholder={placeholder}
+                            value={data.color_palette[key]}
+                            onChange={e => set(`color_palette.${key}`, e.target.value)}
+                            sx={inputSx}
+                          />
+                        </Stack>
                       ))}
                     </Stack>
                   </Collapse>
@@ -698,7 +853,7 @@ export default function PromptBuilderPage() {
                 <Divider sx={{ borderColor: "rgba(35,57,113,0.12)" }} />
 
                 {/* ── Rendering Style ── */}
-                <Box>
+                <Box data-section-key="rendering_style">
                   <SectionHeader label="Rendering Style" sectionKey="rendering_style" isHidden={isHidden("rendering_style")} onToggle={toggleHide}
                     chip={<Chip size="small" label="Rendering" sx={{ ...F, fontWeight: 700, fontSize: "0.7rem", borderRadius: "999px", background: "rgba(35,57,113,0.08)", color: "#233971", border: "1px solid rgba(35,57,113,0.22)" }} />}
                   />
@@ -731,30 +886,60 @@ export default function PromptBuilderPage() {
                       <Typography sx={sectionLabel}>Prompt Output</Typography>
                       <Typography sx={{ ...sectionSub, fontSize: "0.75rem", mt: "2px" }}>Click copy → ready to use</Typography>
                     </Box>
-                    <Tooltip title={copied ? "Copied!" : "Copy full prompt"}>
-                      <Button
-                        variant="contained"
-                        size="medium"
-                        startIcon={copied ? <CheckRoundedIcon /> : <ContentCopyIcon />}
-                        onClick={handleCopy}
-                        sx={{
-                          borderRadius: "999px", px: 2.5, py: 1,
-                          textTransform: "none", ...F, fontWeight: 700, fontSize: "0.85rem",
-                          background: copied ? "linear-gradient(135deg,#166534,#16a34a)" : "linear-gradient(135deg,#233971,#2e4fa3)",
-                          boxShadow: copied ? "0 6px 18px rgba(22,101,52,0.32)" : "0 6px 18px rgba(35,57,113,0.32)",
-                          "&:hover": { background: copied ? "linear-gradient(135deg,#14532d,#166534)" : "linear-gradient(135deg,#1a2d5a,#233971)", transform: "translateY(-1px)", boxShadow: copied ? "0 10px 26px rgba(22,101,52,0.38)" : "0 10px 26px rgba(35,57,113,0.42)" },
-                          transition: "all 0.25s ease",
-                        }}
-                      >
-                        {copied ? "Copied!" : "Copy Prompt"}
-                      </Button>
-                    </Tooltip>
+                    <Stack direction="row" spacing={1} alignItems="center">
+                      <FormControlLabel
+                        control={<Switch checked={manualPromptMode} onChange={toggleManualPromptMode} size="small" />}
+                        label={<Typography sx={{ ...F, fontSize: "0.75rem", color: "#334155" }}>Manual edit</Typography>}
+                        sx={{ mr: 0, "& .MuiFormControlLabel-label": { ml: 0.5 } }}
+                      />
+                      <Tooltip title={copied ? "Copied!" : "Copy full prompt"}>
+                        <Button
+                          variant="contained"
+                          size="medium"
+                          startIcon={copied ? <CheckRoundedIcon /> : <ContentCopyIcon />}
+                          onClick={handleCopy}
+                          sx={{
+                            borderRadius: "999px", px: 2.5, py: 1,
+                            textTransform: "none", ...F, fontWeight: 700, fontSize: "0.85rem",
+                            background: copied ? "linear-gradient(135deg,#166534,#16a34a)" : "linear-gradient(135deg,#233971,#2e4fa3)",
+                            boxShadow: copied ? "0 6px 18px rgba(22,101,52,0.32)" : "0 6px 18px rgba(35,57,113,0.32)",
+                            "&:hover": { background: copied ? "linear-gradient(135deg,#14532d,#166534)" : "linear-gradient(135deg,#1a2d5a,#233971)", transform: "translateY(-1px)", boxShadow: copied ? "0 10px 26px rgba(22,101,52,0.38)" : "0 10px 26px rgba(35,57,113,0.42)" },
+                            transition: "all 0.25s ease",
+                          }}
+                        >
+                          {copied ? "Copied!" : "Copy Prompt"}
+                        </Button>
+                      </Tooltip>
+                    </Stack>
                   </Stack>
 
                   {copied && (
                     <Alert severity="success" sx={{ borderRadius: "12px", ...F, fontSize: "0.8rem", mb: 1.5, border: "1px solid rgba(35,57,113,0.18)", background: "rgba(232,237,248,0.9)", "& .MuiAlert-icon": { color: "#233971" }, color: "#233971" }}>
                       Prompt copied — paste directly into your AI image generator!
                     </Alert>
+                  )}
+
+                  {manualPromptMode && (
+                    <Box sx={{ mb: 1.5 }}>
+                      <Typography sx={{ ...sectionSub, mb: 0.8 }}>
+                        Edit the prompt manually here. Copy will use this version until you turn manual edit off.
+                      </Typography>
+                      <TextField
+                        fullWidth
+                        multiline
+                        minRows={8}
+                        value={manualPromptText}
+                        onChange={e => setManualPromptText(e.target.value)}
+                        placeholder="Type your custom prompt here..."
+                        sx={{
+                          ...darkEditorSx,
+                          "& .MuiOutlinedInput-root": {
+                            ...darkEditorSx["& .MuiOutlinedInput-root"],
+                            alignItems: "flex-start",
+                          },
+                        }}
+                      />
+                    </Box>
                   )}
 
                   <Box sx={{
@@ -765,14 +950,88 @@ export default function PromptBuilderPage() {
                     overflow: "hidden",
                     boxShadow: "0 8px 24px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.06)",
                   }}>
-                    <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ px: 1.5, py: 0.8, borderBottom: "1px solid rgba(255,255,255,0.06)", background: "rgba(255,255,255,0.04)" }}>
-                      <Stack direction="row" spacing={0.6}>
+                    <Stack direction="row" alignItems="center" sx={{ px: 1.5, py: 0.8, borderBottom: "1px solid rgba(255,255,255,0.06)", background: "rgba(255,255,255,0.04)", gap: 1.5 }}>
+                      {/* dots */}
+                      <Stack direction="row" spacing={0.6} flexShrink={0}>
                         {["#ef4444", "#f59e0b", "#22c55e"].map(c => <Box key={c} sx={{ width: 10, height: 10, borderRadius: "50%", bgcolor: c, opacity: 0.8 }} />)}
                       </Stack>
-                      <Typography sx={{ fontFamily: "monospace", fontSize: "0.68rem", color: "rgba(255,255,255,0.35)" }}>
+
+                      {/* filename */}
+                      <Typography sx={{ fontFamily: "monospace", fontSize: "0.68rem", color: "rgba(255,255,255,0.35)", flexShrink: 0 }}>
                         prompt.json
                       </Typography>
-                      <Box sx={{ width: 48 }} />
+
+                      {/* spacer */}
+                      <Box sx={{ flex: 1 }} />
+
+                      {/* search input */}
+                      <TextField
+                        size="small"
+                        placeholder="Search JSON..."
+                        value={searchQuery}
+                        onChange={e => setSearchQuery(e.target.value)}
+                        onKeyDown={e => { if (e.key === "Enter") goNext() }}
+                        sx={{
+                          width: 150,
+                          "& .MuiOutlinedInput-root": {
+                            height: 26,
+                            borderRadius: "999px",
+                            background: "rgba(15,23,42,0.85)",
+                            color: "#e2e8f0",
+                            fontSize: "0.72rem",
+                            "& fieldset": { borderColor: "rgba(255,255,255,0.12)" },
+                            "&:hover fieldset": { borderColor: "rgba(255,255,255,0.24)" },
+                            "&.Mui-focused fieldset": { borderColor: "rgba(255,255,255,0.32)" },
+                          },
+                          "& input": {
+                            color: "#e2e8f0",
+                            padding: "4px 12px",
+                            fontSize: "0.72rem",
+                            "&:-webkit-autofill, &:-webkit-autofill:hover, &:-webkit-autofill:focus": {
+                              WebkitBoxShadow: "0 0 0 100px rgba(15,23,42,0.98) inset",
+                              WebkitTextFillColor: "#e2e8f0",
+                              transition: "background-color 5000s ease-in-out 0s",
+                            },
+                          },
+                          "& input::placeholder": { color: "rgba(226,232,240,0.45)", opacity: 1 },
+                        }}
+                      />
+
+                      {/* match counter + prev/next */}
+                      {searchActive && (
+                        <Stack direction="row" spacing={0.4} alignItems="center" flexShrink={0}>
+                          <Typography sx={{ fontFamily: "monospace", fontSize: "0.65rem", color: matchCount > 0 ? "#facc15" : "rgba(226,232,240,0.45)", minWidth: 42, textAlign: "center" }}>
+                            {matchCount > 0 ? `${matchIndex + 1}/${matchCount}` : "0 hasil"}
+                          </Typography>
+                          <IconButton
+                            size="small"
+                            onClick={goPrev}
+                            disabled={matchCount === 0}
+                            sx={{ width: 22, height: 22, borderRadius: "6px", color: "#e2e8f0", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", "&:hover": { background: "rgba(255,255,255,0.12)" }, "&.Mui-disabled": { opacity: 0.3 }, "& svg": { fontSize: "16px !important" } }}
+                          >
+                            <KeyboardArrowUpRoundedIcon />
+                          </IconButton>
+                          <IconButton
+                            size="small"
+                            onClick={goNext}
+                            disabled={matchCount === 0}
+                            sx={{ width: 22, height: 22, borderRadius: "6px", color: "#e2e8f0", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", "&:hover": { background: "rgba(255,255,255,0.12)" }, "&.Mui-disabled": { opacity: 0.3 }, "& svg": { fontSize: "16px !important" } }}
+                          >
+                            <KeyboardArrowDownRoundedIcon />
+                          </IconButton>
+                        </Stack>
+                      )}
+
+                      {/* clear */}
+                      {searchActive && (
+                        <IconButton
+                          size="small"
+                          onClick={() => setSearchQuery("")}
+                          sx={{ width: 22, height: 22, borderRadius: "6px", color: "rgba(226,232,240,0.5)", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", "&:hover": { background: "rgba(255,255,255,0.1)", color: "#e2e8f0" }, "& svg": { fontSize: "13px !important" } }}
+                        >
+                          <CloseRoundedIcon />
+                        </IconButton>
+                      )}
                     </Stack>
                     <Box component="pre" sx={{
                       m: 0, p: 2,
@@ -786,7 +1045,7 @@ export default function PromptBuilderPage() {
                       wordBreak: "break-word",
                       lineHeight: 1.65,
                     }}>
-                      {generateOutput()}
+                      {searchActive ? highlightText(outputText, normalizedSearch, matchIndex) : outputText}
                     </Box>
                   </Box>
                 </Box>
@@ -800,3 +1059,18 @@ export default function PromptBuilderPage() {
     </Box>
   )
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
