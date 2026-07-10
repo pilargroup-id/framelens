@@ -8,7 +8,6 @@ function BackgroundMain({ position = 'fixed', zIndex = 0 }) {
       <div style={styles.middleBand} />
       <div style={styles.dotField} />
       <div style={styles.bottomCurve} />
-      <div style={styles.bottomRing} />
       <div style={styles.rightGlow} />
       <div style={styles.dotLarge} />
       <div style={styles.dotSmall} />

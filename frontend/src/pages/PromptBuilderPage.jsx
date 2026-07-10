@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react"
+import { useState, useEffect } from "react"
 import {
   Alert,
   Box,
@@ -17,147 +17,198 @@ import {
   Tooltip,
   Collapse,
 } from "@mui/material"
-import AutoFixHighRoundedIcon from "@mui/icons-material/AutoFixHighRounded"
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded"
-import PaletteRoundedIcon from "@mui/icons-material/PaletteRounded"
 import AddRoundedIcon from "@mui/icons-material/AddRounded"
-import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded"
 import ContentCopyIcon from "@mui/icons-material/ContentCopy"
 import CheckRoundedIcon from "@mui/icons-material/CheckRounded"
-import ArticleRoundedIcon from "@mui/icons-material/ArticleRounded"
-import EditNoteRoundedIcon from "@mui/icons-material/EditNoteRounded"
-import ColorLensRoundedIcon from "@mui/icons-material/ColorLensRounded"
-import BrushRoundedIcon from "@mui/icons-material/BrushRounded"
-import LayersRoundedIcon from "@mui/icons-material/LayersRounded"
 import KeyboardArrowUpRoundedIcon from "@mui/icons-material/KeyboardArrowUpRounded"
 import KeyboardArrowDownRoundedIcon from "@mui/icons-material/KeyboardArrowDownRounded"
+import AutoAwesomeRoundedIcon from "@mui/icons-material/AutoAwesomeRounded"
+import LocalMallRoundedIcon from "@mui/icons-material/LocalMallRounded"
+import TextFieldsRoundedIcon from "@mui/icons-material/TextFieldsRounded"
+import GpsFixedRoundedIcon from "@mui/icons-material/GpsFixedRounded"
+import WallpaperRoundedIcon from "@mui/icons-material/WallpaperRounded"
+import WorkspacePremiumRoundedIcon from "@mui/icons-material/WorkspacePremiumRounded"
+import PaletteRoundedIcon from "@mui/icons-material/PaletteRounded"
+import HighQualityRoundedIcon from "@mui/icons-material/HighQualityRounded"
+import EditRoundedIcon from "@mui/icons-material/EditRounded"
+import LayersRoundedIcon from "@mui/icons-material/LayersRounded"
 
 /* ─── Fonts & Animations ─── */
 const FontStyle = () => (
   <style>{`
     @import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap');
-    @keyframes orbDrift0 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(22px,-18px) scale(1.04)} }
-    @keyframes orbDrift1 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(-18px,22px) scale(1.03)} }
-    @keyframes orbDrift2 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(16px,18px) scale(1.05)} }
-    @keyframes gridPulse { 0%,100%{opacity:0.45} 50%{opacity:0.7} }
   `}</style>
 )
-
-function CardBadgeIcon({ icon, gradient, glow }) {
-  return (
-    <Box sx={{
-      position: "absolute", top: -22, right: 28,
-      width: 54, height: 54, borderRadius: "17px",
-      background: gradient,
-      boxShadow: `0 10px 28px ${glow}, 0 2px 8px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.35)`,
-      display: "flex", alignItems: "center", justifyContent: "center",
-      border: "2.5px solid rgba(255,255,255,0.55)", zIndex: 10,
-      "& svg": { fontSize: 24, color: "#fff", filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.25))" },
-      transition: "transform 0.3s ease, box-shadow 0.3s ease",
-      "&:hover": { transform: "translateY(-5px) rotate(8deg)", boxShadow: `0 18px 36px ${glow}, 0 4px 12px rgba(0,0,0,0.2)` },
-    }}>
-      {icon}
-    </Box>
-  )
-}
 
 const F = { fontFamily: "'Sora',sans-serif" }
 
 const cardShell = {
-  borderRadius: "24px",
-  border: "1px solid rgba(35,57,113,0.18)",
+  borderRadius: "32px",
+  border: "1px solid rgba(148,163,184,0.25)",
   background: "#fff",
-  boxShadow: "0 2px 8px rgba(0,0,0,0.05), 0 16px 40px -8px rgba(35,57,113,0.13), inset 0 1px 0 rgba(255,255,255,0.9)",
+  boxShadow: "0 2px 8px rgba(0,0,0,0.05), 0 16px 40px -8px rgba(35,57,113,0.13)",
   overflow: "hidden",
   position: "relative",
   transition: "box-shadow 0.3s ease, border-color 0.3s ease",
   "&:hover": {
-    boxShadow: "0 2px 8px rgba(0,0,0,0.07), 0 24px 52px -8px rgba(35,57,113,0.18), inset 0 1px 0 rgba(255,255,255,0.95)",
-    borderColor: "rgba(35,57,113,0.35)",
+    boxShadow: "0 2px 8px rgba(0,0,0,0.07), 0 24px 52px -8px rgba(35,57,113,0.18)",
+    borderColor: "rgba(148,163,184,0.4)",
   },
 }
 
 const inputSx = {
   "& .MuiOutlinedInput-root": {
     borderRadius: "14px",
-    background: "rgba(255,255,255,0.72)",
+    background: "rgba(241,245,249,0.9)",
     backdropFilter: "blur(8px)",
     ...F,
-    "& fieldset": { borderColor: "rgba(35,57,113,0.25)" },
-    "&:hover fieldset": { borderColor: "rgba(35,57,113,0.4)" },
+    "& fieldset": { borderColor: "rgba(148,163,184,0.35)" },
+    "&:hover fieldset": { borderColor: "rgba(148,163,184,0.6)" },
     "&.Mui-focused fieldset": { borderColor: "#233971", borderWidth: "1.5px" },
   },
   "& .MuiInputLabel-root": { ...F, "&.Mui-focused": { color: "#233971" } },
   "& .MuiFormHelperText-root": { ...F },
 }
 
-const sectionLabel = { ...F, fontWeight: 700, fontSize: "0.83rem", color: "#1e293b" }
+const sectionLabel = { ...F, fontWeight: 700, fontSize: "0.78rem", letterSpacing: "0.08em", textTransform: "uppercase", color: "#0f172a" }
 const sectionSub   = { ...F, fontSize: "0.78rem", color: "#64748b" }
 
-const nativeInputSx = {
-  display: "block", width: "100%", boxSizing: "border-box",
-  padding: "9px 14px", fontFamily: "Sora,sans-serif", fontSize: "14px",
-  color: "#1e293b", background: "transparent", border: "none", outline: "none",
+// bounded, visibly-boxed scroll area for growable lists —
+// only this inner box scrolls, like a table body, instead of the whole section pushing content down
+const listBoxSx = {
+  maxHeight: 168,
+  overflowY: "auto",
+  border: "1px solid rgba(35,57,113,0.14)",
+  borderRadius: "12px",
+  background: "rgba(241,245,249,0.6)",
+  p: 1,
 }
 
-const nativeWrapSx = {
-  flex: 1, borderRadius: "14px", border: "1.5px solid rgba(35,57,113,0.22)",
-  background: "rgba(255,255,255,0.72)", backdropFilter: "blur(8px)", overflow: "hidden",
-  "&:focus-within": { borderColor: "#233971", boxShadow: "0 0 0 3px rgba(35,57,113,0.10)" },
+const sectionCardSx = {
+  borderRadius: "18px",
+  border: "1px solid rgba(35,57,113,0.13)",
+  background: "rgba(255,255,255,0.7)",
+  boxShadow: "0 1px 4px rgba(15,23,42,0.04), 0 8px 20px -10px rgba(35,57,113,0.14)",
+  p: 1.5,
+  transition: "box-shadow 0.25s ease, border-color 0.25s ease",
+  "&:hover": {
+    borderColor: "rgba(35,57,113,0.24)",
+    boxShadow: "0 2px 8px rgba(15,23,42,0.06), 0 12px 26px -10px rgba(35,57,113,0.2)",
+  },
 }
 
-const darkEditorSx = {
-  "& .MuiOutlinedInput-root": {
-    borderRadius: "16px",
-    background: "rgba(15,23,42,0.98)",
-    backdropFilter: "blur(8px)",
-    color: "#e2e8f0",
-    fontFamily: "monospace",
-    "& fieldset": { borderColor: "rgba(148,163,184,0.24)" },
-    "&:hover fieldset": { borderColor: "rgba(148,163,184,0.42)" },
-    "&.Mui-focused fieldset": { borderColor: "#94a3b8", borderWidth: "1.5px" },
-    "& textarea": {
-      color: "#e2e8f0",
-      fontFamily: "monospace",
-      fontSize: "0.78rem",
-      lineHeight: 1.65,
+const modernSwitchSx = {
+  width: 40, height: 24, padding: 0,
+  "& .MuiSwitch-switchBase": {
+    padding: "3px",
+    transitionDuration: "220ms",
+    "&.Mui-checked": {
+      transform: "translateX(16px)",
+      color: "#fff",
+      "& + .MuiSwitch-track": {
+        background: "linear-gradient(135deg,#2a9d8f,#23857a)",
+        opacity: 1,
+        border: "none",
+      },
+      "& .MuiSwitch-thumb": { boxShadow: "0 2px 6px rgba(42,157,143,0.5)" },
     },
   },
-  "& .MuiInputLabel-root": { ...F, color: "#cbd5e1", "&.Mui-focused": { color: "#e2e8f0" } },
-  "& .MuiFormHelperText-root": { ...F, color: "#94a3b8" },
+  "& .MuiSwitch-thumb": {
+    width: 18, height: 18,
+    boxShadow: "0 1px 3px rgba(15,23,42,0.3)",
+    transition: "box-shadow 0.2s ease",
+  },
+  "& .MuiSwitch-track": {
+    borderRadius: 999,
+    background: "rgba(148,163,184,0.55)",
+    opacity: 1,
+    transition: "background 0.25s ease",
+  },
 }
 
-const colorSwatchBorder = "1px solid rgba(15,23,42,0.12)"
-
-const getColorPreview = (value) => {
-  const color = typeof value === "string" && value.trim() ? value.trim() : "#cbd5e1"
-  return {
-    background: color,
-    border: colorSwatchBorder,
-  }
+const compactSwitchSx = {
+  ...modernSwitchSx,
+  width: 32, height: 19, padding: 0,
+  "& .MuiSwitch-switchBase": {
+    ...modernSwitchSx["& .MuiSwitch-switchBase"],
+    padding: "2.5px",
+    "&.Mui-checked": {
+      ...modernSwitchSx["& .MuiSwitch-switchBase"]["&.Mui-checked"],
+      transform: "translateX(13px)",
+    },
+  },
+  "& .MuiSwitch-thumb": {
+    ...modernSwitchSx["& .MuiSwitch-thumb"],
+    width: 14, height: 14,
+  },
 }
 
-function SectionHeader({ label, chip, sectionKey, isHidden, onToggle, children }) {
+function ExpandToggle({ expanded, onClick }) {
   return (
-    <Stack direction="row" justifyContent="space-between" alignItems="center" mb={isHidden ? 0 : 1.5}>
+    <IconButton
+      size="small"
+      onClick={(e) => { e.stopPropagation(); onClick() }}
+      sx={{
+        width: 24, height: 24,
+        borderRadius: "8px",
+        border: "1.5px solid rgba(16,29,64,0.7)",
+        color: "#101d40",
+        background: "rgba(16,29,64,0.18)",
+        "&:hover": { background: "rgba(16,29,64,0.28)", borderColor: "#101d40" },
+        "& svg": { fontSize: "16px !important" },
+      }}
+    >
+      {expanded ? <KeyboardArrowUpRoundedIcon /> : <KeyboardArrowDownRoundedIcon />}
+    </IconButton>
+  )
+}
+
+function SectionIcon({ icon: Icon, gradient = "linear-gradient(135deg,#233971,#2e4fa3)", shadow = "rgba(35,57,113,0.38)" }) {
+  return (
+    <Box sx={{
+      width: 26, height: 26, borderRadius: "9px", flexShrink: 0,
+      display: "flex", alignItems: "center", justifyContent: "center",
+      background: gradient,
+      boxShadow: `0 3px 8px -1px ${shadow}`,
+      color: "#fff",
+      "& svg": { fontSize: "15px" },
+    }}>
+      <Icon />
+    </Box>
+  )
+}
+
+const SMOOTH_EASING = { enter: "cubic-bezier(0.4,0,0.2,1)", exit: "cubic-bezier(0.4,0,0.2,1)" }
+
+function SmoothCollapse({ children, ...props }) {
+  return <Collapse timeout={260} easing={SMOOTH_EASING} {...props}>{children}</Collapse>
+}
+
+function SectionHeader({ label, icon, iconGradient, iconShadow, sectionKey, isHidden, onToggle, expanded, onToggleExpand, children }) {
+  return (
+    <Stack direction="row" justifyContent="space-between" alignItems="center" mb={isHidden || !expanded ? 0 : 1.5}
+      onClick={onToggleExpand} sx={{ cursor: "pointer", transition: "margin-bottom 260ms cubic-bezier(0.4,0,0.2,1)" }}>
       <Stack direction="row" spacing={1} alignItems="center">
+        {icon && <SectionIcon icon={icon} gradient={iconGradient} shadow={iconShadow} />}
         <Typography sx={sectionLabel}>{label}</Typography>
-        {chip && !isHidden && chip}
       </Stack>
       <Stack direction="row" spacing={0.8} alignItems="center">
         {children}
-        <Tooltip title={isHidden ? `Tambahkan kembali ${label}` : `Hapus ${label} dari prompt`}>
+        <ExpandToggle expanded={expanded} onClick={onToggleExpand} />
+        <Tooltip title={isHidden ? `Add back ${label}` : `Remove ${label} from prompt`}>
           <IconButton
             size="small"
-            onClick={() => onToggle(sectionKey)}
+            onClick={(e) => { e.stopPropagation(); onToggle(sectionKey) }}
             sx={{
-              width: 24, height: 24, borderRadius: "8px",
-              border: isHidden ? "1.5px solid rgba(35,57,113,0.35)" : "1.5px solid rgba(239,68,68,0.3)",
-              color: isHidden ? "#233971" : "#ef4444",
-              background: isHidden ? "rgba(35,57,113,0.06)" : "rgba(239,68,68,0.05)",
+              width: 24, height: 24,
+              borderRadius: "8px",
+              border: isHidden ? "1.5px solid rgba(16,29,64,0.7)" : "1.5px solid rgba(127,29,29,0.7)",
+              color: isHidden ? "#101d40" : "#7f1d1d",
+              background: isHidden ? "rgba(16,29,64,0.18)" : "rgba(127,29,29,0.16)",
               "&:hover": {
-                background: isHidden ? "rgba(35,57,113,0.12)" : "rgba(239,68,68,0.1)",
-                borderColor: isHidden ? "#233971" : "#ef4444",
+                background: isHidden ? "rgba(16,29,64,0.28)" : "rgba(127,29,29,0.26)",
+                borderColor: isHidden ? "#101d40" : "#7f1d1d",
               },
               "& svg": { fontSize: "14px !important" },
             }}
@@ -165,6 +216,23 @@ function SectionHeader({ label, chip, sectionKey, isHidden, onToggle, children }
             {isHidden ? <AddRoundedIcon /> : <CloseRoundedIcon />}
           </IconButton>
         </Tooltip>
+      </Stack>
+    </Stack>
+  )
+}
+
+// Header variant for sections with no hide/remove control (Color Palette, Rendering Style, Key Features)
+function PlainSectionHeader({ label, icon, iconGradient, iconShadow, expanded, onToggleExpand, children }) {
+  return (
+    <Stack direction="row" justifyContent="space-between" alignItems="center" mb={expanded ? 1.5 : 0}
+      onClick={onToggleExpand} sx={{ cursor: "pointer", transition: "margin-bottom 260ms cubic-bezier(0.4,0,0.2,1)" }}>
+      <Stack direction="row" spacing={1} alignItems="center">
+        {icon && <SectionIcon icon={icon} gradient={iconGradient} shadow={iconShadow} />}
+        <Typography sx={sectionLabel}>{label}</Typography>
+      </Stack>
+      <Stack direction="row" spacing={0.8} alignItems="center">
+        {children}
+        <ExpandToggle expanded={expanded} onClick={onToggleExpand} />
       </Stack>
     </Stack>
   )
@@ -335,6 +403,7 @@ export default function PromptBuilderPage() {
   const [newUspLabel, setNewUspLabel] = useState("")
   const [newUspIcon, setNewUspIcon]   = useState("")
   const [hidden, setHidden]       = useState(new Set())
+  const [expandedSections, setExpandedSections] = useState(new Set())
 
   const toggleHide = (key) => setHidden(prev => {
     const next = new Set(prev)
@@ -342,6 +411,9 @@ export default function PromptBuilderPage() {
     return next
   })
   const isHidden = (key) => hidden.has(key)
+
+  const isExpanded = (key) => expandedSections.has(key)
+  const toggleExpanded = (key) => setExpandedSections(prev => (prev.has(key) ? new Set() : new Set([key])))
 
   const set = (path, value) => {
     setData(prev => {
@@ -489,45 +561,46 @@ export default function PromptBuilderPage() {
   }
 
   return (
-    <Box sx={{ position: "relative", ...F }}>
+    <Box sx={{ position: "relative", ...F, height: "100%", display: "flex", flexDirection: "column", overflow: "hidden" }}>
       <FontStyle />
 
-      <Stack spacing={3}>
-        <Stack direction={{ xs: "column", lg: "row" }} spacing={3} alignItems="stretch">
+      <Stack spacing={3} sx={{ flex: 1, minHeight: 0, overflow: "hidden" }}>
+        <Card elevation={0} sx={{ ...cardShell, flex: 1, height: "100%", minHeight: 0, display: "flex", flexDirection: "column" }}>
+        <Stack direction={{ xs: "column", lg: "row" }} spacing={0} alignItems="stretch" sx={{ flex: 1, minHeight: 0, overflow: { xs: "auto", lg: "hidden" } }}>
 
           {/* ══════════════════════════
-              LEFT CARD — Form Input
+              LEFT COLUMN — Form Input
           ══════════════════════════ */}
-          <Card elevation={0} sx={{ ...cardShell, flex: 1.1 }}>
-            <Box sx={{ position: "absolute", bottom: 0, left: 0, width: 130, height: 130, borderRadius: "0 28px 0 24px", background: "linear-gradient(135deg,rgba(35,57,113,0.10) 0%,rgba(46,79,163,0.14) 100%)", display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none", zIndex: 1 }}>
-              <EditNoteRoundedIcon sx={{ fontSize: 52, color: "#233971", opacity: 0.35, transform: "rotate(-8deg)" }} />
-            </Box>
-            <Box sx={{ position: "absolute", top: 0, right: 0, width: 160, height: 160, borderRadius: "0 24px 0 40px", background: "linear-gradient(135deg,rgba(35,57,113,0.08) 0%,rgba(46,79,163,0.12) 100%)", display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none", zIndex: 1 }}>
-              <ArticleRoundedIcon sx={{ fontSize: 76, color: "#233971", opacity: 0.14, transform: "rotate(-10deg)" }} />
-            </Box>
-            <CardBadgeIcon icon={<AutoFixHighRoundedIcon />} gradient="linear-gradient(135deg,#233971 0%,#2e4fa3 60%,#5b7ec7 100%)" glow="rgba(35,57,113,0.45)" />
+          <Box sx={{ flex: 1.1, display: "flex", flexDirection: "column", overflow: "hidden", minHeight: 0 }}>
+            <CardContent sx={{ p: { xs: 1.5, md: "16px 24px" }, position: "relative", zIndex: 2, overflow: "hidden", flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
+              <Stack spacing={1.3} sx={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
 
-            <CardContent sx={{ p: { xs: 3, md: "36px 36px" }, position: "relative", zIndex: 2 }}>
-              <Stack spacing={3}>
-
-                {/* Header */}
+                {/* Header (fixed) */}
                 <Box>
-                  <Typography variant="h6" sx={{ ...F, fontWeight: 800, color: "#0f172a", lineHeight: 1 }}>
+                  <Typography sx={{ ...F, fontSize: "0.8rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#0f172a" }}>
                     Prompt Builder Form
                   </Typography>
-                  <Typography sx={{ ...F, fontSize: "0.82rem", color: "#64748b", mt: "2px" }}>
+                  <Typography sx={{ ...F, fontSize: "0.7rem", color: "#94a3b8", mt: "2px" }}>
                     Fill in the form below — JSON prompt is auto-generated
                   </Typography>
                 </Box>
 
                 <Divider sx={{ borderColor: "rgba(35,57,113,0.12)" }} />
 
+                {/* Scrollable section list — capped so ~5 collapsed cards show by default, rest needs scroll */}
+                <Stack spacing={1.5} sx={{
+                  flex: 1, minHeight: 0, maxHeight: 320, overflowY: "auto", overflowX: "hidden", pr: 0.5,
+                  "&::-webkit-scrollbar": { width: 6 },
+                  "&::-webkit-scrollbar-thumb": { background: "rgba(35,57,113,0.25)", borderRadius: 999 },
+                  "&::-webkit-scrollbar-track": { background: "transparent" },
+                }}>
+
                 {/* ── Design Info ── */}
-                <Box data-section-key="design_analysis">
-                  <SectionHeader label="Design Info" sectionKey="design_analysis" isHidden={isHidden("design_analysis")} onToggle={toggleHide}
-                    chip={<Chip size="small" label="Design" sx={{ ...F, fontWeight: 700, fontSize: "0.7rem", borderRadius: "999px", background: "rgba(35,57,113,0.08)", color: "#233971", border: "1px solid rgba(35,57,113,0.22)" }} />}
+                <Box sx={sectionCardSx}>
+                  <SectionHeader label="Design Info" icon={AutoAwesomeRoundedIcon} sectionKey="design_analysis" isHidden={isHidden("design_analysis")} onToggle={toggleHide}
+                    expanded={isExpanded("design_analysis")} onToggleExpand={() => toggleExpanded("design_analysis")}
                   />
-                  <Collapse in={!isHidden("design_analysis")}>
+                  <SmoothCollapse in={!isHidden("design_analysis") && isExpanded("design_analysis")}>
                     <Stack spacing={1.5}>
                       <TextField select fullWidth label="Design Type" size="small" value={data.design_analysis.design_type} onChange={e => set("design_analysis.design_type", e.target.value)} sx={inputSx}>
                         {DESIGN_TYPES.map(v => <MenuItem key={v} value={v} sx={F}>{v}</MenuItem>)}
@@ -539,17 +612,15 @@ export default function PromptBuilderPage() {
                         <TextField fullWidth label="Visual Style" size="small" value={data.design_analysis.visual_style} onChange={e => set("design_analysis.visual_style", e.target.value)} sx={inputSx} />
                       </Stack>
                     </Stack>
-                  </Collapse>
+                  </SmoothCollapse>
                 </Box>
 
-                <Divider sx={{ borderColor: "rgba(35,57,113,0.12)" }} />
-
                 {/* ── Visible Text Whitelist ── */}
-                <Box data-section-key="visible_text_whitelist">
-                  <SectionHeader label="Visible Text" sectionKey="visible_text_whitelist" isHidden={isHidden("visible_text_whitelist")} onToggle={toggleHide}
-                    chip={<Chip size="small" label="Text" sx={{ ...F, fontWeight: 700, fontSize: "0.7rem", borderRadius: "999px", background: "rgba(35,57,113,0.08)", color: "#233971", border: "1px solid rgba(35,57,113,0.22)" }} />}
+                <Box sx={sectionCardSx}>
+                  <SectionHeader label="Visible Text" icon={TextFieldsRoundedIcon} sectionKey="visible_text_whitelist" isHidden={isHidden("visible_text_whitelist")} onToggle={toggleHide}
+                    expanded={isExpanded("visible_text_whitelist")} onToggleExpand={() => toggleExpanded("visible_text_whitelist")}
                   />
-                  <Collapse in={!isHidden("visible_text_whitelist")}>
+                  <SmoothCollapse in={!isHidden("visible_text_whitelist") && isExpanded("visible_text_whitelist")}>
                     <Stack spacing={1.5}>
                       <TextField
                         fullWidth label="Product Name" size="small"
@@ -565,99 +636,90 @@ export default function PromptBuilderPage() {
                         sx={inputSx}
                       />
                     </Stack>
-                  </Collapse>
+                  </SmoothCollapse>
                 </Box>
 
-                <Divider sx={{ borderColor: "rgba(35,57,113,0.12)" }} />
-
                 {/* ── Key Features (USP) ── */}
-                <Box data-section-key="visible_text_whitelist-usp">
-                  <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1.5}>
-                    <Stack direction="row" spacing={1} alignItems="center">
-                      <Typography sx={sectionLabel}>Key Features (USP)</Typography>
-                      <Typography sx={{ ...sectionSub, fontSize: "0.75rem" }}>{data.visible_text_whitelist.usp_labels.length} features</Typography>
-                    </Stack>
-                    <Typography sx={{ ...sectionSub, fontSize: "0.72rem", fontStyle: "italic" }}>edits both whitelist & styling</Typography>
-                  </Stack>
-                  <Typography sx={{ ...sectionSub, mb: 1.5 }}>Each item updates the text whitelist and the icon description for USP styling</Typography>
-                  <Stack spacing={1.5}>
-                    {data.visible_text_whitelist.usp_labels.map((label, i) => (
-                      <Box key={i} sx={{ border: "1.5px solid rgba(35,57,113,0.15)", borderRadius: "16px", p: 1.5, background: "rgba(35,57,113,0.025)" }}>
-                        <Stack direction="row" spacing={1} alignItems="flex-start">
-                          <Box sx={{ width: 28, height: 28, borderRadius: "50%", background: "linear-gradient(135deg,#233971,#2e4fa3)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, mt: "2px", boxShadow: "0 4px 10px rgba(35,57,113,0.28)" }}>
-                            <Typography sx={{ ...F, color: "#fff", fontSize: "0.7rem", fontWeight: 800 }}>{i + 1}</Typography>
-                          </Box>
-                          <Stack sx={{ flex: 1 }} spacing={1}>
-                            <Box sx={{ ...nativeWrapSx }}>
-                              <input
-                                value={label}
-                                onChange={e => editUspLabel(i, e.target.value)}
-                                placeholder={`Label text (e.g. Premium Mesh Material)`}
-                                style={nativeInputSx}
-                              />
+                <Box sx={sectionCardSx}>
+                  <PlainSectionHeader label="Key Features (USP)" icon={WorkspacePremiumRoundedIcon}
+                    expanded={isExpanded("usp_panel")} onToggleExpand={() => toggleExpanded("usp_panel")}>
+                    {isExpanded("usp_panel") && <Typography sx={{ ...sectionSub, fontSize: "0.75rem" }}>{data.visible_text_whitelist.usp_labels.length} features</Typography>}
+                  </PlainSectionHeader>
+                  <SmoothCollapse in={isExpanded("usp_panel")}>
+                    <Typography sx={{ ...sectionSub, mb: 1.5, fontSize: "0.72rem", fontStyle: "italic" }}>Each item updates the text whitelist and the icon description for USP styling</Typography>
+                    <Stack spacing={1.2}>
+                      <Stack spacing={1.2} sx={listBoxSx}>
+                        {data.visible_text_whitelist.usp_labels.map((label, i) => (
+                          <Stack key={i} direction="row" spacing={1} alignItems="flex-start">
+                            <Box sx={{ width: 28, height: 28, borderRadius: "50%", background: "linear-gradient(135deg,#233971,#2e4fa3)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, mt: "2px", boxShadow: "0 4px 10px rgba(35,57,113,0.28)" }}>
+                              <Typography sx={{ ...F, color: "#fff", fontSize: "0.7rem", fontWeight: 800 }}>{i + 1}</Typography>
                             </Box>
-                            <Box sx={{ ...nativeWrapSx, borderStyle: "dashed" }}>
-                              <input
-                                value={data.usp_styling.icons[i] || ""}
-                                onChange={e => editUspIcon(i, e.target.value)}
-                                placeholder={`Icon description (e.g. Mesh fabric pictogram for '...')`}
-                                style={{ ...nativeInputSx, fontSize: "13px", color: "#475569" }}
-                              />
-                            </Box>
+                            <Stack sx={{ flex: 1 }} spacing={1}>
+                              <Box sx={{ flex: 1, borderRadius: "14px", border: "1.5px solid rgba(35,57,113,0.22)", background: "rgba(241,245,249,0.9)", backdropFilter: "blur(8px)", "&:focus-within": { borderColor: "#233971", boxShadow: "0 0 0 3px rgba(35,57,113,0.10)" }, overflow: "hidden" }}>
+                                <input
+                                  value={label}
+                                  onChange={e => editUspLabel(i, e.target.value)}
+                                  placeholder="Label text (e.g. Premium Mesh Material)"
+                                  style={{ display: "block", width: "100%", boxSizing: "border-box", padding: "9px 14px", fontFamily: "Sora,sans-serif", fontSize: "14px", color: "#1e293b", background: "transparent", border: "none", outline: "none" }}
+                                />
+                              </Box>
+                              <Box sx={{ flex: 1, borderRadius: "14px", border: "1.5px dashed rgba(35,57,113,0.28)", background: "rgba(241,245,249,0.75)", "&:focus-within": { borderColor: "#233971", borderStyle: "solid", boxShadow: "0 0 0 3px rgba(35,57,113,0.10)" }, overflow: "hidden" }}>
+                                <input
+                                  value={data.usp_styling.icons[i] || ""}
+                                  onChange={e => editUspIcon(i, e.target.value)}
+                                  placeholder="Icon description (e.g. Mesh fabric pictogram for '...')"
+                                  style={{ display: "block", width: "100%", boxSizing: "border-box", padding: "9px 14px", fontFamily: "Sora,sans-serif", fontSize: "13px", color: "#475569", background: "transparent", border: "none", outline: "none" }}
+                                />
+                              </Box>
+                            </Stack>
+                            <IconButton
+                              onClick={() => rmUsp(i)}
+                              disabled={data.visible_text_whitelist.usp_labels.length <= 1}
+                              size="small"
+                              sx={{ width: 34, height: 34, borderRadius: "10px", border: "1.5px solid rgba(127,29,29,0.7)", color: "#7f1d1d", background: "rgba(127,29,29,0.16)", "&:hover": { background: "rgba(127,29,29,0.26)", borderColor: "#7f1d1d" }, "&.Mui-disabled": { color: "rgba(148,163,184,0.4)", borderColor: "rgba(148,163,184,0.2)", background: "transparent" } }}
+                            >
+                              <CloseRoundedIcon fontSize="small" />
+                            </IconButton>
                           </Stack>
-                          <IconButton
-                            onClick={() => rmUsp(i)}
-                            disabled={data.visible_text_whitelist.usp_labels.length <= 1}
-                            size="small"
-                            sx={{ width: 34, height: 34, borderRadius: "10px", border: "1.5px solid rgba(239,68,68,0.25)", color: "#ef4444", background: "rgba(254,242,242,0.6)", "&:hover": { background: "rgba(239,68,68,0.08)", borderColor: "rgba(239,68,68,0.45)" }, "&.Mui-disabled": { color: "rgba(148,163,184,0.4)", borderColor: "rgba(148,163,184,0.2)", background: "transparent" } }}
-                          >
-                            <DeleteOutlineRoundedIcon fontSize="small" />
-                          </IconButton>
+                        ))}
                       </Stack>
-                    </Box>
-                  ))}
 
-                    {/* Add new USP */}
-                    <Box sx={{ border: "1.5px dashed rgba(35,57,113,0.25)", borderRadius: "16px", p: 1.5, background: "rgba(255,255,255,0.5)" }}>
+                      {/* Add new USP */}
                       <Stack spacing={1}>
-                        <Stack direction="row" spacing={1} alignItems="center">
-                          <Box sx={{ ...nativeWrapSx, borderStyle: "dashed" }}>
-                            <input
-                              value={newUspLabel}
-                              onChange={e => setNewUspLabel(e.target.value)}
-                              onKeyDown={e => e.key === "Enter" && addUsp()}
-                              placeholder="Label text..."
-                              style={nativeInputSx}
-                            />
-                          </Box>
-                        </Stack>
-                        <Stack direction="row" spacing={1} alignItems="center">
-                          <Box sx={{ ...nativeWrapSx, borderStyle: "dashed" }}>
+                        <Box sx={{ flex: 1, borderRadius: "14px", border: "1.5px dashed rgba(35,57,113,0.28)", background: "rgba(241,245,249,0.75)", "&:focus-within": { borderColor: "#233971", borderStyle: "solid", boxShadow: "0 0 0 3px rgba(35,57,113,0.10)" }, overflow: "hidden" }}>
+                          <input
+                            value={newUspLabel}
+                            onChange={e => setNewUspLabel(e.target.value)}
+                            onKeyDown={e => e.key === "Enter" && addUsp()}
+                            placeholder="Label text..."
+                            style={{ display: "block", width: "100%", boxSizing: "border-box", padding: "9px 14px", fontFamily: "Sora,sans-serif", fontSize: "14px", color: "#1e293b", background: "transparent", border: "none", outline: "none" }}
+                          />
+                        </Box>
+                        <Stack direction="row" spacing={1}>
+                          <Box sx={{ flex: 1, borderRadius: "14px", border: "1.5px dashed rgba(35,57,113,0.28)", background: "rgba(241,245,249,0.75)", "&:focus-within": { borderColor: "#233971", borderStyle: "solid", boxShadow: "0 0 0 3px rgba(35,57,113,0.10)" }, overflow: "hidden" }}>
                             <input
                               value={newUspIcon}
                               onChange={e => setNewUspIcon(e.target.value)}
                               onKeyDown={e => e.key === "Enter" && addUsp()}
                               placeholder="Icon description (optional)..."
-                              style={{ ...nativeInputSx, fontSize: "13px", color: "#475569" }}
+                              style={{ display: "block", width: "100%", boxSizing: "border-box", padding: "9px 14px", fontFamily: "Sora,sans-serif", fontSize: "13px", color: "#475569", background: "transparent", border: "none", outline: "none" }}
                             />
                           </Box>
-                          <Button variant="contained" onClick={addUsp} sx={{ borderRadius: "14px", minWidth: 42, px: 1.5, background: "linear-gradient(135deg,#233971,#2e4fa3)", boxShadow: "0 4px 12px rgba(35,57,113,0.32)", "&:hover": { background: "linear-gradient(135deg,#1a2d5a,#233971)", transform: "translateY(-1px)" }, transition: "all 0.2s" }}>
+                          <Button variant="contained" onClick={addUsp} sx={{ borderRadius: "14px", minWidth: 42, px: 1.5, background: "linear-gradient(135deg,#2a9d8f,#23857a)", boxShadow: "0 4px 12px rgba(42,157,143,0.32)", "&:hover": { background: "linear-gradient(135deg,#23857a,#1c6b62)", transform: "translateY(-1px)" }, transition: "all 0.2s" }}>
                             <AddRoundedIcon />
                           </Button>
                         </Stack>
                       </Stack>
-                    </Box>
-                  </Stack>
+                    </Stack>
+                  </SmoothCollapse>
                 </Box>
 
-                <Divider sx={{ borderColor: "rgba(35,57,113,0.12)" }} />
-
                 {/* ── Product Info ── */}
-                <Box data-section-key="product">
-                  <SectionHeader label="Product Info" sectionKey="product" isHidden={isHidden("product")} onToggle={toggleHide}
-                    chip={<Chip size="small" label="Product" sx={{ ...F, fontWeight: 700, fontSize: "0.7rem", borderRadius: "999px", background: "rgba(35,57,113,0.08)", color: "#233971", border: "1px solid rgba(35,57,113,0.22)" }} />}
+                <Box sx={sectionCardSx}>
+                  <SectionHeader label="Product Info" icon={LocalMallRoundedIcon} sectionKey="product" isHidden={isHidden("product")} onToggle={toggleHide}
+                    expanded={isExpanded("product")} onToggleExpand={() => toggleExpanded("product")}
                   />
-                  <Collapse in={!isHidden("product")}>
+                  <SmoothCollapse in={!isHidden("product") && isExpanded("product")}>
                     <Stack spacing={1.5}>
                       <Stack direction="row" spacing={1.5}>
                         <TextField fullWidth label="Product Category" size="small" value={data.product.category} onChange={e => set("product.category", e.target.value)} sx={inputSx} />
@@ -667,15 +729,15 @@ export default function PromptBuilderPage() {
                       </Stack>
                       <TextField fullWidth multiline rows={2} label="Preservation Instruction" size="small" value={data.product.preservation} onChange={e => set("product.preservation", e.target.value)} sx={inputSx} />
                     </Stack>
-                  </Collapse>
+                  </SmoothCollapse>
                 </Box>
 
-                <Divider sx={{ borderColor: "rgba(35,57,113,0.12)" }} />
-
                 {/* ── Target Market ── */}
-                <Box data-section-key="target_market_context">
-                  <SectionHeader label="Target Market" sectionKey="target_market_context" isHidden={isHidden("target_market_context")} onToggle={toggleHide} />
-                  <Collapse in={!isHidden("target_market_context")}>
+                <Box sx={sectionCardSx}>
+                  <SectionHeader label="Target Market" icon={GpsFixedRoundedIcon} sectionKey="target_market_context" isHidden={isHidden("target_market_context")} onToggle={toggleHide}
+                    expanded={isExpanded("target_market_context")} onToggleExpand={() => toggleExpanded("target_market_context")}
+                  />
+                  <SmoothCollapse in={!isHidden("target_market_context") && isExpanded("target_market_context")}>
                     <TextField
                       fullWidth multiline rows={2} size="small"
                       label="Target Market Context"
@@ -684,17 +746,15 @@ export default function PromptBuilderPage() {
                       helperText="Single description of who this product is for"
                       sx={inputSx}
                     />
-                  </Collapse>
+                  </SmoothCollapse>
                 </Box>
 
-                <Divider sx={{ borderColor: "rgba(35,57,113,0.12)" }} />
-
                 {/* ── Background ── */}
-                <Box data-section-key="background">
-                  <SectionHeader label="Background" sectionKey="background" isHidden={isHidden("background")} onToggle={toggleHide}
-                    chip={<Chip size="small" label="Background" sx={{ ...F, fontWeight: 700, fontSize: "0.7rem", borderRadius: "999px", background: "rgba(35,57,113,0.08)", color: "#233971", border: "1px solid rgba(35,57,113,0.22)" }} />}
+                <Box sx={sectionCardSx}>
+                  <SectionHeader label="Background" icon={WallpaperRoundedIcon} iconGradient="linear-gradient(135deg,#166534,#16a34a)" iconShadow="rgba(22,101,52,0.38)" sectionKey="background" isHidden={isHidden("background")} onToggle={toggleHide}
+                    expanded={isExpanded("background")} onToggleExpand={() => toggleExpanded("background")}
                   />
-                  <Collapse in={!isHidden("background")}>
+                  <SmoothCollapse in={!isHidden("background") && isExpanded("background")}>
                     <Stack spacing={1.5}>
                       <Stack direction="row" spacing={1.5}>
                         <TextField fullWidth label="Background Style" size="small" value={data.background.style} onChange={e => set("background.style", e.target.value)} sx={inputSx} />
@@ -711,186 +771,204 @@ export default function PromptBuilderPage() {
                           ))}
                         </Box>
                         <Stack direction="row" spacing={1}>
-                          <Box sx={{ ...nativeWrapSx }}>
-                            <input value={newElement} onChange={e => setNewEl(e.target.value)} onKeyDown={e => e.key === "Enter" && addElement()} placeholder="Example: Scaffolding, Heavy Equipment..." style={nativeInputSx} />
+                          <Box sx={{ flex: 1, borderRadius: "14px", border: "1.5px solid rgba(35,57,113,0.22)", background: "rgba(241,245,249,0.9)", backdropFilter: "blur(8px)", "&:focus-within": { borderColor: "#233971", boxShadow: "0 0 0 3px rgba(35,57,113,0.10)" }, overflow: "hidden" }}>
+                            <input value={newElement} onChange={e => setNewEl(e.target.value)} onKeyDown={e => e.key === "Enter" && addElement()} placeholder="Example: Scaffolding, Heavy Equipment..." style={{ display: "block", width: "100%", boxSizing: "border-box", padding: "9px 14px", fontFamily: "Sora,sans-serif", fontSize: "14px", color: "#1e293b", background: "transparent", border: "none", outline: "none" }} />
                           </Box>
-                          <Button variant="contained" onClick={addElement} sx={{ borderRadius: "14px", minWidth: 42, px: 1.5, background: "linear-gradient(135deg,#166534,#16a34a)", boxShadow: "0 4px 12px rgba(22,101,52,0.28)", "&:hover": { background: "linear-gradient(135deg,#14532d,#166534)", transform: "translateY(-1px)" }, transition: "all 0.2s" }}>
+                          <Button variant="contained" onClick={addElement} sx={{ borderRadius: "14px", minWidth: 42, px: 1.5, background: "linear-gradient(135deg,#2a9d8f,#23857a)", boxShadow: "0 4px 12px rgba(42,157,143,0.32)", "&:hover": { background: "linear-gradient(135deg,#23857a,#1c6b62)", transform: "translateY(-1px)" }, transition: "all 0.2s" }}>
                             <AddRoundedIcon />
                           </Button>
                         </Stack>
                       </Box>
                       <TextField fullWidth multiline rows={2} label="Background Purpose" size="small" value={data.background.purpose} onChange={e => set("background.purpose", e.target.value)} sx={inputSx} />
                     </Stack>
-                  </Collapse>
+                  </SmoothCollapse>
                 </Box>
+
+                </Stack>
 
                 <Divider sx={{ borderColor: "rgba(35,57,113,0.12)" }} />
 
-                {/* ── Final Instructions ── */}
-                <Box data-section-key="final_instructions">
-                  <SectionHeader label="Final Instructions" sectionKey="final_instructions" isHidden={isHidden("final_instructions")} onToggle={toggleHide}>
-                    {!isHidden("final_instructions") && <Typography sx={{ ...sectionSub, fontSize: "0.75rem" }}>End of prompt</Typography>}
-                  </SectionHeader>
-                  <Collapse in={!isHidden("final_instructions")}>
-                    <Box sx={{ borderRadius: "16px", border: "1.5px solid rgba(35,57,113,0.22)", background: "rgba(255,255,255,0.72)", backdropFilter: "blur(8px)", transition: "border-color 0.2s, box-shadow 0.2s", "&:focus-within": { borderColor: "#233971", boxShadow: "0 0 0 3px rgba(35,57,113,0.10)" }, "&:hover": { borderColor: "rgba(35,57,113,0.35)" }, overflow: "hidden" }}>
-                      <textarea value={data.final_instructions} onChange={e => set("final_instructions", e.target.value)} rows={5}
-                        style={{ display: "block", width: "100%", boxSizing: "border-box", resize: "vertical", minHeight: 100, padding: "14px 16px", fontFamily: "Sora, sans-serif", fontSize: "14px", lineHeight: 1.65, color: "#1e293b", background: "transparent", border: "none", outline: "none" }} />
-                    </Box>
-                  </Collapse>
+                {/* ── Final Instructions (fixed, fills remaining space like Prompt Output) ── */}
+                <Box sx={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
+                  <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1} flexShrink={0}>
+                    <Typography sx={sectionLabel}>Final Instructions</Typography>
+                    <Typography sx={{ ...sectionSub, fontSize: "0.75rem" }}>End of prompt</Typography>
+                  </Stack>
+                  <Box sx={{ borderRadius: "16px", border: "1.5px solid rgba(35,57,113,0.22)", background: "rgba(241,245,249,0.9)", backdropFilter: "blur(8px)", transition: "border-color 0.2s, box-shadow 0.2s", "&:focus-within": { borderColor: "#233971", boxShadow: "0 0 0 3px rgba(35,57,113,0.10)" }, "&:hover": { borderColor: "rgba(35,57,113,0.35)" }, overflow: "hidden", flex: 1, minHeight: 90, display: "flex", flexDirection: "column" }}>
+                    <textarea value={data.final_instructions} onChange={e => set("final_instructions", e.target.value)}
+                      style={{ display: "block", width: "100%", height: "100%", boxSizing: "border-box", resize: "none", flex: 1, minHeight: 0, padding: "12px 14px", fontFamily: "Sora, sans-serif", fontSize: "13px", lineHeight: 1.6, color: "#1e293b", background: "transparent", border: "none", outline: "none" }} />
+                  </Box>
                 </Box>
 
               </Stack>
             </CardContent>
-          </Card>
+          </Box>
+
+          <Divider orientation="vertical" flexItem sx={{ display: { xs: "none", lg: "block" }, borderColor: "rgba(35,57,113,0.12)" }} />
+          <Divider sx={{ display: { xs: "block", lg: "none" }, borderColor: "rgba(35,57,113,0.12)" }} />
 
           {/* ══════════════════════════
-              RIGHT CARD — Config & Output
+              RIGHT COLUMN — Config & Output
           ══════════════════════════ */}
-          <Card elevation={0} sx={{ ...cardShell, flex: 1 }}>
-            <Box sx={{ position: "absolute", bottom: 0, left: 0, width: 130, height: 130, borderRadius: "0 28px 0 24px", background: "linear-gradient(135deg,rgba(35,57,113,0.10) 0%,rgba(26,82,118,0.14) 100%)", display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none", zIndex: 1 }}>
-              <BrushRoundedIcon sx={{ fontSize: 52, color: "#233971", opacity: 0.35, transform: "rotate(12deg)" }} />
-            </Box>
-            <Box sx={{ position: "absolute", top: 0, right: 0, width: 160, height: 160, borderRadius: "0 24px 0 40px", background: "linear-gradient(135deg,rgba(35,57,113,0.08) 0%,rgba(46,79,163,0.12) 100%)", display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none", zIndex: 1 }}>
-              <ColorLensRoundedIcon sx={{ fontSize: 76, color: "#233971", opacity: 0.14, transform: "rotate(-8deg)" }} />
-            </Box>
-            <CardBadgeIcon icon={<PaletteRoundedIcon />} gradient="linear-gradient(135deg,#233971 0%,#2e4fa3 60%,#5b7ec7 100%)" glow="rgba(35,57,113,0.45)" />
+          <Box sx={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", minHeight: 0 }}>
+            <CardContent sx={{ p: { xs: 1.5, md: "16px 24px" }, position: "relative", zIndex: 2, overflow: "hidden", flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
+              <Stack spacing={1.3} sx={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
 
-            <CardContent sx={{ p: { xs: 3, md: "36px 36px" }, position: "relative", zIndex: 2 }}>
-              <Stack spacing={3}>
-
-                {/* Header */}
+                {/* Header (fixed) */}
                 <Box>
-                  <Typography variant="h6" sx={{ ...F, fontWeight: 800, color: "#0f172a", lineHeight: 1 }}>
+                  <Typography sx={{ ...F, fontSize: "0.8rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#0f172a" }}>
                     Configuration & Output
                   </Typography>
-                  <Typography sx={{ ...F, fontSize: "0.82rem", color: "#64748b", mt: "2px" }}>
-                    Toggle structural sections, colors, then copy the prompt
+                  <Typography sx={{ ...F, fontSize: "0.7rem", color: "#94a3b8", mt: "2px" }}>
+                    Toggle structural sections, colors, then copy the full prompt
                   </Typography>
                 </Box>
 
                 <Divider sx={{ borderColor: "rgba(35,57,113,0.12)" }} />
 
-                {/* ── Advanced Sections Toggle ── */}
-                <Box>
-                  <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
-                    <Typography sx={sectionLabel}>Structural Sections</Typography>
-                    <Box sx={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                      <LayersRoundedIcon sx={{ fontSize: 14, color: "#64748b" }} />
-                      <Typography sx={{ ...sectionSub, fontSize: "0.72rem" }}>click to toggle</Typography>
-                    </Box>
-                  </Stack>
-                  <Typography sx={{ ...sectionSub, mb: 1.5 }}>Include or exclude these sections from the generated JSON</Typography>
-                  <Box sx={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
-                    {ADVANCED_SECTIONS.map(({ key, label }) => {
-                      const included = !isHidden(key)
-                      return (
-                        <Chip
-                          key={key}
-                          label={label}
-                          onClick={() => toggleHide(key)}
-                          sx={{
-                            cursor: "pointer", ...F, fontWeight: 600, fontSize: "0.75rem",
-                            borderRadius: "999px",
-                            background: included ? "linear-gradient(135deg,#233971,#2e4fa3)" : "rgba(35,57,113,0.06)",
-                            color: included ? "#fff" : "#94a3b8",
-                            border: included ? "none" : "1px solid rgba(35,57,113,0.18)",
-                            transition: "all 0.2s",
-                            "& .MuiChip-label": { px: 1.5 },
-                            "&:hover": {
-                              background: included ? "linear-gradient(135deg,#1a2d5a,#233971)" : "rgba(35,57,113,0.12)",
-                              color: included ? "#fff" : "#233971",
-                            },
-                          }}
-                        />
-                      )
-                    })}
-                  </Box>
-                </Box>
-
-                <Divider sx={{ borderColor: "rgba(35,57,113,0.12)" }} />
-
-                {/* ── Color Palette ── */}
-                <Box data-section-key="color_palette">
-                  <SectionHeader label="Color Palette" sectionKey="color_palette" isHidden={isHidden("color_palette")} onToggle={toggleHide}
-                    chip={<Chip size="small" label="Colors" sx={{ ...F, fontWeight: 700, fontSize: "0.7rem", borderRadius: "999px", background: "rgba(35,57,113,0.08)", color: "#233971", border: "1px solid rgba(35,57,113,0.22)" }} />}
-                  />
-                  <Collapse in={!isHidden("color_palette")}>
-                    <Stack spacing={1.2}>
-                      <Typography sx={{ ...sectionSub, mb: 0.5 }}>
-                        You can keep using hex values, but the swatch preview shows the color visually.
-                      </Typography>
-                      {[
-                        { key: "primary",   label: "Primary Color",   placeholder: "e.g. deep navy blue" },
-                        { key: "secondary", label: "Secondary Color", placeholder: "e.g. safety yellow" },
-                        { key: "accent",    label: "Accent Color",    placeholder: "e.g. white" },
-                        { key: "text_dark", label: "Dark Text Color", placeholder: "e.g. black" },
-                      ].map(({ key, label, placeholder }) => (
-                        <Stack key={key} direction="row" spacing={1.2} alignItems="center">
-                          <Box
-                            aria-hidden
+                {/* ── Structural Sections Toggle (fixed) ── */}
+                <Box sx={{ ...sectionCardSx, boxSizing: "border-box", width: "calc(100% - 4px)" }}>
+                  <PlainSectionHeader label="Structural Sections" icon={LayersRoundedIcon}
+                    expanded={isExpanded("structural_sections")} onToggleExpand={() => toggleExpanded("structural_sections")}>
+                    {isExpanded("structural_sections") && <Typography sx={{ ...sectionSub, fontSize: "0.72rem" }}>click to toggle</Typography>}
+                  </PlainSectionHeader>
+                  <SmoothCollapse in={isExpanded("structural_sections")}>
+                    <Typography sx={{ ...sectionSub, mb: 1.2, fontSize: "0.75rem" }}>Include or exclude these sections from the generated JSON</Typography>
+                    <Box sx={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                      {ADVANCED_SECTIONS.map(({ key, label }) => {
+                        const included = !isHidden(key)
+                        return (
+                          <Chip
+                            key={key}
+                            label={label}
+                            onClick={() => toggleHide(key)}
                             sx={{
-                              width: 42,
-                              height: 42,
-                              borderRadius: "14px",
-                              flexShrink: 0,
-                              ...getColorPreview(data.color_palette[key]),
-                              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.35), 0 4px 12px rgba(15,23,42,0.08)",
+                              cursor: "pointer", ...F, fontWeight: 600, fontSize: "0.75rem",
+                              borderRadius: "999px",
+                              background: included ? "linear-gradient(135deg,#2a9d8f,#23857a)" : "rgba(35,57,113,0.06)",
+                              color: included ? "#fff" : "#94a3b8",
+                              border: included ? "none" : "1px solid rgba(35,57,113,0.18)",
+                              transition: "all 0.2s",
+                              "& .MuiChip-label": { px: 1.5 },
+                              "&:hover": {
+                                background: included ? "linear-gradient(135deg,#23857a,#1c6b62)" : "rgba(35,57,113,0.12)",
+                                color: included ? "#fff" : "#233971",
+                              },
                             }}
                           />
-                          <TextField
-                            fullWidth size="small" label={label}
-                            placeholder={placeholder}
-                            value={data.color_palette[key]}
-                            onChange={e => set(`color_palette.${key}`, e.target.value)}
-                            sx={inputSx}
-                          />
-                        </Stack>
-                      ))}
-                    </Stack>
-                  </Collapse>
+                        )
+                      })}
+                    </Box>
+                  </SmoothCollapse>
                 </Box>
 
-                <Divider sx={{ borderColor: "rgba(35,57,113,0.12)" }} />
+                {/* Scrollable section list */}
+                <Stack spacing={1.5} sx={{
+                  flex: "0 1 auto", minHeight: 0, maxHeight: 220, overflowY: "auto", overflowX: "hidden", pr: 0.5,
+                  "&::-webkit-scrollbar": { width: 6 },
+                  "&::-webkit-scrollbar-thumb": { background: "rgba(35,57,113,0.25)", borderRadius: 999 },
+                  "&::-webkit-scrollbar-track": { background: "transparent" },
+                }}>
+
+                {/* ── Color Palette ── */}
+                <Box sx={sectionCardSx}>
+                  <PlainSectionHeader label="Color Palette" icon={PaletteRoundedIcon}
+                    expanded={isExpanded("color_palette")} onToggleExpand={() => toggleExpanded("color_palette")} />
+                  <SmoothCollapse in={isExpanded("color_palette")}>
+                    <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, gap: 1 }}>
+                      {[
+                        { key: "primary",   label: "Primary Color" },
+                        { key: "secondary", label: "Secondary Color" },
+                        { key: "accent",    label: "Accent Color" },
+                        { key: "text_dark", label: "Dark Text Color" },
+                      ].map(({ key, label }) => (
+                        <Stack key={key} direction="row" spacing={1} alignItems="center"
+                          sx={{ p: 1, borderRadius: "12px", border: "1px solid rgba(35,57,113,0.16)", background: "rgba(255,255,255,0.6)" }}>
+                          <Box sx={{ position: "relative", width: 32, height: 32, flexShrink: 0 }}>
+                            <Box sx={{
+                              position: "relative", width: "100%", height: "100%", borderRadius: "8px",
+                              border: "1.5px solid rgba(35,57,113,0.25)", overflow: "hidden",
+                              boxShadow: "0 2px 6px rgba(35,57,113,0.12)", cursor: "pointer",
+                              transition: "border-color 0.2s, box-shadow 0.2s, transform 0.15s",
+                              "&:hover": { borderColor: "#233971", boxShadow: "0 0 0 3px rgba(35,57,113,0.14)", transform: "scale(1.04)" },
+                            }}>
+                              <input type="color" value={data.color_palette[key]} onChange={e => set(`color_palette.${key}`, e.target.value)}
+                                style={{ position: "absolute", inset: "-4px", width: "calc(100% + 8px)", height: "calc(100% + 8px)", border: "none", cursor: "pointer", padding: 0 }} />
+                            </Box>
+                            <Box sx={{
+                              position: "absolute", bottom: -4, right: -4, width: 15, height: 15, borderRadius: "50%",
+                              background: "rgba(15,23,42,0.85)", border: "1.5px solid #fff",
+                              display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none",
+                              boxShadow: "0 1px 3px rgba(0,0,0,0.3)",
+                              "& svg": { fontSize: "8px", color: "#fff" },
+                            }}>
+                              <EditRoundedIcon />
+                            </Box>
+                          </Box>
+                          <Box sx={{ minWidth: 0, flex: 1 }}>
+                            <Typography noWrap sx={{ ...F, fontSize: "0.68rem", color: "#64748b", lineHeight: 1.3 }}>{label}</Typography>
+                            <Box sx={{
+                              position: "relative", display: "flex", alignItems: "center",
+                              borderBottom: "1px dashed rgba(100,116,139,0.4)",
+                              "&:hover, &:focus-within": { borderBottomColor: "#233971" },
+                              "&:hover .hex-edit-icon, &:focus-within .hex-edit-icon": { opacity: 1 },
+                            }}>
+                              <input value={data.color_palette[key]} onChange={e => set(`color_palette.${key}`, e.target.value)}
+                                style={{ display: "block", width: "100%", boxSizing: "border-box", padding: "0 14px 2px 0", border: "none", outline: "none", background: "transparent", fontFamily: "monospace", fontSize: "0.8rem", letterSpacing: "0.03em", color: "#1e293b" }} />
+                              <EditRoundedIcon className="hex-edit-icon" sx={{ position: "absolute", right: 0, bottom: 3, fontSize: "11px", color: "#94a3b8", opacity: 0.4, transition: "opacity 0.2s", pointerEvents: "none" }} />
+                            </Box>
+                          </Box>
+                        </Stack>
+                      ))}
+                    </Box>
+                  </SmoothCollapse>
+                </Box>
 
                 {/* ── Rendering Style ── */}
-                <Box data-section-key="rendering_style">
-                  <SectionHeader label="Rendering Style" sectionKey="rendering_style" isHidden={isHidden("rendering_style")} onToggle={toggleHide}
-                    chip={<Chip size="small" label="Rendering" sx={{ ...F, fontWeight: 700, fontSize: "0.7rem", borderRadius: "999px", background: "rgba(35,57,113,0.08)", color: "#233971", border: "1px solid rgba(35,57,113,0.22)" }} />}
-                  />
-                  <Collapse in={!isHidden("rendering_style")}>
+                <Box sx={sectionCardSx}>
+                  <PlainSectionHeader label="Rendering Style" icon={HighQualityRoundedIcon}
+                    expanded={isExpanded("rendering_style")} onToggleExpand={() => toggleExpanded("rendering_style")} />
+                  <SmoothCollapse in={isExpanded("rendering_style")}>
                     <Stack spacing={1.5}>
                       <TextField fullWidth label="Quality" size="small" value={data.rendering_style.quality} onChange={e => set("rendering_style.quality", e.target.value)} sx={inputSx} />
-                      <TextField fullWidth multiline rows={2} label="Effects" size="small" value={data.rendering_style.effects} onChange={e => set("rendering_style.effects", e.target.value)} sx={inputSx} />
-                      <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", mt: 0.5 }}>
+                      <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", columnGap: 1, rowGap: 0.3 }}>
                         {[
-                          { key: "mobile_friendly", label: "Mobile Friendly" },
-                          { key: "scroll_stopping", label: "Scroll Stopping" },
+                          { key: "photorealistic",     label: "Photorealistic" },
+                          { key: "commercial_grade",   label: "Commercial Grade" },
+                          { key: "mobile_friendly",    label: "Mobile Friendly" },
+                          { key: "realistic_lighting", label: "Realistic Lighting" },
+                          { key: "realistic_shadows",  label: "Realistic Shadows" },
+                          { key: "high_detail",        label: "High Detail" },
+                          { key: "scroll_stopping",    label: "Scroll Stopping" },
                         ].map(({ key, label }) => (
-                          <FormControlLabel key={key}
-                            control={<Switch size="small" checked={data.rendering_style[key]} onChange={e => set(`rendering_style.${key}`, e.target.checked)}
-                              sx={{ "& .MuiSwitch-thumb": { bgcolor: data.rendering_style[key] ? "#233971" : undefined }, "& .MuiSwitch-track": { bgcolor: data.rendering_style[key] ? "rgba(35,57,113,0.4) !important" : undefined } }} />}
-                            label={<Typography sx={{ ...F, fontSize: "0.8rem", color: "#334155" }}>{label}</Typography>}
+                          <FormControlLabel key={key} sx={{ ml: 0, mr: 0, gap: 0.6 }}
+                            control={<Switch checked={!!data.rendering_style[key]} onChange={e => set(`rendering_style.${key}`, e.target.checked)} sx={compactSwitchSx} />}
+                            label={<Typography noWrap sx={{ ...F, fontSize: "0.76rem", color: "#334155" }}>{label}</Typography>}
                           />
                         ))}
                       </Box>
                     </Stack>
-                  </Collapse>
+                  </SmoothCollapse>
                 </Box>
+
+                </Stack>
 
                 <Divider sx={{ borderColor: "rgba(35,57,113,0.12)" }} />
 
-                {/* ── Prompt Output ── */}
-                <Box>
-                  <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1.2}>
+                {/* ── Prompt Output (fixed, fills remaining space) ── */}
+                <Box sx={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
+                  <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1.2} flexShrink={0}>
                     <Box>
                       <Typography sx={sectionLabel}>Prompt Output</Typography>
                       <Typography sx={{ ...sectionSub, fontSize: "0.75rem", mt: "2px" }}>Click copy → ready to use</Typography>
                     </Box>
-                    <Stack direction="row" spacing={1} alignItems="center">
+                    <Stack direction="row" alignItems="center" spacing={1.5}>
                       <FormControlLabel
-                        control={<Switch checked={manualPromptMode} onChange={toggleManualPromptMode} size="small" />}
-                        label={<Typography sx={{ ...F, fontSize: "0.75rem", color: "#334155" }}>Manual edit</Typography>}
-                        sx={{ mr: 0, "& .MuiFormControlLabel-label": { ml: 0.5 } }}
+                        control={
+                          <Switch checked={manualPromptMode} onChange={toggleManualPromptMode} sx={modernSwitchSx} />
+                        }
+                        label={<Typography sx={{ ...F, fontSize: "0.78rem", color: "#475569", fontWeight: 600 }}>Manual edit</Typography>}
+                        sx={{ m: 0 }}
                       />
                       <Tooltip title={copied ? "Copied!" : "Copy full prompt"}>
                         <Button
@@ -901,9 +979,9 @@ export default function PromptBuilderPage() {
                           sx={{
                             borderRadius: "999px", px: 2.5, py: 1,
                             textTransform: "none", ...F, fontWeight: 700, fontSize: "0.85rem",
-                            background: copied ? "linear-gradient(135deg,#166534,#16a34a)" : "linear-gradient(135deg,#233971,#2e4fa3)",
-                            boxShadow: copied ? "0 6px 18px rgba(22,101,52,0.32)" : "0 6px 18px rgba(35,57,113,0.32)",
-                            "&:hover": { background: copied ? "linear-gradient(135deg,#14532d,#166534)" : "linear-gradient(135deg,#1a2d5a,#233971)", transform: "translateY(-1px)", boxShadow: copied ? "0 10px 26px rgba(22,101,52,0.38)" : "0 10px 26px rgba(35,57,113,0.42)" },
+                            background: copied ? "linear-gradient(135deg,#166534,#16a34a)" : "linear-gradient(135deg,#2a9d8f,#23857a)",
+                            boxShadow: copied ? "0 6px 18px rgba(22,101,52,0.32)" : "0 6px 18px rgba(42,157,143,0.32)",
+                            "&:hover": { background: copied ? "linear-gradient(135deg,#14532d,#166534)" : "linear-gradient(135deg,#23857a,#1c6b62)", transform: "translateY(-1px)", boxShadow: copied ? "0 10px 26px rgba(22,101,52,0.38)" : "0 10px 26px rgba(42,157,143,0.42)" },
                             transition: "all 0.25s ease",
                           }}
                         >
@@ -914,7 +992,7 @@ export default function PromptBuilderPage() {
                   </Stack>
 
                   {copied && (
-                    <Alert severity="success" sx={{ borderRadius: "12px", ...F, fontSize: "0.8rem", mb: 1.5, border: "1px solid rgba(35,57,113,0.18)", background: "rgba(232,237,248,0.9)", "& .MuiAlert-icon": { color: "#233971" }, color: "#233971" }}>
+                    <Alert severity="success" sx={{ borderRadius: "12px", ...F, fontSize: "0.8rem", mb: 1.5, border: "1px solid rgba(35,57,113,0.18)", background: "rgba(232,237,248,0.9)", "& .MuiAlert-icon": { color: "#233971" }, color: "#233971", flexShrink: 0 }}>
                       Prompt copied — paste directly into your AI image generator!
                     </Alert>
                   )}
@@ -926,22 +1004,16 @@ export default function PromptBuilderPage() {
                     backdropFilter: "blur(8px)",
                     overflow: "hidden",
                     boxShadow: "0 8px 24px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.06)",
+                    flex: 1, minHeight: 120, display: "flex", flexDirection: "column",
                   }}>
-                    <Stack direction="row" alignItems="center" sx={{ px: 1.5, py: 0.8, borderBottom: "1px solid rgba(255,255,255,0.06)", background: "rgba(255,255,255,0.04)", gap: 1.5 }}>
-                      {/* dots */}
+                    <Stack direction="row" alignItems="center" flexShrink={0} sx={{ px: 1.5, py: 0.8, borderBottom: "1px solid rgba(255,255,255,0.06)", background: "rgba(255,255,255,0.04)", gap: 1.5 }}>
                       <Stack direction="row" spacing={0.6} flexShrink={0}>
                         {["#ef4444", "#f59e0b", "#22c55e"].map(c => <Box key={c} sx={{ width: 10, height: 10, borderRadius: "50%", bgcolor: c, opacity: 0.8 }} />)}
                       </Stack>
-
-                      {/* filename */}
                       <Typography sx={{ fontFamily: "monospace", fontSize: "0.68rem", color: "rgba(255,255,255,0.35)", flexShrink: 0 }}>
                         prompt.json
                       </Typography>
-
-                      {/* spacer */}
                       <Box sx={{ flex: 1 }} />
-
-                      {/* search input */}
                       <TextField
                         size="small"
                         placeholder="Search JSON..."
@@ -951,19 +1023,15 @@ export default function PromptBuilderPage() {
                         sx={{
                           width: 150,
                           "& .MuiOutlinedInput-root": {
-                            height: 26,
-                            borderRadius: "999px",
+                            height: 26, borderRadius: "999px",
                             background: "rgba(15,23,42,0.85)",
-                            color: "#e2e8f0",
-                            fontSize: "0.72rem",
+                            color: "#e2e8f0", fontSize: "0.72rem",
                             "& fieldset": { borderColor: "rgba(255,255,255,0.12)" },
                             "&:hover fieldset": { borderColor: "rgba(255,255,255,0.24)" },
                             "&.Mui-focused fieldset": { borderColor: "rgba(255,255,255,0.32)" },
                           },
                           "& input": {
-                            color: "#e2e8f0",
-                            padding: "4px 12px",
-                            fontSize: "0.72rem",
+                            color: "#e2e8f0", padding: "4px 12px", fontSize: "0.72rem",
                             "&:-webkit-autofill, &:-webkit-autofill:hover, &:-webkit-autofill:focus": {
                               WebkitBoxShadow: "0 0 0 100px rgba(15,23,42,0.98) inset",
                               WebkitTextFillColor: "#e2e8f0",
@@ -973,39 +1041,24 @@ export default function PromptBuilderPage() {
                           "& input::placeholder": { color: "rgba(226,232,240,0.45)", opacity: 1 },
                         }}
                       />
-
-                      {/* match counter + prev/next */}
                       {searchActive && (
                         <Stack direction="row" spacing={0.4} alignItems="center" flexShrink={0}>
                           <Typography sx={{ fontFamily: "monospace", fontSize: "0.65rem", color: matchCount > 0 ? "#facc15" : "rgba(226,232,240,0.45)", minWidth: 42, textAlign: "center" }}>
                             {matchCount > 0 ? `${matchIndex + 1}/${matchCount}` : "0 hasil"}
                           </Typography>
-                          <IconButton
-                            size="small"
-                            onClick={goPrev}
-                            disabled={matchCount === 0}
-                            sx={{ width: 22, height: 22, borderRadius: "6px", color: "#e2e8f0", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", "&:hover": { background: "rgba(255,255,255,0.12)" }, "&.Mui-disabled": { opacity: 0.3 }, "& svg": { fontSize: "16px !important" } }}
-                          >
+                          <IconButton size="small" onClick={goPrev} disabled={matchCount === 0}
+                            sx={{ width: 22, height: 22, borderRadius: "6px", color: "#e2e8f0", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", "&:hover": { background: "rgba(255,255,255,0.12)" }, "&.Mui-disabled": { opacity: 0.3 }, "& svg": { fontSize: "16px !important" } }}>
                             <KeyboardArrowUpRoundedIcon />
                           </IconButton>
-                          <IconButton
-                            size="small"
-                            onClick={goNext}
-                            disabled={matchCount === 0}
-                            sx={{ width: 22, height: 22, borderRadius: "6px", color: "#e2e8f0", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", "&:hover": { background: "rgba(255,255,255,0.12)" }, "&.Mui-disabled": { opacity: 0.3 }, "& svg": { fontSize: "16px !important" } }}
-                          >
+                          <IconButton size="small" onClick={goNext} disabled={matchCount === 0}
+                            sx={{ width: 22, height: 22, borderRadius: "6px", color: "#e2e8f0", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", "&:hover": { background: "rgba(255,255,255,0.12)" }, "&.Mui-disabled": { opacity: 0.3 }, "& svg": { fontSize: "16px !important" } }}>
                             <KeyboardArrowDownRoundedIcon />
                           </IconButton>
                         </Stack>
                       )}
-
-                      {/* clear */}
                       {searchActive && (
-                        <IconButton
-                          size="small"
-                          onClick={() => setSearchQuery("")}
-                          sx={{ width: 22, height: 22, borderRadius: "6px", color: "rgba(226,232,240,0.5)", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", "&:hover": { background: "rgba(255,255,255,0.1)", color: "#e2e8f0" }, "& svg": { fontSize: "13px !important" } }}
-                        >
+                        <IconButton size="small" onClick={() => setSearchQuery("")}
+                          sx={{ width: 22, height: 22, borderRadius: "6px", color: "rgba(226,232,240,0.5)", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", "&:hover": { background: "rgba(255,255,255,0.1)", color: "#e2e8f0" }, "& svg": { fontSize: "13px !important" } }}>
                           <CloseRoundedIcon />
                         </IconButton>
                       )}
@@ -1020,10 +1073,10 @@ export default function PromptBuilderPage() {
                           display: "block", width: "100%", m: 0, p: 2,
                           fontSize: "0.68rem", fontFamily: "monospace",
                           color: "#e2e8f0", background: "transparent",
-                          border: "none", outline: "none", resize: "vertical",
-                          minHeight: 420, lineHeight: 1.65,
+                          border: "none", outline: "none", resize: "none",
+                          flex: 1, minHeight: 0, lineHeight: 1.65,
                           whiteSpace: "pre-wrap", wordBreak: "break-word",
-                          boxSizing: "border-box",
+                          boxSizing: "border-box", overflowY: "auto",
                           "&::selection": { background: "rgba(148,163,184,0.3)" },
                         }}
                       />
@@ -1032,7 +1085,7 @@ export default function PromptBuilderPage() {
                         m: 0, p: 2,
                         fontSize: "0.68rem", fontFamily: "monospace",
                         color: "#e2e8f0", overflowX: "auto",
-                        maxHeight: 420, overflowY: "auto",
+                        flex: 1, minHeight: 0, overflowY: "auto",
                         whiteSpace: "pre-wrap", wordBreak: "break-word",
                         lineHeight: 1.65,
                       }}>
@@ -1040,29 +1093,16 @@ export default function PromptBuilderPage() {
                       </Box>
                     )}
                   </Box>
+
                 </Box>
 
               </Stack>
             </CardContent>
-          </Card>
+          </Box>
 
         </Stack>
+        </Card>
       </Stack>
     </Box>
   )
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

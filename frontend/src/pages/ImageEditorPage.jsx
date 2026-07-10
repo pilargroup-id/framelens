@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   Alert,
@@ -28,23 +28,28 @@ import FlipCameraAndroidIcon from "@mui/icons-material/FlipCameraAndroid";
 import CenterFocusStrongIcon from "@mui/icons-material/CenterFocusStrong";
 import ImageIcon from "@mui/icons-material/Image";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import ContentCopyRoundedIcon from "@mui/icons-material/ContentCopyRounded";
 import TuneIcon from "@mui/icons-material/Tune";
+import BookmarkRoundedIcon from "@mui/icons-material/BookmarkRounded";
 import BoltIcon from "@mui/icons-material/Bolt";
 import StorefrontIcon from "@mui/icons-material/Storefront";
 import PhotoSizeSelectLargeIcon from "@mui/icons-material/PhotoSizeSelectLarge";
 import HdIcon from "@mui/icons-material/Hd";
 import LayersRoundedIcon from "@mui/icons-material/LayersRounded";
-import CollectionsRoundedIcon from "@mui/icons-material/CollectionsRounded";
 import ZoomInIcon from "@mui/icons-material/ZoomIn";
 import CloseIcon from "@mui/icons-material/Close";
 import ZoomInMapIcon from "@mui/icons-material/ZoomInMap";
 import AutoFixHighRoundedIcon from "@mui/icons-material/AutoFixHighRounded";
 import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate";
+import CheckIcon from "@mui/icons-material/Check";
 import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 import PhotoLibraryRoundedIcon from "@mui/icons-material/PhotoLibraryRounded";
+import DynamicFeedRoundedIcon from "@mui/icons-material/DynamicFeedRounded";
+import AspectRatioRoundedIcon from "@mui/icons-material/AspectRatioRounded";
+import HighQualityRoundedIcon from "@mui/icons-material/HighQualityRounded";
 import api from "../api/client";
 
-/* ─── Google Fonts ─── */
+/* --- Google Fonts --- */
 const FontStyle = () => (
   <style>{`
     @import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap');
@@ -59,9 +64,9 @@ const FontStyle = () => (
   `}</style>
 );
 
-/* ══════════════════════════════════════════════
+/* ----------------------------------------------
    CARD BACKGROUND — gradient soft blue #233971
-══════════════════════════════════════════════ */
+---------------------------------------------- */
 function CardBg({ variant = "left" }) {
   const isLeft = variant === "left";
   return (
@@ -114,41 +119,6 @@ function CardBg({ variant = "left" }) {
           animation: "orbDrift1 18s ease-in-out infinite 2s",
         }}
       />
-      <Box
-        sx={{
-          position: "absolute",
-          bottom: isLeft ? "-10%" : "10%",
-          left: isLeft ? "40%" : "10%",
-          width: 200,
-          height: 200,
-          borderRadius: "50%",
-          background: isLeft
-            ? "radial-gradient(circle, rgba(35,57,113,0.09) 0%, transparent 70%)"
-            : "radial-gradient(circle, rgba(55,80,145,0.09) 0%, transparent 70%)",
-          animation: "orbDrift2 22s ease-in-out infinite 4s",
-        }}
-      />
-
-      <Box
-        sx={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          height: "1px",
-          background: "linear-gradient(90deg, transparent, rgba(35,57,113,0.35), transparent)",
-        }}
-      />
-      <Box
-        sx={{
-          position: "absolute",
-          bottom: 0,
-          left: 0,
-          right: 0,
-          height: "1px",
-          background: "linear-gradient(90deg, transparent, rgba(35,57,113,0.22), transparent)",
-        }}
-      />
     </Box>
   );
 }
@@ -176,11 +146,8 @@ const GROUP_META = {
 const ASPECT_RATIO_OPTIONS = [
   { value: "original", label: "Original" },
   { value: "1:1", label: "1:1" },
-  { value: "4:5", label: "4:5" },
-  { value: "3:4", label: "3:4" },
   { value: "9:16", label: "9:16" },
   { value: "16:9", label: "16:9" },
-  { value: "3:2", label: "3:2" },
 ];
 
 const RESOLUTION_OPTIONS = [
@@ -204,10 +171,6 @@ const BATCH_OPTIONS = [
   { value: 2, label: "2 Images" },
   { value: 3, label: "3 Images" },
   { value: 4, label: "4 Images" },
-  { value: 5, label: "5 Images" },
-  { value: 6, label: "6 Images" },
-  { value: 7, label: "7 Images" },
-  { value: 8, label: "8 Images" },
 ];
 
 function getAspectRatioValue(v) {
@@ -222,7 +185,7 @@ function getAspectRatioValue(v) {
   return map[v] || null;
 }
 
-/* ─── Lightbox modal ─── */
+/* --- Lightbox modal --- */
 function Lightbox({ open, src, onClose, onDownload }) {
   if (!src) return null;
   return (
@@ -267,49 +230,51 @@ function Lightbox({ open, src, onClose, onDownload }) {
               border: "1px solid rgba(255,255,255,0.1)",
             }}
           />
-          <Box
-            sx={{
-              position: "absolute",
-              bottom: 0,
-              left: 0,
-              right: 0,
-              borderRadius: "0 0 20px 20px",
-              background: "linear-gradient(to top,rgba(2,6,23,0.72),transparent)",
-              p: "20px 16px 14px",
-              display: "flex",
-              justifyContent: "center",
-            }}
-          >
-            <Button
-              size="small"
-              variant="contained"
-              startIcon={<DownloadIcon />}
-              onClick={onDownload}
+          {onDownload && (
+            <Box
               sx={{
-                borderRadius: "999px",
-                px: 2.5,
-                py: 0.8,
-                fontFamily: "'Sora',sans-serif",
-                fontWeight: 700,
-                fontSize: "0.8rem",
-                textTransform: "none",
-                background: "linear-gradient(135deg,#233971,#2e4fa3)",
-                boxShadow: "0 6px 18px rgba(35,57,113,0.4)",
-                "&:hover": { background: "linear-gradient(135deg,#1a2d5a,#233971)", transform: "translateY(-1px)" },
-                transition: "all 0.2s",
+                position: "absolute",
+                bottom: 0,
+                left: 0,
+                right: 0,
+                borderRadius: "0 0 20px 20px",
+                background: "linear-gradient(to top,rgba(2,6,23,0.72),transparent)",
+                p: "20px 16px 14px",
+                display: "flex",
+                justifyContent: "center",
               }}
             >
-              Download
-            </Button>
-          </Box>
+              <Button
+                size="small"
+                variant="contained"
+                startIcon={<DownloadIcon />}
+                onClick={onDownload}
+                sx={{
+                  borderRadius: "999px",
+                  px: 2.5,
+                  py: 0.8,
+                  fontFamily: "'Sora',sans-serif",
+                  fontWeight: 700,
+                  fontSize: "0.8rem",
+                  textTransform: "none",
+                  background: "linear-gradient(135deg,#233971,#2e4fa3)",
+                  boxShadow: "0 6px 18px rgba(35,57,113,0.4)",
+                  "&:hover": { background: "linear-gradient(135deg,#1a2d5a,#233971)", transform: "translateY(-1px)" },
+                  transition: "all 0.2s",
+                }}
+              >
+                Download
+              </Button>
+            </Box>
+          )}
         </Box>
       </Fade>
     </Modal>
   );
 }
 
-/* ─── Preview image wrapper ─── */
-function PreviewBox({ src, alt, aspectRatio, minHeight = 240, onPreview }) {
+/* --- Preview image wrapper --- */
+function PreviewBox({ src, alt, aspectRatio, minHeight = 240, onPreview, square = false, onPrev, onNext, counterLabel }) {
   const [hover, setHover] = useState(false);
   const ar = getAspectRatioValue(aspectRatio);
   return (
@@ -319,17 +284,17 @@ function PreviewBox({ src, alt, aspectRatio, minHeight = 240, onPreview }) {
       onMouseLeave={() => setHover(false)}
       onWheel={(e) => e.preventDefault()}
       sx={{
-        minHeight,
+        ...(square ? { width: "100%", aspectRatio: "1 / 1" } : { minHeight, maxHeight: 220 }),
         borderRadius: "18px",
         overflow: "hidden",
         background: src
           ? "linear-gradient(135deg,rgba(232,237,248,0.6),rgba(240,244,251,0.6))"
           : "linear-gradient(135deg,rgba(232,237,248,0.7),rgba(234,240,251,0.7))",
-        border: `1px solid ${src ? "rgba(35,57,113,0.2)" : "rgba(35,57,113,0.15)"}`,
+        border: `1px solid ${src ? "rgba(148,163,184,0.35)" : "rgba(148,163,184,0.28)"}`,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        p: 2,
+        p: 1.5,
         position: "relative",
         cursor: src ? "zoom-in" : "default",
         transition: "all 0.3s ease",
@@ -341,8 +306,8 @@ function PreviewBox({ src, alt, aspectRatio, minHeight = 240, onPreview }) {
             sx={
               ar
                 ? {
-                    width: "100%",
-                    maxWidth: 520,
+                    height: "100%",
+                    maxWidth: 420,
                     aspectRatio: ar,
                     display: "flex",
                     alignItems: "center",
@@ -352,6 +317,7 @@ function PreviewBox({ src, alt, aspectRatio, minHeight = 240, onPreview }) {
                   }
                 : {
                     width: "100%",
+                    height: "100%",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -411,11 +377,81 @@ function PreviewBox({ src, alt, aspectRatio, minHeight = 240, onPreview }) {
               <ZoomInIcon sx={{ color: "#fff", fontSize: 24 }} />
             </Box>
           </Box>
+          {onPrev && (
+            <IconButton
+              size="small"
+              onClick={(e) => {
+                e.stopPropagation();
+                onPrev();
+              }}
+              sx={{
+                position: "absolute",
+                left: 6,
+                top: "50%",
+                transform: "translateY(-50%)",
+                width: 26,
+                height: 26,
+                zIndex: 2,
+                background: "rgba(15,23,42,0.45)",
+                backdropFilter: "blur(6px)",
+                color: "#fff",
+                "&:hover": { background: "rgba(15,23,42,0.65)" },
+                "& svg": { fontSize: 16 },
+              }}
+            >
+              <ArrowBackRoundedIcon />
+            </IconButton>
+          )}
+          {onNext && (
+            <IconButton
+              size="small"
+              onClick={(e) => {
+                e.stopPropagation();
+                onNext();
+              }}
+              sx={{
+                position: "absolute",
+                right: 6,
+                top: "50%",
+                transform: "translateY(-50%)",
+                width: 26,
+                height: 26,
+                zIndex: 2,
+                background: "rgba(15,23,42,0.45)",
+                backdropFilter: "blur(6px)",
+                color: "#fff",
+                "&:hover": { background: "rgba(15,23,42,0.65)" },
+                "& svg": { fontSize: 16 },
+              }}
+            >
+              <ArrowBackRoundedIcon sx={{ transform: "rotate(180deg)" }} />
+            </IconButton>
+          )}
+          {counterLabel && (
+            <Box
+              sx={{
+                position: "absolute",
+                bottom: 8,
+                left: "50%",
+                transform: "translateX(-50%)",
+                zIndex: 2,
+                px: 1,
+                py: "1px",
+                borderRadius: "999px",
+                background: "rgba(15,23,42,0.55)",
+                backdropFilter: "blur(6px)",
+              }}
+            >
+              <Typography sx={{ fontFamily: "'Sora',sans-serif", fontSize: "0.62rem", fontWeight: 700, color: "#fff" }}>
+                {counterLabel}
+              </Typography>
+            </Box>
+          )}
         </>
       ) : (
         <Stack spacing={1} alignItems="center">
-          <Box sx={{ width: 50, height: 50, borderRadius: "14px", background: "rgba(35,57,113,0.09)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <AutoAwesomeIcon sx={{ fontSize: 24, color: "#7a9bd4" }} />
+          <Box sx={{ width: 50, height: 50, borderRadius: "14px", background: "rgba(35,57,113,0.12)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <AutoAwesomeIcon sx={{ fontSize: 24, color: "#233971" }} />
           </Box>
           <Typography sx={{ fontFamily: "'Sora',sans-serif", fontSize: "0.82rem", color: "#94a3b8", fontWeight: 500 }}>
             AI result will appear here
@@ -426,7 +462,7 @@ function PreviewBox({ src, alt, aspectRatio, minHeight = 240, onPreview }) {
   );
 }
 
-/* ─── Batch result card ─── */
+/* --- Batch result card --- */
 function BatchCard({ item, index, aspectRatio, onPreview, onDownload, F }) {
   const [hover, setHover] = useState(false);
   const ar = getAspectRatioValue(aspectRatio);
@@ -441,7 +477,7 @@ function BatchCard({ item, index, aspectRatio, onPreview, onDownload, F }) {
         borderRadius: "16px",
         background: "rgba(255,255,255,0.72)",
         backdropFilter: "blur(10px)",
-        border: "1px solid rgba(35,57,113,0.18)",
+        border: "1px solid rgba(148,163,184,0.3)",
         transition: "box-shadow 0.2s, transform 0.2s",
         ...(hover && { boxShadow: "0 8px 24px rgba(35,57,113,0.14)", transform: "translateY(-2px)" }),
       }}
@@ -523,44 +559,15 @@ function BatchCard({ item, index, aspectRatio, onPreview, onDownload, F }) {
   );
 }
 
-/* ─── CardBadgeIcon ─── */
-function CardBadgeIcon({ icon, gradient, glow }) {
-  return (
-    <Box
-      sx={{
-        position: "absolute",
-        top: -22,
-        right: 28,
-        width: 54,
-        height: 54,
-        borderRadius: "17px",
-        background: gradient,
-        boxShadow: `0 10px 28px ${glow}, 0 2px 8px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.35)`,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        border: "2.5px solid rgba(255,255,255,0.55)",
-        zIndex: 10,
-        "& svg": { fontSize: 24, color: "#fff", filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.25))" },
-        transition: "transform 0.3s ease, box-shadow 0.3s ease",
-        "&:hover": { transform: "translateY(-5px) rotate(8deg)", boxShadow: `0 18px 36px ${glow}, 0 4px 12px rgba(0,0,0,0.2)` },
-      }}
-    >
-      {icon}
-    </Box>
-  );
-}
-
-/* ══════════════════════════════════════════════
-   NEW ── Reference Image Upload Section
-══════════════════════════════════════════════ */
+/* ----------------------------------------------
+   NEW -- Reference Image Upload Section
+---------------------------------------------- */
 function ReferenceImageSection({ refPreviews, onAdd, onRemove, onPreview, dragActiveRef, onDragOver, onDragLeave, onDrop, inputRef, F }) {
   return (
     <Box>
-      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1.2}>
+      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={0.6}>
         <Stack direction="row" spacing={1} alignItems="center">
-          <AddPhotoAlternateIcon sx={{ fontSize: 16, color: "#2a4a9e" }} />
-          <Typography sx={{ ...F, fontWeight: 700, fontSize: "0.83rem", color: "#1e293b" }}>
+          <Typography sx={{ ...F, fontWeight: 700, fontSize: "0.78rem", letterSpacing: "0.08em", textTransform: "uppercase", color: "#0f172a" }}>
             Reference Images
           </Typography>
           <Chip
@@ -568,230 +575,62 @@ function ReferenceImageSection({ refPreviews, onAdd, onRemove, onPreview, dragAc
             label="Optional"
             sx={{
               ...F,
-              fontWeight: 600,
-              fontSize: "0.68rem",
+              fontWeight: 800,
+              fontSize: "0.64rem",
               borderRadius: "999px",
-              height: 20,
-              background: "rgba(42,74,158,0.08)",
-              color: "#2a4a9e",
-              border: "1px solid rgba(42,74,158,0.22)",
+              height: 18,
+              background: "rgba(217,119,6,0.12)",
+              color: "#b45309",
+              border: "1.5px solid rgba(217,119,6,0.35)",
             }}
           />
         </Stack>
-        <Typography sx={{ ...F, fontSize: "0.75rem", color: "#94a3b8" }}>
+        <Typography sx={{ ...F, fontSize: "0.7rem", color: "#94a3b8" }}>
           Max 8 references
         </Typography>
       </Stack>
 
       <Paper
         variant="outlined"
+        component="label"
         onDragOver={onDragOver}
         onDragLeave={onDragLeave}
         onDrop={onDrop}
         sx={{
-          p: 2,
-          borderRadius: "16px",
-          borderStyle: "dashed",
-          borderWidth: 2,
-          borderColor: dragActiveRef ? "#2a4a9e" : "rgba(42,74,158,0.25)",
-          background: dragActiveRef ? "rgba(42,74,158,0.06)" : "rgba(255,255,255,0.45)",
+          p: 1.2,
+          display: "block",
+          cursor: "pointer",
+          borderRadius: "14px",
+          borderStyle: "solid",
+          borderWidth: 1.5,
+          borderColor: dragActiveRef ? "#2a4a9e" : "rgba(148,163,184,0.35)",
+          background: dragActiveRef ? "rgba(42,74,158,0.06)" : "rgba(241,245,249,0.9)",
           backdropFilter: "blur(8px)",
           transition: "all 0.25s ease",
+          "&:hover": { borderColor: "rgba(42,74,158,0.5)" },
         }}
       >
-        {refPreviews.length === 0 ? (
-          <Stack spacing={1.2} alignItems="center">
-            <Box
-              sx={{
-                width: 46,
-                height: 46,
-                borderRadius: "14px",
-                background: dragActiveRef
-                  ? "linear-gradient(135deg,#2a4a9e,#3b5fc0)"
-                  : "linear-gradient(135deg,rgba(42,74,158,0.12),rgba(59,95,192,0.18))",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                transition: "all 0.25s ease",
-                boxShadow: dragActiveRef ? "0 8px 20px rgba(42,74,158,0.35)" : "none",
-              }}
-            >
-              <AddPhotoAlternateIcon sx={{ fontSize: 22, color: dragActiveRef ? "#fff" : "#2a4a9e", transition: "color 0.25s" }} />
-            </Box>
-            <Box textAlign="center">
-              <Typography sx={{ ...F, fontWeight: 700, fontSize: "0.85rem", color: "#1e293b" }}>
-                Upload reference images (style, visual, mood)
-              </Typography>
-              <Typography sx={{ ...F, fontSize: "0.75rem", color: "#94a3b8" }}>
-                Drag & drop or click · PNG · JPG · WEBP · Up to 8 images
-              </Typography>
-            </Box>
-            <Button
-              variant="outlined"
-              component="label"
-              size="small"
-              startIcon={<AddPhotoAlternateIcon />}
-              sx={{
-                ...F,
-                borderRadius: "999px",
-                px: 2,
-                py: 0.7,
-                textTransform: "none",
-                fontWeight: 700,
-                fontSize: "0.8rem",
-                borderColor: "rgba(42,74,158,0.35)",
-                color: "#2a4a9e",
-                background: "rgba(42,74,158,0.04)",
-                "&:hover": {
-                  borderColor: "rgba(42,74,158,0.55)",
-                  background: "rgba(42,74,158,0.09)",
-                  transform: "translateY(-1px)",
-                },
-                transition: "all 0.2s ease",
-              }}
-            >
-              Select Reference
-              <input
-                ref={inputRef}
-                hidden
-                multiple
-                type="file"
-                accept="image/png,image/jpeg,image/jpg,image/webp"
-                onChange={onAdd}
-              />
-            </Button>
-          </Stack>
-        ) : (
-          <Stack spacing={1.5}>
-            <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-              {refPreviews.map((item, idx) => (
-                <Box
-                  key={`ref-${item.file.name}-${idx}`}
-                  sx={{
-                    position: "relative",
-                    width: 72,
-                    height: 72,
-                    borderRadius: "12px",
-                    overflow: "visible",
-                    flexShrink: 0,
-                  }}
-                >
-                  <Box
-                    component="img"
-                    src={item.url}
-                    alt={item.file.name}
-                    onClick={() => onPreview(item.url)}
-                    sx={{
-                      width: 72,
-                      height: 72,
-                      borderRadius: "12px",
-                      objectFit: "cover",
-                      display: "block",
-                      border: "1.5px solid rgba(42,74,158,0.28)",
-                      boxShadow: "0 4px 12px rgba(42,74,158,0.12)",
-                      cursor: "zoom-in",
-                      transition: "transform 0.2s, box-shadow 0.2s",
-                      "&:hover": { transform: "scale(1.06)", boxShadow: "0 8px 20px rgba(42,74,158,0.22)" },
-                    }}
-                  />
-                  {/* Label badge */}
-                  <Box
-                    sx={{
-                      position: "absolute",
-                      bottom: -8,
-                      left: "50%",
-                      transform: "translateX(-50%)",
-                      background: "linear-gradient(135deg,#2a4a9e,#3b5fc0)",
-                      borderRadius: "999px",
-                      px: 0.8,
-                      py: "1px",
-                      minWidth: 22,
-                      textAlign: "center",
-                      boxShadow: "0 2px 6px rgba(42,74,158,0.35)",
-                      border: "1.5px solid #fff",
-                      zIndex: 2,
-                    }}
-                  >
-                    <Typography sx={{ fontFamily: "'Sora',sans-serif", fontSize: "0.6rem", fontWeight: 800, color: "#fff", lineHeight: 1.4 }}>
-                      R{idx + 1}
-                    </Typography>
-                  </Box>
-                  {/* Remove button */}
-                  <IconButton
-                    size="small"
-                    onClick={() => onRemove(idx)}
-                    sx={{
-                      position: "absolute",
-                      top: -8,
-                      right: -8,
-                      width: 20,
-                      height: 20,
-                      background: "rgba(239,68,68,0.88)",
-                      border: "1.5px solid #fff",
-                      color: "#fff",
-                      zIndex: 3,
-                      "&:hover": { background: "rgba(220,38,38,0.95)" },
-                      "& svg": { fontSize: "11px !important" },
-                    }}
-                  >
-                    <CloseIcon />
-                  </IconButton>
-                </Box>
-              ))}
-
-              {/* Add more button if < 8 */}
-              {refPreviews.length < 8 && (
-                <Box
-                  component="label"
-                  sx={{
-                    width: 72,
-                    height: 72,
-                    borderRadius: "12px",
-                    border: "2px dashed rgba(42,74,158,0.3)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    cursor: "pointer",
-                    background: "rgba(42,74,158,0.04)",
-                    flexShrink: 0,
-                    transition: "all 0.2s",
-                    "&:hover": { borderColor: "rgba(42,74,158,0.55)", background: "rgba(42,74,158,0.09)", transform: "scale(1.04)" },
-                  }}
-                >
-                  <Stack spacing={0.3} alignItems="center">
-                    <AddPhotoAlternateIcon sx={{ fontSize: 18, color: "#2a4a9e" }} />
-                    <Typography sx={{ fontFamily: "'Sora',sans-serif", fontSize: "0.6rem", fontWeight: 700, color: "#2a4a9e" }}>
-                      + Add
-                    </Typography>
-                  </Stack>
-                  <input
-                    hidden
-                    multiple
-                    type="file"
-                    accept="image/png,image/jpeg,image/jpg,image/webp"
-                    onChange={onAdd}
-                  />
-                </Box>
-              )}
-            </Stack>
-
-            <Alert
-              severity="info"
-              sx={{
-                borderRadius: "10px",
-                ...F,
-                fontSize: "0.78rem",
-                background: "rgba(42,74,158,0.07)",
-                border: "1px solid rgba(42,74,158,0.18)",
-                color: "#2a4a9e",
-                "& .MuiAlert-icon": { color: "#2a4a9e" },
-                py: 0.5,
-              }}
-            >
-              <strong>{refPreviews.length}</strong> reference image{refPreviews.length > 1 ? "s" : ""} active — will be included when generating
-            </Alert>
-          </Stack>
-        )}
+        <Stack direction="row" spacing={1.2} alignItems="center">
+          <Box sx={{ width: 30, height: 30, flexShrink: 0, borderRadius: "10px", background: "linear-gradient(135deg,#2a4a9e,#1e3a7a)", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.25s ease", boxShadow: "0 6px 16px rgba(42,74,158,0.35)" }}>
+            <AddPhotoAlternateIcon sx={{ fontSize: 15, color: "#fff", transition: "color 0.25s" }} />
+          </Box>
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Typography noWrap sx={{ ...F, fontWeight: 700, fontSize: "0.75rem", color: "#1e293b" }}>
+              {refPreviews.length ? `${refPreviews.length} reference image${refPreviews.length > 1 ? "s" : ""} selected` : "Upload reference images"}
+            </Typography>
+            <Typography noWrap sx={{ ...F, fontSize: "0.64rem", color: "#94a3b8" }}>
+              {refPreviews.length ? "Preview in Preview Result panel · click to add more" : "Click or drag & drop · up to 8"}
+            </Typography>
+          </Box>
+          <input
+            ref={inputRef}
+            hidden
+            multiple
+            type="file"
+            accept="image/png,image/jpeg,image/jpg,image/webp"
+            onChange={onAdd}
+          />
+        </Stack>
       </Paper>
     </Box>
   );
@@ -799,7 +638,7 @@ function ReferenceImageSection({ refPreviews, onAdd, onRemove, onPreview, dragAc
 
 export default function ImageEditorPage() {
   const fileInputRef = useRef(null);
-  // ── NEW: ref image input
+  // -- NEW: ref image input
   const refFileInputRef = useRef(null);
 
   const location = useLocation();
@@ -818,18 +657,21 @@ export default function ImageEditorPage() {
   const [copied, setCopied] = useState(false);
   const [activePreset, setActivePreset] = useState("");
   const [dragActive, setDragActive] = useState(false);
+  const [beforeHover, setBeforeHover] = useState(false);
+  const [batchViewIndex, setBatchViewIndex] = useState(0);
   const [aspectRatio, setAspectRatio] = useState("original");
   const [resolution, setResolution] = useState("original");
   const [batchCount, setBatchCount] = useState(1);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxSrc, setLightboxSrc] = useState("");
   const [lightboxMeta, setLightboxMeta] = useState(null);
+  const [lightboxDownloadable, setLightboxDownloadable] = useState(true);
 
-  // ── reference images state
+  // -- reference images state
   const [refFiles, setRefFiles] = useState([]);
   const [dragActiveRef, setDragActiveRef] = useState(false);
-  
-  const openLightbox = (payload) => {
+
+  const openLightbox = (payload, downloadable = true) => {
     if (typeof payload === "string") {
       setLightboxSrc(payload);
       setLightboxMeta(null);
@@ -837,6 +679,7 @@ export default function ImageEditorPage() {
       setLightboxSrc(payload?.imageUrl || "");
       setLightboxMeta(payload || null);
     }
+    setLightboxDownloadable(downloadable);
     setLightboxOpen(true);
   };
   const closeLightbox = () => {
@@ -846,14 +689,14 @@ export default function ImageEditorPage() {
 
   const previewUrls = useMemo(() => files.map((f) => ({ file: f, url: URL.createObjectURL(f) })), [files]);
 
-  // ── NEW: ref preview urls
+  // -- NEW: ref preview urls
   const refPreviewUrls = useMemo(() => refFiles.map((f) => ({ file: f, url: URL.createObjectURL(f) })), [refFiles]);
 
   useEffect(() => {
     return () => previewUrls.forEach((i) => URL.revokeObjectURL(i.url));
   }, [previewUrls]);
 
-  // ── NEW: cleanup ref URLs
+  // -- NEW: cleanup ref URLs
   useEffect(() => {
     return () => refPreviewUrls.forEach((i) => URL.revokeObjectURL(i.url));
   }, [refPreviewUrls]);
@@ -879,6 +722,7 @@ export default function ImageEditorPage() {
 
   const primaryPreviewUrl = previewUrls[0]?.url || "";
   const isSingleSourceMode = files.length <= 1;
+  const activeBatchItem = batchResults[Math.min(batchViewIndex, Math.max(batchResults.length - 1, 0))] || null;
   const activePresetData = useMemo(() => PRESETS.find((i) => i.key === activePreset) || null, [activePreset]);
 
   const resultPromptTags = useMemo(() => {
@@ -988,7 +832,7 @@ export default function ImageEditorPage() {
     setBatchCount((prev) => prev || 1);
   };
 
-  // ── NEW: prepare reference files
+  // -- NEW: prepare reference files
   const prepareRefFiles = (incoming) => {
     const valid = Array.from(incoming || []).filter((f) =>
       ["image/png", "image/jpeg", "image/jpg", "image/webp"].includes(f.type)
@@ -1004,14 +848,14 @@ export default function ImageEditorPage() {
     setError("");
   };
 
-  // ── NEW: remove single ref file by index
+  // -- NEW: remove single ref file by index
   const removeRefFile = (idx) => {
     setRefFiles((prev) => prev.filter((_, i) => i !== idx));
   };
 
   const handleFileChange = (e) => prepareFiles(e.target.files);
 
-  // ── NEW: handle ref file input change
+  // -- NEW: handle ref file input change
   const handleRefFileChange = (e) => {
     prepareRefFiles(e.target.files);
     // reset input so same file can be re-added if needed
@@ -1078,7 +922,7 @@ export default function ImageEditorPage() {
     }
   };
 
-  // ── UPDATED: requestSingleEdit now appends ref files
+  // -- UPDATED: requestSingleEdit now appends ref files
   const requestSingleEdit = async ({ file, finalPrompt, requestedBatch }) => {
     const fd = new FormData();
     fd.append("file", file);
@@ -1089,11 +933,11 @@ export default function ImageEditorPage() {
     const maxPx = RESOLUTION_MAX_PX[resolution];
     fd.append("resolution", maxPx ? String(maxPx) : "original");
 
-    // ── NEW: append each reference image
+    // -- NEW: append each reference image
     refFiles.forEach((refFile, idx) => {
       fd.append(`reference_image_${idx}`, refFile);
     });
-    // ── NEW: send count so backend knows how many
+    // -- NEW: send count so backend knows how many
     if (refFiles.length > 0) {
       fd.append("reference_image_count", String(refFiles.length));
     }
@@ -1195,6 +1039,7 @@ export default function ImageEditorPage() {
       }
 
       setBatchResults(results);
+      setBatchViewIndex(0);
       setResultUrl(results[0]?.imageUrl || "");
       setResultMeta(results[0] || null);
       setSuccess(
@@ -1230,6 +1075,13 @@ export default function ImageEditorPage() {
     }
   };
 
+  const handleDownloadAll = async () => {
+    for (let i = 0; i < batchResults.length; i++) {
+      const item = batchResults[i];
+      await handleDownloadSingle(item, `edited-${i + 1}-${item.fileName || Date.now()}.png`);
+    }
+  };
+
   const handleCopyPrompt = async () => {
     if (!prompt.trim()) return;
     try {
@@ -1247,7 +1099,7 @@ export default function ImageEditorPage() {
     prepareFiles(e.dataTransfer.files);
   };
 
-  // ── NEW: ref drag handlers
+  // -- NEW: ref drag handlers
   const handleRefDragOver = (e) => { e.preventDefault(); setDragActiveRef(true); };
   const handleRefDragLeave = (e) => { e.preventDefault(); setDragActiveRef(false); };
   const handleRefDrop = (e) => {
@@ -1259,44 +1111,41 @@ export default function ImageEditorPage() {
   const F = { fontFamily: "'Sora',sans-serif" };
 
   const cardShell = {
-    borderRadius: "24px",
-    border: "1px solid rgba(35,57,113,0.18)",
+    borderRadius: "32px",
+    border: "1px solid rgba(148,163,184,0.25)",
     background: "#fff",
-    boxShadow:
-      "0 2px 8px rgba(0,0,0,0.05), 0 16px 40px -8px rgba(35,57,113,0.13), inset 0 1px 0 rgba(255,255,255,0.9)",
+    boxShadow: "0 2px 8px rgba(0,0,0,0.05), 0 16px 40px -8px rgba(35,57,113,0.13)",
     overflow: "hidden",
     position: "relative",
     transition: "box-shadow 0.3s ease, border-color 0.3s ease",
     "&:hover": {
-      boxShadow:
-        "0 2px 8px rgba(0,0,0,0.07), 0 24px 52px -8px rgba(35,57,113,0.18), inset 0 1px 0 rgba(255,255,255,0.95)",
-      borderColor: "rgba(35,57,113,0.35)",
+      boxShadow: "0 2px 8px rgba(0,0,0,0.07), 0 24px 52px -8px rgba(35,57,113,0.18)",
+      borderColor: "rgba(148,163,184,0.4)",
     },
   };
 
-  const grouped = ["color", "angle", "position"].map((g) => ({
-    group: g,
-    meta: GROUP_META[g],
-    items: PRESETS.filter((p) => p.group === g),
-  })).filter((g) => g.items.length > 0);
-
   return (
-    <Box sx={{ position: "relative", ...F }}>
+    <Box sx={{ position: "relative", ...F, height: "100%", display: "flex", flexDirection: "column", overflow: "hidden" }}>
       <FontStyle />
 
         <Lightbox
           open={lightboxOpen}
           src={lightboxSrc}
           onClose={closeLightbox}
-          onDownload={() => handleDownloadSingle(lightboxMeta || resultMeta || lightboxSrc, `preview-${Date.now()}.png`)}
+          onDownload={
+            lightboxDownloadable
+              ? () => handleDownloadSingle(lightboxMeta || resultMeta || lightboxSrc, `preview-${Date.now()}.png`)
+              : null
+          }
         />
 
-      <Stack spacing={4}>
+      <Stack spacing={2} sx={{ flex: 1, minHeight: 0, overflow: "hidden" }}>
 
-        {/* ── Back to Gallery banner (shown when user came from Gallery) ── */}
+        {/* -- Back to Gallery banner (shown when user came from Gallery) -- */}
         {fromGallery && (
           <Box
             sx={{
+              flexShrink: 0,
               display:"flex", alignItems:{ xs:"flex-start", sm:"center" }, flexDirection:{ xs:"column", sm:"row" }, gap:1.5,
               px:2.5, py:1.6,
               borderRadius:"16px",
@@ -1345,36 +1194,30 @@ export default function ImageEditorPage() {
           </Box>
         )}
 
-        <Stack direction={{ xs: "column", lg: "row" }} spacing={3} alignItems="stretch">
-          <Card elevation={0} sx={{ ...cardShell, flex: 1.05 }}>
+        <Card elevation={0} sx={{ ...cardShell, flex: 1, height: "100%", minHeight: 0, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+        <Stack direction={{ xs: "column", lg: "row" }} spacing={0} alignItems="stretch" sx={{ flex: 1, minHeight: 0, overflow: { xs: "auto", lg: "hidden" } }}>
+          <Box sx={{ flex: 1.05, display: "flex", flexDirection: "column", overflow: "hidden", minHeight: 0 }}>
 
-            <Box sx={{ position: "absolute", bottom: 0, left: 0, width: 130, height: 130, borderRadius: "0 28px 0 24px", background: "linear-gradient(135deg,rgba(35,57,113,0.10) 0%,rgba(46,79,163,0.14) 100%)", display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none", zIndex: 1 }}>
-              <LayersRoundedIcon sx={{ fontSize: 48, color: "#233971", opacity: 0.35, transform: "rotate(-8deg)" }} />
-            </Box>
-            <Box sx={{ position: "absolute", top: 0, right: 0, width: 160, height: 160, borderRadius: "0 24px 0 40px", background: "linear-gradient(135deg,rgba(35,57,113,0.08) 0%,rgba(46,79,163,0.12) 100%)", display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none", zIndex: 1 }}>
-              <AutoAwesomeIcon sx={{ fontSize: 72, color: "#233971", opacity: 0.16, transform: "rotate(-12deg)" }} />
-            </Box>
-
-            <CardBadgeIcon icon={<CloudUploadIcon />} gradient="linear-gradient(135deg,#233971 0%,#2e4fa3 60%,#5b7ec7 100%)" glow="rgba(35,57,113,0.45)" />
-            <CardContent sx={{ p: { xs: 3, md: "36px 36px" }, position: "relative", zIndex: 2 }}>
-              <Stack spacing={3}>
+            <CardContent sx={{ p: { xs: 1.5, md: "16px 24px" }, position: "relative", zIndex: 2, overflowY: "auto", flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
+              <Stack spacing={2.2} sx={{ flex: 1 }}>
                 <Box>
-                  <Typography variant="h6" sx={{ ...F, fontWeight: 800, color: "#0f172a", lineHeight: 1 }}>
+                  <Typography sx={{ ...F, fontSize: "0.8rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#0f172a" }}>
                     Image Editor
                   </Typography>
-                  <Typography sx={{ ...F, fontSize: "0.82rem", color: "#64748b", mt: "2px" }}>
+                  <Typography sx={{ ...F, fontSize: "0.7rem", color: "#94a3b8", mt: "2px" }}>
                     Upload image & enter prompt for AI editing
                   </Typography>
                 </Box>
 
-                <Divider sx={{ borderColor: "rgba(35,57,113,0.12)" }} />
+                <Divider sx={{ borderColor: "rgba(148,163,184,0.25)" }} />
 
                 <Box>
-                  <Typography sx={{ ...F, fontWeight: 700, fontSize: "0.83rem", color: "#1e293b", mb: 1.2 }}>
+                  <Typography sx={{ ...F, fontWeight: 700, fontSize: "0.78rem", letterSpacing: "0.08em", textTransform: "uppercase", color: "#0f172a", mb: 0.6 }}>
                     Upload Image
                   </Typography>
                   <Paper
                     variant="outlined"
+                    component="label"
                     onDragOver={(e) => {
                       e.preventDefault();
                       setDragActive(true);
@@ -1385,84 +1228,49 @@ export default function ImageEditorPage() {
                     }}
                     onDrop={handleDrop}
                     sx={{
-                      p: 2.5,
-                      borderRadius: "18px",
-                      borderStyle: "dashed",
-                      borderWidth: 2,
-                      borderColor: dragActive ? "#233971" : "rgba(35,57,113,0.3)",
-                      background: dragActive ? "rgba(35,57,113,0.06)" : "rgba(255,255,255,0.55)",
+                      p: 1.2,
+                      display: "block",
+                      cursor: "pointer",
+                      borderRadius: "14px",
+                      borderStyle: "solid",
+                      borderWidth: 1.5,
+                      borderColor: dragActive ? "#233971" : "rgba(148,163,184,0.35)",
+                      background: dragActive ? "rgba(35,57,113,0.06)" : "rgba(241,245,249,0.9)",
                       backdropFilter: "blur(8px)",
                       transition: "all 0.25s ease",
+                      "&:hover": { borderColor: "rgba(35,57,113,0.4)" },
                     }}
                   >
-                    <Stack spacing={1.5} alignItems="center">
-                      <Box sx={{ width: 54, height: 54, borderRadius: "16px", background: dragActive ? "linear-gradient(135deg,#233971,#2e4fa3)" : "linear-gradient(135deg,rgba(35,57,113,0.12),rgba(46,79,163,0.18))", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.25s ease", boxShadow: dragActive ? "0 8px 20px rgba(35,57,113,0.35)" : "none" }}>
-                        <CloudUploadIcon sx={{ fontSize: 26, color: dragActive ? "#fff" : "#233971", transition: "color 0.25s" }} />
+                    <Stack direction="row" spacing={1.2} alignItems="center">
+                      <Box sx={{ width: 30, height: 30, flexShrink: 0, borderRadius: "10px", background: "linear-gradient(135deg,#233971,#2e4fa3)", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.25s ease", boxShadow: "0 6px 16px rgba(35,57,113,0.35)" }}>
+                        <CloudUploadIcon sx={{ fontSize: 15, color: "#fff", transition: "color 0.25s" }} />
                       </Box>
-                      <Box textAlign="center">
-                        <Typography sx={{ ...F, fontWeight: 700, fontSize: "0.9rem", color: "#1e293b" }}>Upload image to start editing</Typography>
-                        <Typography sx={{ ...F, fontSize: "0.78rem", color: "#94a3b8" }}>Drag & drop or click · PNG · JPG · WEBP</Typography>
+                      <Box sx={{ flex: 1, minWidth: 0 }}>
+                        <Typography noWrap sx={{ ...F, fontWeight: 700, fontSize: "0.75rem", color: "#1e293b" }}>
+                          {files.length ? (files[0]?.name || "1 image selected") : "Upload image to start generate"}
+                        </Typography>
+                        <Typography sx={{ ...F, fontSize: "0.64rem", color: "#94a3b8" }}>
+                          {files.length ? "Selected · click to replace" : "Click or drag & drop · PNG · JPG · WEBP"}
+                        </Typography>
                       </Box>
-                      <Button
-                        variant="contained"
-                        component="label"
-                        size="medium"
-                        startIcon={<CloudUploadIcon />}
-                        sx={{
-                          ...F,
-                          borderRadius: "999px",
-                          px: 2.5,
-                          py: 0.9,
-                          textTransform: "none",
-                          fontWeight: 700,
-                          fontSize: "0.85rem",
-                          background: "linear-gradient(135deg,#233971,#2e4fa3)",
-                          boxShadow: "0 6px 18px rgba(35,57,113,0.32)",
-                          "&:hover": {
-                            background: "linear-gradient(135deg,#1a2d5a,#233971)",
-                            boxShadow: "0 10px 26px rgba(35,57,113,0.42)",
-                            transform: "translateY(-1px)",
-                          },
-                          transition: "all 0.2s ease",
-                        }}
-                      >
-                        Select Image
-                        <input
-                          ref={fileInputRef}
-                          hidden
-                          type="file"
-                          accept="image/png,image/jpeg,image/jpg,image/webp"
-                          onChange={handleFileChange}
-                        />
-                      </Button>
-                      {!!files.length && (
-                        <Alert
-                          severity="info"
-                          sx={{
-                            width: "100%",
-                            borderRadius: "12px",
-                            ...F,
-                            fontSize: "0.82rem",
-                            background: "rgba(35,57,113,0.08)",
-                            border: "1px solid rgba(35,57,113,0.18)",
-                            color: "#233971",
-                            "& .MuiAlert-icon": { color: "#233971" },
-                          }}
-                        >
-                          <strong>{files[0]?.name || "1 image"}</strong> selected
-                        </Alert>
-                      )}
+                      <input
+                        ref={fileInputRef}
+                        hidden
+                        type="file"
+                        accept="image/png,image/jpeg,image/jpg,image/webp"
+                        onChange={handleFileChange}
+                      />
                     </Stack>
                   </Paper>
                 </Box>
 
-                {/* ── NEW: Reference Images Section ── */}
+                {/* -- NEW: Reference Images Section -- */}
                 <ReferenceImageSection
                   refFiles={refFiles}
                   refPreviews={refPreviewUrls}
                   onAdd={handleRefFileChange}
                   onRemove={removeRefFile}
-                  onPreview={(url) => openLightbox(url)}
+                  onPreview={(url) => openLightbox(url, false)}
                   dragActiveRef={dragActiveRef}
                   onDragOver={handleRefDragOver}
                   onDragLeave={handleRefDragLeave}
@@ -1471,14 +1279,18 @@ export default function ImageEditorPage() {
                   F={F}
                 />
 
-                <Stack direction={{ xs: "column", md: "row" }} spacing={2}>
+                <Stack direction={{ xs: "column", md: "row" }} spacing={1.2}>
                   {[
                     {
                       label: "Batch Generate",
                       value: batchCount,
                       onChange: (e) => setBatchCount(Number(e.target.value)),
                       options: BATCH_OPTIONS,
-                      icon: <LayersRoundedIcon sx={{ color: "#233971", mr: 1, fontSize: 18 }} />,
+                      icon: (
+                        <Box sx={{ width: 22, height: 22, borderRadius: "7px", background: "rgba(100,116,139,0.14)", display: "flex", alignItems: "center", justifyContent: "center", mr: 0.9, flexShrink: 0 }}>
+                          <DynamicFeedRoundedIcon sx={{ color: "#64748b", fontSize: 13 }} />
+                        </Box>
+                      ),
                       accentColor: "#233971",
                       helper: isSingleSourceMode ? "" : "In multi upload mode, each file produces 1 result",
                     },
@@ -1487,7 +1299,11 @@ export default function ImageEditorPage() {
                       value: aspectRatio,
                       onChange: (e) => setAspectRatio(e.target.value),
                       options: ASPECT_RATIO_OPTIONS,
-                      icon: <PhotoSizeSelectLargeIcon sx={{ color: "#2a4a9e", mr: 1, fontSize: 18 }} />,
+                      icon: (
+                        <Box sx={{ width: 22, height: 22, borderRadius: "7px", background: "rgba(100,116,139,0.14)", display: "flex", alignItems: "center", justifyContent: "center", mr: 0.9, flexShrink: 0 }}>
+                          <AspectRatioRoundedIcon sx={{ color: "#64748b", fontSize: 13 }} />
+                        </Box>
+                      ),
                       accentColor: "#2a4a9e",
                     },
                     {
@@ -1495,7 +1311,11 @@ export default function ImageEditorPage() {
                       value: resolution,
                       onChange: (e) => setResolution(e.target.value),
                       options: RESOLUTION_OPTIONS,
-                      icon: <HdIcon sx={{ color: "#1a5276", mr: 1, fontSize: 18 }} />,
+                      icon: (
+                        <Box sx={{ width: 22, height: 22, borderRadius: "7px", background: "rgba(100,116,139,0.14)", display: "flex", alignItems: "center", justifyContent: "center", mr: 0.9, flexShrink: 0 }}>
+                          <HighQualityRoundedIcon sx={{ color: "#64748b", fontSize: 13 }} />
+                        </Box>
+                      ),
                       accentColor: "#1a5276",
                     },
                   ].map(({ label, value, onChange, options, icon, accentColor, helper }) => (
@@ -1503,28 +1323,35 @@ export default function ImageEditorPage() {
                       key={label}
                       select
                       fullWidth
+                      size="small"
                       label={label}
                       value={value}
                       onChange={onChange}
                       helperText={helper}
-                      InputProps={{ startAdornment: icon }}
+                      InputProps={{
+                        startAdornment: icon,
+                        sx: { fontSize: "0.8rem" },
+                      }}
+                      InputLabelProps={{ shrink: true }}
+                      SelectProps={{ MenuProps: { PaperProps: { sx: { ...F } } } }}
                       sx={{
                         flex: 1,
                         "& .MuiOutlinedInput-root": {
-                          borderRadius: "16px",
-                          background: "rgba(255,255,255,0.72)",
+                          borderRadius: "999px",
+                          background: "rgba(241,245,249,0.9)",
                           backdropFilter: "blur(8px)",
                           ...F,
-                          "& fieldset": { borderColor: "rgba(35,57,113,0.25)" },
-                          "&:hover fieldset": { borderColor: `${accentColor}55` },
-                          "&.Mui-focused fieldset": { borderColor: accentColor, borderWidth: "1.5px" },
                         },
-                        "& .MuiInputLabel-root": { ...F, "&.Mui-focused": { color: accentColor } },
-                        "& .MuiFormHelperText-root": { ...F, ml: 0.5 },
+                        "& .MuiSelect-select": { py: "8px !important", pl: "14px !important", minHeight: "unset !important" },
+                        "& .MuiOutlinedInput-root fieldset": { borderColor: "rgba(148,163,184,0.35)" },
+                        "& .MuiOutlinedInput-root:hover fieldset": { borderColor: "rgba(148,163,184,0.6)" },
+                        "& .MuiOutlinedInput-root.Mui-focused fieldset": { borderColor: accentColor, borderWidth: "1.5px" },
+                        "& .MuiInputLabel-root": { ...F, fontSize: "0.78rem", "&.Mui-focused": { color: accentColor } },
+                        "& .MuiFormHelperText-root": { ...F, ml: 1.5, fontSize: "0.62rem", mt: "3px" },
                       }}
                     >
                       {options.map((o) => (
-                        <MenuItem key={o.value} value={o.value} disabled={label === "Batch Generate" && !isSingleSourceMode && o.value > files.length}>
+                        <MenuItem key={o.value} value={o.value} disabled={label === "Batch Generate" && !isSingleSourceMode && o.value > files.length} sx={{ fontSize: "0.82rem" }}>
                           {o.label}
                         </MenuItem>
                       ))}
@@ -1533,65 +1360,46 @@ export default function ImageEditorPage() {
                 </Stack>
 
                 <Box>
-                  <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1.5}>
-                    <Typography sx={{ ...F, fontWeight: 700, fontSize: "0.83rem", color: "#1e293b" }}>Prompt Presets</Typography>
-                    <Typography sx={{ ...F, fontSize: "0.75rem", color: "#94a3b8" }}>Click preset → auto-fill prompt</Typography>
-                  </Stack>
-                  <Stack spacing={1.5}>
-                    {grouped.map(({ group, meta, items }) => (
-                      <Box key={group}>
-                        <Stack direction="row" spacing={0.8} alignItems="center" mb={0.75}>
-                          <Box sx={{ width: 3, height: 13, borderRadius: "2px", background: meta.color, flexShrink: 0 }} />
-                          <Typography sx={{ ...F, fontWeight: 600, fontSize: "0.68rem", color: meta.color, textTransform: "uppercase", letterSpacing: "0.08em" }}>{meta.label}</Typography>
-                        </Stack>
-                        <Box sx={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
-                          {items.map((item) => {
-                            const isActive = activePreset === item.key;
-                            return (
-                              <Chip
-                                key={item.key}
-                                label={item.label}
-                                onClick={() => handlePresetClick(item.key, item.prompt)}
-                                clickable
-                                size="small"
-                                icon={
-                                  <Box component="span" sx={{ display: "flex", alignItems: "center", "& svg": { fontSize: "12px !important" } }}>
-                                    {item.icon}
-                                  </Box>
-                                }
-                                sx={{
-                                  borderRadius: "999px",
-                                  height: 26,
-                                  ...F,
-                                  fontWeight: 600,
-                                  fontSize: "0.73rem",
-                                  background: isActive ? meta.color : meta.bg,
-                                  color: isActive ? "#fff" : meta.color,
-                                  border: `1px solid ${isActive ? meta.color : meta.border}`,
-                                  boxShadow: isActive ? `0 3px 10px ${meta.color}45` : "none",
-                                  "& .MuiChip-icon": { color: isActive ? "#fff" : meta.color, ml: "5px", mr: "-2px" },
-                                  "& .MuiChip-label": { px: "7px" },
-                                  transition: "all 0.18s ease",
-                                  "&:hover": {
-                                    background: isActive ? meta.color : `${meta.color}22`,
-                                    transform: "translateY(-1px)",
-                                    boxShadow: `0 4px 12px ${meta.color}30`,
-                                  },
-                                }}
-                              />
-                            );
-                          })}
-                        </Box>
-                      </Box>
-                    ))}
-                  </Stack>
-                </Box>
-
-                <Box>
-                  <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
-                    <Typography sx={{ ...F, fontWeight: 700, fontSize: "0.83rem", color: "#1e293b" }}>Edit Prompt</Typography>
-                    <Stack direction="row" spacing={1} alignItems="center">
-                      <Typography sx={{ ...F, fontSize: "0.74rem", color: "#94a3b8" }}>{buildFinalPrompt().length} chars</Typography>
+                  <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 0.6 }}>
+                    <Stack direction="row" spacing={1.2} alignItems="center">
+                      <Typography sx={{ ...F, fontWeight: 700, fontSize: "0.78rem", letterSpacing: "0.08em", textTransform: "uppercase", color: "#0f172a" }}>Input Prompt</Typography>
+                      {copied && (
+                        <Typography sx={{ ...F, fontSize: "0.68rem", color: "#233971", fontWeight: 700 }}>Copied!</Typography>
+                      )}
+                      <Typography sx={{ ...F, fontSize: "0.68rem", color: "#94a3b8" }}>{buildFinalPrompt().length} chars</Typography>
+                    </Stack>
+                    <Stack direction="row" spacing={0.8} alignItems="center">
+                      <Button
+                        size="small"
+                        onClick={() => handlePresetClick(PRESETS[0].key, PRESETS[0].prompt)}
+                        startIcon={<BookmarkRoundedIcon sx={{ fontSize: "13px !important" }} />}
+                        sx={{
+                          ...F,
+                          height: 26,
+                          minWidth: 0,
+                          borderRadius: "999px",
+                          px: 1.1,
+                          textTransform: "none",
+                          fontWeight: 700,
+                          fontSize: "0.68rem",
+                          border: "none",
+                          background: "linear-gradient(135deg,#10b981,#047857)",
+                          color: "#fff",
+                          boxShadow:
+                            activePreset === PRESETS[0].key
+                              ? "0 0 0 2px #a7f3d0, 0 4px 12px rgba(5,150,105,0.5)"
+                              : "0 4px 12px rgba(5,150,105,0.4)",
+                          transition: "all 0.2s ease",
+                          "& .MuiButton-startIcon": { color: "#fff" },
+                          "&:hover": {
+                            background: "linear-gradient(135deg,#059669,#065f46)",
+                            transform: "translateY(-1px) scale(1.03)",
+                            boxShadow: "0 6px 16px rgba(5,150,105,0.5)",
+                          },
+                        }}
+                      >
+                        {PRESETS[0].label}
+                      </Button>
                       <Tooltip title={copied ? "Copied!" : "Copy prompt"}>
                         <span>
                           <IconButton
@@ -1599,29 +1407,54 @@ export default function ImageEditorPage() {
                             onClick={handleCopyPrompt}
                             disabled={!prompt.trim()}
                             sx={{
-                              width: 28,
-                              height: 28,
-                              border: "1px solid rgba(35,57,113,0.25)",
-                              background: "rgba(255,255,255,0.7)",
-                              backdropFilter: "blur(6px)",
-                              "&:hover": { background: "rgba(35,57,113,0.06)", borderColor: "rgba(35,57,113,0.35)" },
+                              width: 27,
+                              height: 27,
+                              borderRadius: "999px",
+                              border: "none",
+                              background: copied
+                                ? "linear-gradient(135deg,#22c55e,#15803d)"
+                                : "linear-gradient(135deg,#10b981,#047857)",
+                              boxShadow: copied
+                                ? "0 4px 12px rgba(34,197,94,0.4)"
+                                : "0 4px 12px rgba(5,150,105,0.4)",
+                              transition: "all 0.2s ease",
+                              "&:hover": {
+                                background: copied
+                                  ? "linear-gradient(135deg,#16a34a,#166534)"
+                                  : "linear-gradient(135deg,#059669,#065f46)",
+                                transform: "translateY(-1px) scale(1.05)",
+                                boxShadow: copied
+                                  ? "0 6px 16px rgba(34,197,94,0.5)"
+                                  : "0 6px 16px rgba(5,150,105,0.5)",
+                              },
+                              "&:disabled": {
+                                opacity: 1,
+                                background: "linear-gradient(135deg,#10b981,#047857)",
+                                boxShadow: "0 4px 12px rgba(5,150,105,0.25)",
+                                cursor: "not-allowed",
+                                "& svg": { color: "rgba(255,255,255,0.85)" },
+                              },
                             }}
                           >
-                            <ContentCopyIcon sx={{ fontSize: 13, color: "#233971" }} />
+                            {copied ? (
+                              <CheckIcon sx={{ fontSize: 14, color: "#fff" }} />
+                            ) : (
+                              <ContentCopyRoundedIcon sx={{ fontSize: 13, color: "#fff" }} />
+                            )}
                           </IconButton>
                         </span>
                       </Tooltip>
                     </Stack>
-                  </Stack>
+                  </Box>
                   <Box
                     sx={{
-                      borderRadius: "16px",
-                      border: "1.5px solid rgba(35,57,113,0.22)",
-                      background: "rgba(255,255,255,0.72)",
+                      borderRadius: "14px",
+                      border: "1.5px solid rgba(148,163,184,0.35)",
+                      background: "rgba(241,245,249,0.9)",
                       backdropFilter: "blur(8px)",
                       transition: "border-color 0.2s, box-shadow 0.2s",
                       "&:focus-within": { borderColor: "#233971", boxShadow: "0 0 0 3px rgba(35,57,113,0.10)" },
-                      "&:hover": { borderColor: "rgba(35,57,113,0.35)" },
+                      "&:hover": { borderColor: "rgba(148,163,184,0.55)" },
                       overflow: "hidden",
                     }}
                   >
@@ -1629,81 +1462,78 @@ export default function ImageEditorPage() {
                       value={prompt}
                       onChange={(e) => setPrompt(e.target.value)}
                       placeholder="Example: Rotate the product to a left-side view and keep the exact same identity, lighting, and background."
-                      rows={6}
+                      rows={4}
                       style={{
                         display: "block",
                         width: "100%",
                         boxSizing: "border-box",
                         resize: "vertical",
-                        minHeight: 130,
-                        maxHeight: 320,
-                        padding: "14px 16px",
+                        minHeight: 96,
+                        maxHeight: 190,
+                        padding: "10px 14px",
                         fontFamily: "Sora, sans-serif",
-                        fontSize: "16px",
-                        lineHeight: 1.65,
+                        fontSize: "14px",
+                        lineHeight: 1.55,
                         color: "#1e293b",
                         background: "transparent",
                         border: "none",
                         outline: "none",
-                        borderRadius: "16px",
+                        borderRadius: "14px",
                         WebkitAppearance: "none",
                       }}
                     />
                   </Box>
                 </Box>
 
-                <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
+                <Stack direction={{ xs: "column", sm: "row" }} spacing={1} sx={{ mt: 0.8 }}>
                   <Button
                     variant="contained"
-                    size="large"
                     startIcon={<AutoAwesomeIcon />}
                     onClick={handleSubmit}
                     disabled={loading}
                     sx={{
                       flex: 1,
                       borderRadius: "999px",
-                      py: 1.4,
+                      py: 1.2,
                       textTransform: "none",
                       ...F,
                       fontWeight: 700,
-                      fontSize: "0.9rem",
-                      background: "linear-gradient(135deg,#233971,#2e4fa3)",
-                      boxShadow: "0 8px 22px rgba(35,57,113,0.32)",
+                      fontSize: "0.95rem",
+                      background: "linear-gradient(135deg,#2a9d8f,#23857a)",
+                      boxShadow: "0 8px 22px rgba(42,157,143,0.32)",
                       "&:hover": {
-                        background: "linear-gradient(135deg,#1a2d5a,#233971)",
-                        boxShadow: "0 12px 30px rgba(35,57,113,0.42)",
+                        background: "linear-gradient(135deg,#23857a,#1c6b62)",
+                        boxShadow: "0 12px 30px rgba(42,157,143,0.42)",
                         transform: "translateY(-2px)",
                       },
                       "&:disabled": { background: "rgba(148,163,184,0.28)", boxShadow: "none" },
                       transition: "all 0.25s ease",
                     }}
                   >
-                    {loading ? "Processing…" : "Generate Edit"}
+                    {loading ? "Processing…" : "Generate Image"}
                   </Button>
                   <Button
-                    variant="outlined"
-                    size="large"
+                    variant="contained"
                     startIcon={<RestartAltIcon />}
                     onClick={handleClearAll}
                     disabled={loading}
                     sx={{
                       borderRadius: "999px",
-                      py: 1.4,
+                      py: 1.2,
                       px: 2.5,
                       textTransform: "none",
                       ...F,
                       fontWeight: 700,
-                      fontSize: "0.9rem",
-                      borderColor: "rgba(35,57,113,0.25)",
-                      color: "#64748b",
-                      background: "rgba(255,255,255,0.5)",
+                      fontSize: "0.95rem",
+                      background: "linear-gradient(135deg,#f43f5e,#be123c)",
+                      boxShadow: "0 8px 22px rgba(244,63,94,0.32)",
                       "&:hover": {
-                        borderColor: "rgba(35,57,113,0.4)",
-                        background: "rgba(35,57,113,0.05)",
-                        color: "#233971",
-                        transform: "translateY(-1px)",
+                        background: "linear-gradient(135deg,#e11d48,#9f1239)",
+                        boxShadow: "0 12px 30px rgba(244,63,94,0.42)",
+                        transform: "translateY(-2px)",
                       },
-                      transition: "all 0.2s ease",
+                      "&:disabled": { background: "rgba(148,163,184,0.28)", boxShadow: "none" },
+                      transition: "all 0.25s ease",
                     }}
                   >
                     Reset
@@ -1737,110 +1567,260 @@ export default function ImageEditorPage() {
                 )}
               </Stack>
             </CardContent>
-          </Card>
+          </Box>
 
-          <Card elevation={0} sx={{ ...cardShell, flex: 1 }}>
+          <Divider
+            orientation="vertical"
+            flexItem
+            sx={{ display: { xs: "none", lg: "block" }, borderColor: "rgba(148,163,184,0.25)" }}
+          />
+          <Divider sx={{ display: { xs: "block", lg: "none" }, borderColor: "rgba(148,163,184,0.25)" }} />
 
-            <Box sx={{ position: "absolute", bottom: 0, left: 0, width: 130, height: 130, borderRadius: "0 28px 0 24px", background: "linear-gradient(135deg,rgba(35,57,113,0.10) 0%,rgba(26,82,118,0.14) 100%)", display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none", zIndex: 1 }}>
-              <DownloadIcon sx={{ fontSize: 48, color: "#233971", opacity: 0.35, transform: "rotate(-8deg)" }} />
-            </Box>
-            <Box sx={{ position: "absolute", top: 0, right: 0, width: 160, height: 160, borderRadius: "0 24px 0 40px", background: "linear-gradient(135deg,rgba(35,57,113,0.08) 0%,rgba(46,79,163,0.12) 100%)", display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none", zIndex: 1 }}>
-              <CollectionsRoundedIcon sx={{ fontSize: 72, color: "#233971", opacity: 0.16, transform: "rotate(-10deg)" }} />
-            </Box>
+          <Box sx={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", minHeight: 0 }}>
 
-            <CardBadgeIcon icon={<ImageIcon />} gradient="linear-gradient(135deg,#233971 0%,#2e4fa3 60%,#5b7ec7 100%)" glow="rgba(35,57,113,0.45)" />
-
-            <CardContent sx={{ p: { xs: 3, md: "36px 36px" }, position: "relative", zIndex: 2 }}>
-              <Stack spacing={3}>
-                <Box>
-                  <Typography variant="h6" sx={{ ...F, fontWeight: 800, color: "#0f172a", lineHeight: 1 }}>
+            <CardContent sx={{ p: { xs: 1.5, md: "16px 24px" }, position: "relative", zIndex: 2, overflowY: "auto", flex: 1, minHeight: 0 }}>
+              <Stack spacing={1.3}>
+                <Box sx={{ pb: 0.9 }}>
+                  <Typography sx={{ ...F, fontSize: "0.8rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#0f172a" }}>
                     Preview Result
                   </Typography>
-                  <Typography sx={{ ...F, fontSize: "0.82rem", color: "#64748b", mt: "2px" }}>
+                  <Typography sx={{ ...F, fontSize: "0.7rem", color: "#94a3b8", mt: "2px" }}>
                     Compare before & after — click image to preview full size
                   </Typography>
                 </Box>
 
-                <Divider sx={{ borderColor: "rgba(35,57,113,0.12)" }} />
+                <Divider sx={{ borderColor: "rgba(148,163,184,0.25)" }} />
 
-                <Box>
-                  <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1.2}>
-                    <Typography sx={{ ...F, fontWeight: 700, fontSize: "0.83rem", color: "#1e293b" }}>Before</Typography>
-                    <Chip
-                      size="small"
-                      label={files.length ? `${files.length} Image Loaded` : "No File"}
+                <Stack direction="row" spacing={1.5} alignItems="flex-start">
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <Stack direction="row" justifyContent="space-between" alignItems="center" mb={0.6}>
+                      <Typography sx={{ ...F, fontWeight: 700, fontSize: "0.78rem", letterSpacing: "0.08em", textTransform: "uppercase", color: "#0f172a" }}>Before</Typography>
+                      <Chip
+                        size="small"
+                        label={files.length ? `${files.length} Image Loaded` : "No File"}
+                        sx={{
+                          ...F,
+                          fontWeight: 700,
+                          fontSize: "0.68rem",
+                          borderRadius: "999px",
+                          height: 20,
+                          background: files.length ? "rgba(35,57,113,0.09)" : "rgba(148,163,184,0.09)",
+                          color: files.length ? "#233971" : "#94a3b8",
+                          border: `1px solid ${files.length ? "rgba(35,57,113,0.25)" : "rgba(148,163,184,0.22)"}`,
+                        }}
+                      />
+                    </Stack>
+                    <Paper
+                      variant="outlined"
+                      onClick={() => primaryPreviewUrl && openLightbox(primaryPreviewUrl, false)}
+                      onWheel={(e) => e.preventDefault()}
+                      onMouseEnter={() => setBeforeHover(true)}
+                      onMouseLeave={() => setBeforeHover(false)}
                       sx={{
-                        ...F,
-                        fontWeight: 600,
-                        fontSize: "0.72rem",
-                        borderRadius: "999px",
-                        background: files.length ? "rgba(35,57,113,0.09)" : "rgba(148,163,184,0.09)",
-                        color: files.length ? "#233971" : "#94a3b8",
-                        border: `1px solid ${files.length ? "rgba(35,57,113,0.25)" : "rgba(148,163,184,0.22)"}`,
+                        width: "100%",
+                        aspectRatio: "1 / 1",
+                        borderRadius: "16px",
+                        overflow: "hidden",
+                        background: "rgba(241,245,249,0.9)",
+                        backdropFilter: "blur(8px)",
+                        border: "1px solid rgba(148,163,184,0.3)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        p: 1,
+                        cursor: primaryPreviewUrl ? "zoom-in" : "default",
+                        position: "relative",
+                        transition: "border-color 0.2s",
+                        "&:hover": primaryPreviewUrl ? { borderColor: "rgba(148,163,184,0.5)" } : {},
+                      }}
+                    >
+                      {primaryPreviewUrl ? (
+                        <>
+                          <Box
+                            component="img"
+                            src={primaryPreviewUrl}
+                            alt="Before"
+                            sx={{
+                              maxWidth: "100%",
+                              maxHeight: "100%",
+                              objectFit: "contain",
+                              borderRadius: "12px",
+                              boxShadow: "0 8px 22px rgba(0,0,0,0.07)",
+                              transition: "transform 0.3s ease",
+                              ...(beforeHover && { transform: "scale(1.015)" }),
+                            }}
+                          />
+                          <Box
+                            sx={{
+                              position: "absolute",
+                              inset: 0,
+                              borderRadius: "16px",
+                              background: beforeHover ? "rgba(15,23,42,0.28)" : "transparent",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              transition: "all 0.25s ease",
+                              opacity: beforeHover ? 1 : 0,
+                            }}
+                          >
+                            <Box
+                              sx={{
+                                width: 52,
+                                height: 52,
+                                borderRadius: "16px",
+                                background: "rgba(255,255,255,0.15)",
+                                backdropFilter: "blur(10px)",
+                                border: "1.5px solid rgba(255,255,255,0.35)",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                boxShadow: "0 8px 24px rgba(0,0,0,0.2)",
+                                transform: beforeHover ? "scale(1)" : "scale(0.8)",
+                                transition: "transform 0.25s ease",
+                              }}
+                            >
+                              <ZoomInIcon sx={{ color: "#fff", fontSize: 24 }} />
+                            </Box>
+                          </Box>
+                        </>
+                      ) : (
+                        <Stack spacing={1} alignItems="center">
+                          <Box sx={{ width: 50, height: 50, borderRadius: "14px", background: "rgba(35,57,113,0.12)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                            <ImageIcon sx={{ fontSize: 24, color: "#233971" }} />
+                          </Box>
+                          <Typography sx={{ ...F, fontSize: "0.76rem", color: "#94a3b8", fontWeight: 500 }}>
+                            No image uploaded yet
+                          </Typography>
+                        </Stack>
+                      )}
+                    </Paper>
+                  </Box>
+
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <Stack direction="row" justifyContent="space-between" alignItems="center" mb={0.6}>
+                      <Typography sx={{ ...F, fontWeight: 700, fontSize: "0.78rem", letterSpacing: "0.08em", textTransform: "uppercase", color: "#0f172a" }}>After</Typography>
+                      <Stack direction="row" spacing={0.6} alignItems="center">
+                        <Chip
+                          size="small"
+                          label={loading ? "Generating…" : resultUrl ? "Generated ✓" : "Waiting Result"}
+                          sx={{
+                            ...F,
+                            fontWeight: 700,
+                            fontSize: "0.68rem",
+                            height: 20,
+                            borderRadius: "999px",
+                            background: loading ? "rgba(245,158,11,0.09)" : resultUrl ? "rgba(35,57,113,0.09)" : "rgba(148,163,184,0.09)",
+                            color: loading ? "#f59e0b" : resultUrl ? "#233971" : "#94a3b8",
+                            border: `1px solid ${
+                              loading ? "rgba(245,158,11,0.25)" : resultUrl ? "rgba(35,57,113,0.25)" : "rgba(148,163,184,0.22)"
+                            }`,
+                          }}
+                        />
+                        {!!activeBatchItem?.imageUrl && (
+                          <IconButton
+                            size="small"
+                            onClick={() => handleDownloadSingle(activeBatchItem, `edited-${batchViewIndex + 1}-${activeBatchItem.fileName || Date.now()}.png`)}
+                            sx={{
+                              width: 20,
+                              height: 20,
+                              color: "#233971",
+                              background: "rgba(35,57,113,0.09)",
+                              "&:hover": { background: "rgba(35,57,113,0.16)" },
+                              "& svg": { fontSize: "13px" },
+                            }}
+                          >
+                            <DownloadIcon />
+                          </IconButton>
+                        )}
+                      </Stack>
+                    </Stack>
+                    <PreviewBox
+                      src={activeBatchItem?.imageUrl || resultUrl}
+                      alt="After"
+                      square
+                      onPreview={() => activeBatchItem && openLightbox(activeBatchItem)}
+                      onPrev={
+                        batchResults.length > 1
+                          ? () => setBatchViewIndex((i) => (i - 1 + batchResults.length) % batchResults.length)
+                          : undefined
+                      }
+                      onNext={
+                        batchResults.length > 1
+                          ? () => setBatchViewIndex((i) => (i + 1) % batchResults.length)
+                          : undefined
+                      }
+                      counterLabel={batchResults.length > 1 ? `${batchViewIndex + 1} / ${batchResults.length}` : undefined}
+                    />
+                  </Box>
+                </Stack>
+
+                {resultPromptTags.length > 0 && (
+                  <Box>
+                    <Typography sx={{ ...F, fontWeight: 700, fontSize: "0.7rem", color: "#475569", mb: 0.4 }}>
+                      Prompt Result
+                    </Typography>
+                    <Stack direction="row" spacing={0.6} flexWrap="wrap" useFlexGap>
+                      {resultPromptTags.map((tag) => (
+                        <Chip
+                          key={tag.label}
+                          label={tag.label}
+                          size="small"
+                          sx={{
+                            ...F,
+                            fontWeight: 700,
+                            fontSize: "0.68rem",
+                            height: 20,
+                            borderRadius: "999px",
+                            background: tag.bg,
+                            color: tag.color,
+                            border: `1px solid ${tag.border}`,
+                          }}
+                        />
+                      ))}
+                    </Stack>
+                  </Box>
+                )}
+
+                {activeBatchItem?.width && activeBatchItem?.height && (
+                  <Typography sx={{ ...F, fontSize: "0.7rem", color: "#64748b", fontWeight: 600 }}>
+                    Output size: {activeBatchItem.width} x {activeBatchItem.height}px
+                  </Typography>
+                )}
+
+                {!resultUrl && loading && (
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <AutoAwesomeIcon
+                      sx={{
+                        fontSize: 16,
+                        color: "#b45309",
+                        animation: "spinSlow 2s linear infinite",
+                        "@keyframes spinSlow": {
+                          "0%": { transform: "rotate(0deg)" },
+                          "100%": { transform: "rotate(360deg)" },
+                        },
                       }}
                     />
-                  </Stack>
-                  <Paper
-                    variant="outlined"
-                    onClick={() => primaryPreviewUrl && openLightbox(primaryPreviewUrl)}
-                    onWheel={(e) => e.preventDefault()}
-                    sx={{
-                      minHeight: 240,
-                      borderRadius: "18px",
-                      overflow: "hidden",
-                      background: "rgba(255,255,255,0.55)",
-                      backdropFilter: "blur(8px)",
-                      border: "1px solid rgba(35,57,113,0.18)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      p: 2,
-                      cursor: primaryPreviewUrl ? "zoom-in" : "default",
-                      position: "relative",
-                      transition: "border-color 0.2s",
-                      "&:hover": primaryPreviewUrl ? { borderColor: "rgba(35,57,113,0.3)" } : {},
-                    }}
-                  >
-                    {primaryPreviewUrl ? (
-                      <>
-                        <Box
-                          component="img"
-                          src={primaryPreviewUrl}
-                          alt="Before"
-                          sx={{ maxWidth: "100%", maxHeight: 400, objectFit: "contain", borderRadius: "12px", boxShadow: "0 8px 22px rgba(0,0,0,0.07)" }}
-                        />
-                        <Box sx={{ position: "absolute", top: 10, right: 10, width: 32, height: 32, borderRadius: "10px", background: "rgba(15,23,42,0.45)", backdropFilter: "blur(6px)", display: "flex", alignItems: "center", justifyContent: "center", opacity: 0, transition: "opacity 0.2s", ".MuiPaper-root:hover &": { opacity: 1 } }}>
-                          <ZoomInIcon sx={{ fontSize: 16, color: "#fff" }} />
-                        </Box>
-                      </>
-                    ) : (
-                      <Stack spacing={1} alignItems="center">
-                        <Box sx={{ width: 50, height: 50, borderRadius: "14px", background: "rgba(35,57,113,0.08)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                          <ImageIcon sx={{ fontSize: 24, color: "#7a9bd4" }} />
-                        </Box>
-                        <Typography sx={{ ...F, fontSize: "0.82rem", color: "#94a3b8", fontWeight: 500 }}>
-                          No image uploaded yet
-                        </Typography>
-                      </Stack>
-                    )}
-                  </Paper>
-                </Box>
+                    <Typography sx={{ ...F, fontSize: "0.78rem", color: "#94a3b8" }}>
+                      AI is processing…
+                    </Typography>
+                  </Box>
+                )}
 
                 {previewUrls.length > 1 && (
                   <Box>
-                    <Typography sx={{ ...F, fontWeight: 700, fontSize: "0.83rem", color: "#1e293b", mb: 1.2 }}>
+                    <Typography sx={{ ...F, fontWeight: 700, fontSize: "0.78rem", letterSpacing: "0.08em", textTransform: "uppercase", color: "#0f172a", mb: 0.6 }}>
                       Batch Preview
                     </Typography>
-                    <Stack direction="row" spacing={1.2} flexWrap="wrap" useFlexGap>
+                    <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
                       {previewUrls.map((item, idx) => (
                         <Box
                           key={`${item.file.name}-${idx}`}
-                          onClick={() => openLightbox(item.url)}
+                          onClick={() => openLightbox(item.url, false)}
                           onWheel={(e) => e.preventDefault()}
                           sx={{
-                            width: 78,
-                            height: 78,
-                            borderRadius: "14px",
+                            width: 56,
+                            height: 56,
+                            borderRadius: "12px",
                             overflow: "hidden",
                             border: "1px solid rgba(35,57,113,0.22)",
                             background: "rgba(255,255,255,0.7)",
@@ -1857,146 +1837,131 @@ export default function ImageEditorPage() {
                   </Box>
                 )}
 
-                {/* ── NEW: Reference preview strip in result card ── */}
-                {refPreviewUrls.length > 0 && (
-                  <Box>
-                    <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1.2}>
-                      <Stack direction="row" spacing={0.8} alignItems="center">
-                        <AddPhotoAlternateIcon sx={{ fontSize: 14, color: "#2a4a9e" }} />
-                        <Typography sx={{ ...F, fontWeight: 700, fontSize: "0.83rem", color: "#1e293b" }}>
-                          Reference Images
-                        </Typography>
-                      </Stack>
+                {/* -- NEW: Reference preview strip in result card -- */}
+                <Box>
+                  <Stack direction="row" justifyContent="space-between" alignItems="center" mb={0.6}>
+                    <Stack direction="row" spacing={0.8} alignItems="center">
+                      <Typography sx={{ ...F, fontWeight: 700, fontSize: "0.78rem", letterSpacing: "0.08em", textTransform: "uppercase", color: "#0f172a" }}>
+                        Reference Images
+                      </Typography>
                       <Chip
                         size="small"
-                        label={`${refPreviewUrls.length} active`}
+                        label="Optional"
                         sx={{
                           ...F,
-                          fontWeight: 700,
+                          fontWeight: 800,
+                          fontSize: "0.64rem",
                           borderRadius: "999px",
-                          background: "rgba(42,74,158,0.08)",
-                          color: "#2a4a9e",
-                          border: "1px solid rgba(42,74,158,0.2)",
+                          height: 18,
+                          background: "rgba(217,119,6,0.12)",
+                          color: "#b45309",
+                          border: "1.5px solid rgba(217,119,6,0.35)",
                         }}
                       />
                     </Stack>
+                    <Chip
+                      size="small"
+                      label={refPreviewUrls.length ? `${refPreviewUrls.length} active` : "No File"}
+                      sx={{
+                        ...F,
+                        fontWeight: 700,
+                        fontSize: "0.68rem",
+                        height: 20,
+                        borderRadius: "999px",
+                        background: refPreviewUrls.length ? "rgba(35,57,113,0.09)" : "rgba(148,163,184,0.09)",
+                        color: refPreviewUrls.length ? "#233971" : "#94a3b8",
+                        border: `1px solid ${refPreviewUrls.length ? "rgba(35,57,113,0.25)" : "rgba(148,163,184,0.22)"}`,
+                      }}
+                    />
+                  </Stack>
+                  {refPreviewUrls.length ? (
                     <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
                       {refPreviewUrls.map((item, idx) => (
                         <Box
                           key={`ref-preview-${item.file.name}-${idx}`}
-                          onClick={() => openLightbox(item.url)}
-                          onWheel={(e) => e.preventDefault()}
                           sx={{
                             position: "relative",
-                            width: 72,
-                            height: 72,
-                            borderRadius: "12px",
-                            overflow: "hidden",
-                            border: "1.5px solid rgba(42,74,158,0.28)",
-                            background: "rgba(255,255,255,0.7)",
-                            cursor: "zoom-in",
+                            width: 52,
+                            height: 52,
                             flexShrink: 0,
-                            transition: "transform 0.2s, box-shadow 0.2s",
-                            "&:hover": { transform: "scale(1.06)", boxShadow: "0 8px 20px rgba(42,74,158,0.22)" },
                           }}
                         >
-                          <Box component="img" src={item.url} alt={item.file.name} sx={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
                           <Box
+                            onClick={() => openLightbox(item.url, false)}
+                            onWheel={(e) => e.preventDefault()}
                             sx={{
-                              position: "absolute",
-                              bottom: 0,
-                              left: 0,
-                              right: 0,
-                              background: "linear-gradient(to top,rgba(42,74,158,0.75),transparent)",
-                              py: "3px",
-                              textAlign: "center",
+                              width: "100%",
+                              height: "100%",
+                              borderRadius: "10px",
+                              overflow: "hidden",
+                              border: "1.5px solid rgba(35,57,113,0.28)",
+                              background: "rgba(255,255,255,0.7)",
+                              cursor: "zoom-in",
+                              transition: "transform 0.2s, box-shadow 0.2s",
+                              "&:hover": { transform: "scale(1.06)", boxShadow: "0 8px 20px rgba(35,57,113,0.22)" },
                             }}
                           >
-                            <Typography sx={{ fontFamily: "'Sora',sans-serif", fontSize: "0.58rem", fontWeight: 800, color: "#fff" }}>
-                              REF {idx + 1}
-                            </Typography>
+                            <Box component="img" src={item.url} alt={item.file.name} sx={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                            <Box
+                              sx={{
+                                position: "absolute",
+                                bottom: 0,
+                                left: 0,
+                                right: 0,
+                                background: "linear-gradient(to top,rgba(35,57,113,0.75),transparent)",
+                                py: "3px",
+                                textAlign: "center",
+                              }}
+                            >
+                              <Typography sx={{ fontFamily: "'Sora',sans-serif", fontSize: "0.58rem", fontWeight: 800, color: "#fff" }}>
+                                REF {idx + 1}
+                              </Typography>
+                            </Box>
                           </Box>
+                          <IconButton
+                            size="small"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              removeRefFile(idx);
+                            }}
+                            sx={{
+                              position: "absolute",
+                              top: -6,
+                              right: -6,
+                              width: 18,
+                              height: 18,
+                              p: 0,
+                              background: "rgba(239,68,68,0.95)",
+                              border: "1.5px solid #fff",
+                              color: "#fff",
+                              zIndex: 3,
+                              boxShadow: "0 2px 6px rgba(0,0,0,0.25)",
+                              "&:hover": { background: "rgba(220,38,38,1)" },
+                              "& svg": { fontSize: "12px !important" },
+                            }}
+                          >
+                            <CloseIcon />
+                          </IconButton>
                         </Box>
                       ))}
                     </Stack>
-                  </Box>
-                )}
-
-                <Box>
-                  <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1.2}>
-                    <Typography sx={{ ...F, fontWeight: 700, fontSize: "0.83rem", color: "#1e293b" }}>After</Typography>
-                    <Chip
-                      size="small"
-                      label={loading ? "Generating…" : resultUrl ? "Generated ✓" : "Waiting Result"}
+                  ) : (
+                    <Box
                       sx={{
-                        ...F,
-                        fontWeight: 600,
-                        fontSize: "0.72rem",
-                        borderRadius: "999px",
-                        background: loading ? "rgba(245,158,11,0.09)" : resultUrl ? "rgba(35,57,113,0.09)" : "rgba(148,163,184,0.09)",
-                        color: loading ? "#f59e0b" : resultUrl ? "#233971" : "#94a3b8",
-                        border: `1px solid ${
-                          loading ? "rgba(245,158,11,0.25)" : resultUrl ? "rgba(35,57,113,0.25)" : "rgba(148,163,184,0.22)"
-                        }`,
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1.2,
+                        p: 1.2,
+                        borderRadius: "12px",
+                        border: "1px solid rgba(148,163,184,0.3)",
+                        background: "rgba(241,245,249,0.9)",
                       }}
-                    />
-                  </Stack>
-
-                  {resultPromptTags.length > 0 && (
-                    <Box mb={1.4}>
-                      <Typography sx={{ ...F, fontWeight: 700, fontSize: "0.78rem", color: "#475569", mb: 0.8 }}>
-                        Prompt Result
-                      </Typography>
-                      <Stack direction="row" spacing={0.8} flexWrap="wrap" useFlexGap>
-                        {resultPromptTags.map((tag) => (
-                          <Chip
-                            key={tag.label}
-                            label={tag.label}
-                            size="small"
-                            sx={{
-                              ...F,
-                              fontWeight: 700,
-                              fontSize: "0.72rem",
-                              borderRadius: "999px",
-                              background: tag.bg,
-                              color: tag.color,
-                              border: `1px solid ${tag.border}`,
-                            }}
-                          />
-                        ))}
-                      </Stack>
-                    </Box>
-                  )}
-
-                  <PreviewBox
-                    src={resultUrl}
-                    alt="After"
-                    aspectRatio={aspectRatio}
-                    minHeight={240}
-                    onPreview={() => resultUrl && openLightbox(resultMeta || resultUrl)}
-                  />
-
-                  {resultMeta?.width && resultMeta?.height && (
-                    <Typography sx={{ ...F, mt: 1, fontSize: "0.76rem", color: "#64748b", fontWeight: 600 }}>
-                      Output size: {resultMeta.width} x {resultMeta.height}px
-                    </Typography>
-                  )}
-
-                  {!resultUrl && loading && (
-                    <Box sx={{ mt: 1, display: "flex", alignItems: "center", gap: 1 }}>
-                      <AutoAwesomeIcon
-                        sx={{
-                          fontSize: 16,
-                          color: "#7a9bd4",
-                          animation: "spinSlow 2s linear infinite",
-                          "@keyframes spinSlow": {
-                            "0%": { transform: "rotate(0deg)" },
-                            "100%": { transform: "rotate(360deg)" },
-                          },
-                        }}
-                      />
-                      <Typography sx={{ ...F, fontSize: "0.78rem", color: "#94a3b8" }}>
-                        AI is processing…
+                    >
+                      <Box sx={{ width: 50, height: 50, flexShrink: 0, borderRadius: "14px", background: "rgba(35,57,113,0.12)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <AddPhotoAlternateIcon sx={{ fontSize: 24, color: "#233971" }} />
+                      </Box>
+                      <Typography sx={{ ...F, fontSize: "0.76rem", color: "#94a3b8", fontWeight: 500 }}>
+                        No reference image yet
                       </Typography>
                     </Box>
                   )}
@@ -2004,29 +1969,53 @@ export default function ImageEditorPage() {
 
                 {!!batchResults.length && (
                   <Box>
-                    <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1.2}>
-                      <Typography sx={{ ...F, fontWeight: 700, fontSize: "0.83rem", color: "#1e293b" }}>Batch Results</Typography>
-                      <Chip
-                        size="small"
-                        label={`${batchResults.length} result`}
-                        sx={{
-                          ...F,
-                          fontWeight: 700,
-                          borderRadius: "999px",
-                          background: "rgba(35,57,113,0.08)",
-                          color: "#233971",
-                          border: "1px solid rgba(35,57,113,0.2)",
-                        }}
-                      />
+                    <Stack direction="row" justifyContent="space-between" alignItems="center" mb={0.6}>
+                      <Typography sx={{ ...F, fontWeight: 700, fontSize: "0.78rem", letterSpacing: "0.08em", textTransform: "uppercase", color: "#0f172a" }}>Batch Results</Typography>
+                      <Stack direction="row" spacing={0.6} alignItems="center">
+                        <Chip
+                          size="small"
+                          label={`${batchResults.length} result`}
+                          sx={{
+                            ...F,
+                            fontWeight: 700,
+                            fontSize: "0.68rem",
+                            height: 20,
+                            borderRadius: "999px",
+                            background: "rgba(35,57,113,0.08)",
+                            color: "#233971",
+                            border: "1px solid rgba(35,57,113,0.2)",
+                          }}
+                        />
+                        <Button
+                          size="small"
+                          startIcon={<DownloadIcon sx={{ fontSize: "13px !important" }} />}
+                          onClick={handleDownloadAll}
+                          sx={{
+                            ...F,
+                            minWidth: "unset",
+                            height: 20,
+                            px: 1,
+                            borderRadius: "999px",
+                            textTransform: "none",
+                            fontWeight: 700,
+                            fontSize: "0.66rem",
+                            color: "#233971",
+                            background: "rgba(35,57,113,0.09)",
+                            "&:hover": { background: "rgba(35,57,113,0.16)" },
+                          }}
+                        >
+                          Download All
+                        </Button>
+                      </Stack>
                     </Stack>
-                    <Stack direction="row" spacing={1.2} flexWrap="wrap" useFlexGap>
+                    <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
                       {batchResults.map((item, idx) => (
                         <BatchCard
                           key={item.id}
                           item={item}
                           index={idx}
                           aspectRatio={aspectRatio}
-                          onPreview={() => openLightbox(item)}
+                          onPreview={() => setBatchViewIndex(idx)}
                           onDownload={() => handleDownloadSingle(item, `edited-${idx + 1}-${item.fileName || Date.now()}.png`)}
                           F={F}
                         />
@@ -2035,43 +2024,11 @@ export default function ImageEditorPage() {
                   </Box>
                 )}
 
-                <Button
-                  variant="contained"
-                  size="large"
-                  startIcon={<DownloadIcon />}
-                  onClick={() => handleDownloadSingle(resultMeta || resultUrl, `edited-${Date.now()}.png`)}
-                  disabled={!resultUrl}
-                  fullWidth
-                  sx={{
-                    borderRadius: "999px",
-                    py: 1.4,
-                    textTransform: "none",
-                    ...F,
-                    fontWeight: 700,
-                    fontSize: "0.9rem",
-                    background: resultUrl ? "linear-gradient(135deg,#233971,#2e4fa3)" : "rgba(148,163,248,0.22)",
-                    boxShadow: resultUrl ? "0 8px 22px rgba(35,57,113,0.32)" : "none",
-                    "&:hover": resultUrl
-                      ? {
-                          background: "linear-gradient(135deg,#1a2d5a,#233971)",
-                          boxShadow: "0 12px 30px rgba(35,57,113,0.42)",
-                          transform: "translateY(-2px)",
-                        }
-                      : {},
-                    "&:disabled": {
-                      background: "rgba(148,163,184,0.18)",
-                      color: "rgba(148,163,184,0.55)",
-                      boxShadow: "none",
-                    },
-                    transition: "all 0.25s ease",
-                  }}
-                >
-                  Download Result
-                </Button>
               </Stack>
             </CardContent>
-          </Card>
+          </Box>
         </Stack>
+        </Card>
       </Stack>
     </Box>
   );

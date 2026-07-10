@@ -336,7 +336,7 @@ function DatePickerBox({ label, value, onChange }) {
     <Box
       sx={{
         position:"relative",
-        minWidth:{ xs:"100%", sm:200 },
+        minWidth:{ xs:"100%", sm:160 },
         width:{ xs:"100%", sm:"auto" },
       }}
     >
@@ -346,13 +346,13 @@ function DatePickerBox({ label, value, onChange }) {
           sx={{
             fontFamily:"'Sora',sans-serif",
             position:"absolute",
-            top:-9, left:12,
+            top:-7, left:10,
             zIndex:4,
-            fontSize:"0.70rem",
+            fontSize:"0.62rem",
             fontWeight:600,
             color:"#233971",
             background:"#fff",
-            px:"5px",
+            px:"4px",
             borderRadius:"4px",
             pointerEvents:"none",
             lineHeight:1,
@@ -401,14 +401,14 @@ function DatePickerBox({ label, value, onChange }) {
           sx={{
             position:"relative",
             zIndex:3,
-            borderRadius:"16px",
+            borderRadius:"12px",
             border:"1.5px solid rgba(35,57,113,0.25)",
             background:"#fff",
             display:"flex",
             alignItems:"center",
-            gap:"8px",
-            px:"12px",
-            height:52,
+            gap:"6px",
+            px:"10px",
+            height:38,
             cursor:"pointer",
             outline:"none",
             transition:"border-color 0.2s",
@@ -421,11 +421,11 @@ function DatePickerBox({ label, value, onChange }) {
             },
           }}
         >
-          <CalendarMonthRoundedIcon sx={{ fontSize:18, color:"#5b7ec7", flexShrink:0 }}/>
+          <CalendarMonthRoundedIcon sx={{ fontSize:16, color:"#5b7ec7", flexShrink:0 }}/>
           <Typography
             sx={{
               fontFamily:"'Sora',sans-serif",
-              fontSize:"0.85rem",
+              fontSize:"0.76rem",
               fontWeight: value ? 600 : 400,
               color: value ? "#1e293b" : "#94a3b8",
               whiteSpace:"nowrap",
@@ -728,25 +728,25 @@ function DatePickerBox({ label, value, onChange }) {
               backdropFilter:"none",
             }}
           >
-            <CardContent sx={{ p:{ xs:3,md:"30px 34px" }, position:"relative", zIndex:2 }}>
-              <Stack spacing={3}>
-                <Stack direction={{ xs:"column", lg:"row" }} alignItems={{ xs:"stretch", lg:"center" }} justifyContent="space-between" spacing={3}>
+            <CardContent sx={{ p:{ xs:2,md:"16px 20px" }, position:"relative", zIndex:2 }}>
+              <Stack spacing={1.75}>
+                <Stack direction={{ xs:"column", lg:"row" }} alignItems={{ xs:"stretch", lg:"center" }} justifyContent="space-between" spacing={1.5}>
                   <Box>
-                    <Typography sx={{ ...F, fontSize:"0.85rem", fontWeight:700, letterSpacing:"0.08em", textTransform:"uppercase", color:"#0f172a" }}>
+                    <Typography sx={{ ...F, fontSize:"0.72rem", fontWeight:700, letterSpacing:"0.08em", textTransform:"uppercase", color:"#0f172a" }}>
                       Gallery Header
                     </Typography>
-                    <Typography sx={{ ...F, fontSize:"0.72rem", color:"#64748b", mt:0.8 }}>
+                    <Typography sx={{ ...F, fontSize:"0.66rem", color:"#64748b", mt:0.4 }}>
                       Item count summary and active filters for the image gallery.
                     </Typography>
                   </Box>
 
-                  <Stack direction="row" spacing={1.2} flexWrap="wrap" alignItems="center">
+                  <Stack direction="row" spacing={1} flexWrap="wrap" alignItems="center">
                     <Button
                       onClick={handleResetFilter}
                       variant="outlined"
                       startIcon={<RestartAltRoundedIcon/>}
                       sx={{
-                        ...pill({ py:1, px:2.2, fontSize:"0.82rem" }),
+                        ...pill({ py:0.5, px:1.6, fontSize:"0.74rem" }),
                         borderColor:"rgba(35,57,113,0.28)",
                         color:"#233971",
                         background:"#fff",
@@ -762,7 +762,7 @@ function DatePickerBox({ label, value, onChange }) {
                         color="error"
                         startIcon={<FolderDeleteRoundedIcon/>}
                         sx={{
-                          ...pill({ py:1, px:2.2, fontSize:"0.82rem" }),
+                          ...pill({ py:0.5, px:1.6, fontSize:"0.74rem" }),
                           background:"linear-gradient(135deg,#ef4444,#f87171)",
                           boxShadow:"0 10px 22px rgba(239,68,68,0.25)",
                           "&:hover":{ background:"linear-gradient(135deg,#dc2626,#ef4444)" },
@@ -774,20 +774,22 @@ function DatePickerBox({ label, value, onChange }) {
                   </Stack>
                 </Stack>
 
-                <Stack direction={{ xs:"column", md:"row" }} spacing={2} alignItems={{ xs:"stretch", md:"flex-end" }}>
+                <Stack direction={{ xs:"column", md:"row" }} spacing={1.5} alignItems={{ xs:"stretch", md:"flex-end" }}>
                   <Box sx={{ flex:1, minWidth:0 }}>
-                    <Typography sx={{ ...F, fontSize:"0.75rem", color:"#64748b", mb:1 }}>Search by prompt or file name</Typography>
+                    <Typography sx={{ ...F, fontSize:"0.68rem", color:"#64748b", mb:0.5 }}>Search by prompt or file name</Typography>
                     <TextField
                       fullWidth
+                      size="small"
                       placeholder="Search by prompt or file name..."
                       value={search}
                       onChange={e=>handleSearchChange(e.target.value)}
-                      InputProps={{ startAdornment:<SearchRoundedIcon sx={{ color:"#94a3b8", mr:1, fontSize:20 }}/> }}
+                      InputProps={{ startAdornment:<SearchRoundedIcon sx={{ color:"#94a3b8", mr:1, fontSize:18 }}/> }}
                       sx={{
                         "& .MuiOutlinedInput-root":{
-                          borderRadius:"16px",
+                          borderRadius:"12px",
                           background:"#fff",
                           ...F,
+                          fontSize:"0.82rem",
                           "& fieldset":{ borderColor:"rgba(35,57,113,0.18)" },
                           "&:hover fieldset":{ borderColor:"rgba(35,57,113,0.35)" },
                           "&.Mui-focused fieldset":{ borderColor:"#233971", borderWidth:"1.5px" },
@@ -797,18 +799,20 @@ function DatePickerBox({ label, value, onChange }) {
                   </Box>
 
                   <Box sx={{ flex:1, minWidth:0 }}>
-                    <Typography sx={{ ...F, fontSize:"0.75rem", color:"#64748b", mb:1 }}>Filter by Creator</Typography>
+                    <Typography sx={{ ...F, fontSize:"0.68rem", color:"#64748b", mb:0.5 }}>Filter by Creator</Typography>
                     <TextField
                       select
                       fullWidth
+                      size="small"
                       value={createdBy}
                       onChange={e=>handleCreatedByChange(e.target.value)}
                       SelectProps={{ displayEmpty: true }}
                       sx={{
                         "& .MuiOutlinedInput-root":{
-                          borderRadius:"16px",
+                          borderRadius:"12px",
                           background:"#fff",
                           ...F,
+                          fontSize:"0.82rem",
                           "& fieldset":{ borderColor:"rgba(35,57,113,0.18)" },
                           "&:hover fieldset":{ borderColor:"rgba(35,57,113,0.35)" },
                           "&.Mui-focused fieldset":{ borderColor:"#233971", borderWidth:"1.5px" },
@@ -831,12 +835,12 @@ function DatePickerBox({ label, value, onChange }) {
 
                 <Stack direction="row" spacing={2} alignItems="flex-start" justifyContent="space-between">
                   <Box sx={{ flexShrink:0 }}>
-                    <Typography sx={{ ...F, fontSize:"0.78rem", color:"#64748b", mb:0.5 }}>Total items</Typography>
-                    <Typography sx={{ ...F, fontSize:"1.9rem", fontWeight:800, color:"#0f172a" }}>{filteredGallery.length}</Typography>
+                    <Typography sx={{ ...F, fontSize:"0.68rem", color:"#64748b", mb:0.25 }}>Total items</Typography>
+                    <Typography sx={{ ...F, fontSize:"1.3rem", fontWeight:800, color:"#0f172a" }}>{filteredGallery.length}</Typography>
                   </Box>
                   <Box sx={{ minWidth:0, textAlign:"right" }}>
-                    <Typography sx={{ ...F, fontSize:"0.78rem", color:"#64748b", mb:0.5 }}>Date Range</Typography>
-                    <Typography sx={{ ...F, fontSize:{ xs:"0.85rem", sm:"1rem" }, fontWeight:700, color:"#0f172a", wordBreak:"break-word" }}>{dateRangeText}</Typography>
+                    <Typography sx={{ ...F, fontSize:"0.68rem", color:"#64748b", mb:0.25 }}>Date Range</Typography>
+                    <Typography sx={{ ...F, fontSize:{ xs:"0.75rem", sm:"0.85rem" }, fontWeight:700, color:"#0f172a", wordBreak:"break-word" }}>{dateRangeText}</Typography>
                   </Box>
                 </Stack>
               </Stack>
