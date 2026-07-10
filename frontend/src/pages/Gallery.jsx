@@ -175,15 +175,6 @@
           aria-hidden
           sx={{
             position:"absolute",
-            top:0, left:0, right:0, height:"3px",
-            background:"linear-gradient(90deg,#233971,#5b7ec7,transparent)",
-            zIndex:2, pointerEvents:"none",
-          }}
-        />
-        <Box
-          aria-hidden
-          sx={{
-            position:"absolute",
             bottom:-20, right:-20,
             zIndex:0, pointerEvents:"none",
             opacity:0.13,
@@ -773,64 +764,48 @@ function DatePickerBox({ label, value, onChange }) {
                     <Typography sx={{ ...F, fontSize:"0.68rem", color:"#64748b", mb:0.25 }}>Total items</Typography>
                     <Typography sx={{ ...F, fontSize:"1.3rem", fontWeight:800, color:"#0f172a" }}>{filteredGallery.length}</Typography>
                   </Box>
-                  <Box sx={{ minWidth:0, textAlign:"right" }}>
-                    <Typography sx={{ ...F, fontSize:"0.68rem", color:"#64748b", mb:0.25 }}>Date Range</Typography>
-                    <Typography sx={{ ...F, fontSize:{ xs:"0.75rem", sm:"0.85rem" }, fontWeight:700, color:"#0f172a", wordBreak:"break-word" }}>{dateRangeText}</Typography>
-                  </Box>
-                </Stack>
-              </Stack>
-            </CardContent>
 
-            {filteredGallery.length > 0 && (
-              <Box sx={{ position:"relative", borderTop:"1px solid rgba(35,57,113,0.12)", background:"linear-gradient(145deg,#e8edf8 0%,#f0f4fb 50%,#eaf0fb 100%)" }}>
-                <Box sx={{ p:{ xs:"12px 16px",sm:"12px 22px" }, position:"relative" }}>
-                  <GridViewRoundedIcon aria-hidden sx={{ position:"absolute", right:10, top:10, fontSize:80, color:"rgba(35,57,113,0.07)", pointerEvents:"none" }}/>
-
-                  <Stack
-                    direction={{ xs:"column",sm:"row" }}
-                    alignItems={{ xs:"flex-start",sm:"center" }}
-                    justifyContent="space-between"
-                    spacing={{ xs:1.5,sm:0 }}
-                  >
-                    <Stack direction="row" spacing={1} alignItems="center">
-                      <Typography sx={{ ...F, fontSize:"0.80rem", fontWeight:600, color:"#64748b", whiteSpace:"nowrap" }}>
+                  <Stack direction="row" spacing={1.4} alignItems="center" flexWrap="wrap" justifyContent="flex-end" useFlexGap>
+                    <Stack direction="row" spacing={0.8} alignItems="center">
+                      <Typography sx={{ ...F, fontSize:"0.72rem", fontWeight:600, color:"#64748b", whiteSpace:"nowrap" }}>
                         Show:
                       </Typography>
-                      <Stack direction="row" spacing={0.5}>
+                      <TextField
+                        select
+                        size="small"
+                        value={perPage}
+                        onChange={e=>{ setPerPage(Number(e.target.value)); setPage(1); }}
+                        SelectProps={{ MenuProps:{ PaperProps:{ sx:{ ...F } } } }}
+                        sx={{
+                          width:72,
+                          "& .MuiOutlinedInput-root":{
+                            borderRadius:"10px",
+                            background:"#fff",
+                            ...F, fontSize:"0.76rem",
+                            "& fieldset":{ borderColor:"rgba(35,57,113,0.22)" },
+                            "&:hover fieldset":{ borderColor:"rgba(35,57,113,0.4)" },
+                            "&.Mui-focused fieldset":{ borderColor:"#233971" },
+                          },
+                          "& .MuiSelect-select":{ py:"5px !important", pl:"10px !important", minHeight:"unset !important" },
+                        }}
+                      >
                         {PER_PAGE_OPTIONS.map(n=>(
-                          <Box
-                            key={n}
-                            onClick={()=>{ setPerPage(n); setPage(1); }}
-                            sx={{
-                              width:38, height:32, borderRadius:"10px",
-                              display:"flex", alignItems:"center", justifyContent:"center",
-                              cursor:"pointer",
-                              background: perPage===n ? "linear-gradient(135deg,#233971,#2e4fa3)" : "rgba(255,255,255,0.85)",
-                              border: perPage===n ? "1.5px solid #233971" : "1px solid rgba(35,57,113,0.22)",
-                              color: perPage===n ? "#fff" : "#64748b",
-                              fontSize:"12px", fontWeight:700, ...F,
-                              boxShadow: perPage===n ? "0 4px 12px rgba(35,57,113,0.25)" : "none",
-                              transition:"all 0.15s",
-                              "&:hover": perPage!==n ? { background:"rgba(35,57,113,0.07)", borderColor:"rgba(35,57,113,0.3)", color:"#233971" } : {},
-                            }}
-                          >
-                            {n}
-                          </Box>
+                          <MenuItem key={n} value={n} sx={{ ...F, fontSize:"0.8rem" }}>{n}</MenuItem>
                         ))}
-                      </Stack>
+                      </TextField>
                     </Stack>
 
                     {!selectMode && (
                       <Button
                         onClick={()=>setSelectMode(true)}
                         variant="contained"
-                        startIcon={<CheckBoxOutlineBlankRoundedIcon sx={{ fontSize:"17px !important" }}/>} 
+                        size="small"
+                        startIcon={<CheckBoxOutlineBlankRoundedIcon sx={{ fontSize:"14px !important" }}/>}
                         sx={{
-                          ...pill({ py:1.0, px:2.8, fontSize:"13px" }),
-                          background:"linear-gradient(135deg,#1a2d5a,#233971,#2e4fa3)",
-                          boxShadow:"0 10px 26px rgba(35,57,113,0.25)",
-                          animation:"pulseGlow 2.8s ease-in-out infinite",
-                          "&:hover":{ background:"linear-gradient(135deg,#0f1e3d,#1a2d5a,#233971)", boxShadow:"0 14px 32px rgba(35,57,113,0.34)" },
+                          ...pill({ py:0.45, px:1.6, fontSize:"0.72rem" }),
+                          background:"linear-gradient(135deg,#2a9d8f,#23857a)",
+                          boxShadow:"0 6px 16px rgba(42,157,143,0.32)",
+                          "&:hover":{ background:"linear-gradient(135deg,#23857a,#1c6b62)", boxShadow:"0 8px 20px rgba(42,157,143,0.42)" },
                         }}
                       >
                         Select Images
@@ -838,106 +813,63 @@ function DatePickerBox({ label, value, onChange }) {
                     )}
 
                     {selectMode && (
-                      <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
+                      <Stack direction="row" spacing={0.8} alignItems="center" flexWrap="wrap" useFlexGap>
                         <Chip
-                          icon={<CheckBoxRoundedIcon sx={{ fontSize:"16px !important", color:"#fff !important" }}/>}
+                          size="small"
+                          icon={<CheckBoxRoundedIcon sx={{ fontSize:"14px !important", color:"#fff !important" }}/>}
                           label={selectedIds.size>0 ? `${selectedIds.size} Selected` : "Select Mode Active"}
-                          sx={{ ...F, fontWeight:800, color:"#fff", background:"linear-gradient(135deg,#233971,#2e4fa3)", borderRadius:"999px", boxShadow:"0 8px 20px rgba(35,57,113,0.22)" }}
+                          sx={{ ...F, fontWeight:800, fontSize:"0.7rem", height:24, color:"#fff", background:"linear-gradient(135deg,#2a9d8f,#23857a)", borderRadius:"999px", boxShadow:"0 6px 16px rgba(42,157,143,0.3)" }}
                         />
+                        <Button
+                          onClick={toggleAll}
+                          variant="outlined"
+                          size="small"
+                          sx={{
+                            ...pill({ py:0.3, px:1.2, fontSize:"0.68rem" }),
+                            borderColor:"rgba(35,57,113,0.35)", color:"#233971",
+                            background:"rgba(255,255,255,0.85)",
+                            "&:hover":{ borderColor:"#233971", background:"rgba(35,57,113,0.06)" },
+                          }}
+                        >
+                          {allSelected ? "Deselect All" : "Select All"}
+                        </Button>
+
+                        {selectedIds.size>0 && (
+                          <Button
+                            onClick={()=>openConfirm("selected", null, selectedIds.size)}
+                            variant="contained"
+                            size="small"
+                            startIcon={<DeleteSweepRoundedIcon sx={{ fontSize:"14px !important" }}/>}
+                            sx={{
+                              ...pill({ py:0.3, px:1.2, fontSize:"0.68rem" }),
+                              background:"linear-gradient(135deg,#ef4444,#f87171)",
+                              boxShadow:"0 4px 12px rgba(239,68,68,0.28)",
+                              "&:hover":{ background:"linear-gradient(135deg,#dc2626,#ef4444)" },
+                            }}
+                          >
+                            Delete {selectedIds.size}
+                          </Button>
+                        )}
+
                         <IconButton
                           onClick={()=>{ setSelectMode(false); setSelectedIds(new Set()); }}
                           size="small"
-                          sx={{ width:34, height:34, borderRadius:"12px", border:"1px solid rgba(35,57,113,0.22)", background:"rgba(255,255,255,0.85)", "&:hover":{ background:"#fff" } }}
+                          sx={{ width:26, height:26, borderRadius:"9px", border:"1px solid rgba(35,57,113,0.22)", background:"rgba(255,255,255,0.85)", "&:hover":{ background:"#fff" } }}
                         >
-                          <CloseRoundedIcon sx={{ fontSize:17, color:"#233971" }}/>
+                          <CloseRoundedIcon sx={{ fontSize:14, color:"#233971" }}/>
                         </IconButton>
                       </Stack>
                     )}
-                  </Stack>
-                </Box>
-              </Box>
-            )}
-          </Card>
 
-          {/* ── Select mode action bar — fixed ── */}
-          {filteredGallery.length > 0 && selectMode && (
-            <Box sx={{ animation:"slideUp 0.3s ease", flexShrink:0 }}>
-              <Paper
-                elevation={0}
-                sx={{
-                  position:"relative", overflow:"hidden",
-                  p:{ xs:"14px 16px",sm:"14px 22px" },
-                  borderRadius:"18px",
-                  background:"linear-gradient(135deg,#e8edf8 0%,#eaf0fb 60%,#f0f4fb 100%)",
-                  border:"1.5px solid rgba(35,57,113,0.22)",
-                  boxShadow:"0 4px 20px rgba(35,57,113,0.10)",
-                }}
-              >
-                <SelectAllRoundedIcon aria-hidden sx={{ position:"absolute", right:-10, bottom:-14, fontSize:100, color:"rgba(35,57,113,0.07)", pointerEvents:"none" }}/>
-
-                <Stack
-                  direction={{ xs:"column",sm:"row" }}
-                  alignItems={{ xs:"flex-start",sm:"center" }}
-                  justifyContent="space-between"
-                  spacing={{ xs:1.5,sm:0 }}
-                >
-                  <Stack direction="row" spacing={1.4} alignItems="center">
-                    <Box sx={{ width:36, height:36, borderRadius:"11px", flexShrink:0, background:"linear-gradient(135deg,#233971,#2e4fa3)", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 6px 16px rgba(35,57,113,0.28)" }}>
-                      <CheckBoxRoundedIcon sx={{ color:"#fff", fontSize:18 }}/>
+                    <Box sx={{ minWidth:0, textAlign:"right" }}>
+                      <Typography sx={{ ...F, fontSize:"0.68rem", color:"#64748b", mb:0.25 }}>Date Range</Typography>
+                      <Typography sx={{ ...F, fontSize:{ xs:"0.75rem", sm:"0.85rem" }, fontWeight:700, color:"#0f172a", wordBreak:"break-word" }}>{dateRangeText}</Typography>
                     </Box>
-                    <Box>
-                      <Typography sx={{ ...F, fontWeight:800, fontSize:"0.88rem", color:"#1a2d5a", lineHeight:1.2 }}>
-                        {selectedIds.size>0 ? `${selectedIds.size} image${selectedIds.size>1?"s":""} selected` : "Select images to delete"}
-                      </Typography>
-                      <Typography sx={{ ...F, fontSize:"0.72rem", color:"#233971", mt:"2px" }}>
-                        Tap an image to select / deselect
-                      </Typography>
-                    </Box>
-                  </Stack>
-
-                  <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
-                    <Button
-                      onClick={toggleAll}
-                      variant="outlined"
-                      startIcon={<SelectAllRoundedIcon sx={{ fontSize:"16px !important" }}/>}
-                      sx={{
-                        ...pill({ fontSize:"12px", py:0.85, px:2 }),
-                        borderColor:"rgba(35,57,113,0.35)", color:"#233971",
-                        background:"rgba(255,255,255,0.75)",
-                        "&:hover":{ borderColor:"#233971", background:"rgba(35,57,113,0.06)" },
-                      }}
-                    >
-                      {allSelected ? "Deselect All" : "Select All"}
-                    </Button>
-
-                    {selectedIds.size>0 && (
-                      <Button
-                        onClick={()=>openConfirm("selected", null, selectedIds.size)}
-                        variant="contained"
-                        startIcon={<DeleteSweepRoundedIcon sx={{ fontSize:"16px !important" }}/>}
-                        sx={{
-                          ...pill({ fontSize:"12px", py:0.85, px:2.2 }),
-                          background:"linear-gradient(135deg,#ef4444,#f87171)",
-                          boxShadow:"0 6px 18px rgba(239,68,68,0.28)",
-                          "&:hover":{ background:"linear-gradient(135deg,#dc2626,#ef4444)" },
-                        }}
-                      >
-                        Delete {selectedIds.size} Selected
-                      </Button>
-                    )}
-
-                    <IconButton
-                      onClick={()=>{ setSelectMode(false); setSelectedIds(new Set()); }}
-                      size="small"
-                      sx={{ width:34, height:34, borderRadius:"10px", border:"1px solid rgba(35,57,113,0.22)", background:"rgba(255,255,255,0.8)", flexShrink:0, "&:hover":{ background:"#fff" } }}
-                    >
-                      <CloseRoundedIcon sx={{ fontSize:16, color:"#233971" }}/>
-                    </IconButton>
                   </Stack>
                 </Stack>
-              </Paper>
-            </Box>
-          )}
+              </Stack>
+            </CardContent>
+          </Card>
 
           {/* ══ CONTENT REGION — fills remaining height; grid scrolls internally, pagination stays fixed ══ */}
           <Box sx={{ flex:1, minHeight:0, display:"flex", flexDirection:"column", overflow:"hidden" }}>
@@ -1206,11 +1138,21 @@ function DatePickerBox({ label, value, onChange }) {
                               <div style={{ display:"flex", gap:"6px" }}>
                                 <button
                                   type="button"
-                                  className="users-table__accordion-button"
-                                  style={{ flex:1, fontSize:"0.74rem", gap:"4px", fontFamily:"'Sora',sans-serif", minHeight:"32px", padding:"0.45rem 0.7rem" }}
+                                  style={{
+                                    flex:1, display:"flex", alignItems:"center", justifyContent:"center",
+                                    gap:"4px", fontSize:"0.74rem", fontWeight:700, fontFamily:"'Sora',sans-serif",
+                                    minHeight:"32px", padding:"0.45rem 0.7rem",
+                                    borderRadius:"10px", border:"none", cursor:"pointer",
+                                    background:"linear-gradient(135deg,#233971,#2e4fa3)",
+                                    color:"#fff",
+                                    boxShadow:"0 4px 12px rgba(35,57,113,0.32)",
+                                    transition:"transform 0.15s, box-shadow 0.15s, background 0.15s",
+                                  }}
+                                  onMouseEnter={e=>{ e.currentTarget.style.background="linear-gradient(135deg,#1a2d5a,#233971)"; e.currentTarget.style.boxShadow="0 6px 16px rgba(35,57,113,0.42)"; }}
+                                  onMouseLeave={e=>{ e.currentTarget.style.background="linear-gradient(135deg,#233971,#2e4fa3)"; e.currentTarget.style.boxShadow="0 4px 12px rgba(35,57,113,0.32)"; }}
                                   onClick={()=>handleDownload(item.imageUrl, item.fileName||`generated-${item.id}.png`)}
                                 >
-                                  <DownloadRoundedIcon style={{ fontSize:13 }}/>
+                                  <DownloadRoundedIcon style={{ fontSize:14 }}/>
                                   Download
                                 </button>
                                 <Tooltip title="Delete image" placement="top">
@@ -1220,18 +1162,18 @@ function DatePickerBox({ label, value, onChange }) {
                                       width:"32px", height:"32px", minWidth:"32px",
                                       display:"flex", alignItems:"center", justifyContent:"center",
                                       flexShrink:0, padding:0,
-                                      borderRadius:"8px",
-                                      border:"1.5px solid rgba(239,68,68,0.38)",
-                                      background:"rgba(239,68,68,0.06)",
-                                      color:"#ef4444", cursor:"pointer",
-                                      transition:"background 0.15s, border-color 0.15s",
+                                      borderRadius:"10px", border:"none", cursor:"pointer",
+                                      background:"linear-gradient(135deg,#ef4444,#dc2626)",
+                                      color:"#fff",
+                                      boxShadow:"0 4px 12px rgba(239,68,68,0.35)",
+                                      transition:"transform 0.15s, box-shadow 0.15s, background 0.15s",
                                     }}
-                                    onMouseEnter={e=>{ e.currentTarget.style.background="rgba(239,68,68,0.14)"; e.currentTarget.style.borderColor="rgba(239,68,68,0.6)"; }}
-                                    onMouseLeave={e=>{ e.currentTarget.style.background="rgba(239,68,68,0.06)"; e.currentTarget.style.borderColor="rgba(239,68,68,0.38)"; }}
+                                    onMouseEnter={e=>{ e.currentTarget.style.background="linear-gradient(135deg,#dc2626,#b91c1c)"; e.currentTarget.style.boxShadow="0 6px 16px rgba(239,68,68,0.45)"; }}
+                                    onMouseLeave={e=>{ e.currentTarget.style.background="linear-gradient(135deg,#ef4444,#dc2626)"; e.currentTarget.style.boxShadow="0 4px 12px rgba(239,68,68,0.35)"; }}
                                     onClick={()=>openConfirm("single", item.id)}
                                     aria-label="Delete image"
                                   >
-                                    <DeleteOutlineRoundedIcon style={{ fontSize:15, pointerEvents:"none" }}/>
+                                    <DeleteOutlineRoundedIcon style={{ fontSize:16, pointerEvents:"none" }}/>
                                   </button>
                                 </Tooltip>
                               </div>
@@ -1438,8 +1380,9 @@ function DatePickerBox({ label, value, onChange }) {
                     onTouchEnd={onTouchEnd}
                     sx={{
                       width:"100%",
-                      height:"62vh",
-                      minHeight:260,
+                      maxWidth:"62vh",
+                      aspectRatio:"1 / 1",
+                      mx:"auto",
                       overflow:"hidden",
                       borderRadius:"20px",
                       background:"linear-gradient(135deg,rgba(232,237,248,0.9),rgba(234,240,251,0.9))",
@@ -1538,7 +1481,7 @@ function DatePickerBox({ label, value, onChange }) {
                     <button
                       type="button"
                       className="users-table-card__action"
-                      style={{ flex:1, minWidth:"120px", borderRadius:"12px", fontSize:"0.86rem", gap:"7px", fontFamily:"'Manrope','Segoe UI',sans-serif", minHeight:"44px" }}
+                      style={{ flex:1, minWidth:"120px", borderRadius:"999px", fontSize:"0.86rem", gap:"7px", fontFamily:"'Manrope','Segoe UI',sans-serif", minHeight:"44px" }}
                       onClick={()=>{ setPreviewItem(null); handleEditInEditor(previewItem); }}
                     >
                       <EditRoundedIcon style={{ fontSize:17 }}/>
@@ -1546,8 +1489,18 @@ function DatePickerBox({ label, value, onChange }) {
                     </button>
                     <button
                       type="button"
-                      className="users-table__accordion-button"
-                      style={{ flex:1, minWidth:"120px", borderRadius:"12px", fontSize:"0.86rem", gap:"7px", fontFamily:"'Manrope','Segoe UI',sans-serif", minHeight:"44px" }}
+                      style={{
+                        flex:1, minWidth:"120px", display:"flex", alignItems:"center", justifyContent:"center",
+                        borderRadius:"999px", fontSize:"0.86rem", fontWeight:700, gap:"7px",
+                        fontFamily:"'Manrope','Segoe UI',sans-serif", minHeight:"44px",
+                        border:"none", cursor:"pointer",
+                        background:"linear-gradient(135deg,#233971,#2e4fa3)",
+                        color:"#fff",
+                        boxShadow:"0 6px 16px rgba(35,57,113,0.32)",
+                        transition:"box-shadow 0.15s, background 0.15s",
+                      }}
+                      onMouseEnter={e=>{ e.currentTarget.style.background="linear-gradient(135deg,#1a2d5a,#233971)"; e.currentTarget.style.boxShadow="0 8px 20px rgba(35,57,113,0.42)"; }}
+                      onMouseLeave={e=>{ e.currentTarget.style.background="linear-gradient(135deg,#233971,#2e4fa3)"; e.currentTarget.style.boxShadow="0 6px 16px rgba(35,57,113,0.32)"; }}
                       onClick={()=>handleDownload(previewItem.imageUrl, previewItem.fileName||`generated-${previewItem.id}.png`)}
                     >
                       <DownloadRoundedIcon style={{ fontSize:17 }}/>
