@@ -77,7 +77,6 @@
   const IMG_H          = 180;
   const CARD_H         = 420;
   const FILENAME_LINES = 1;
-  const PROMPT_LINES   = 2;
 
   /* ── card shell ── */
   const cardShell = {
@@ -231,12 +230,6 @@
     const d = new Date(v.replace(" ","T"));
     if (isNaN(d)) return "";
     return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
-  }
-
-  function getDisplayPrompt(item) {
-    const name   = (item.fileName||item.filename||"").replace(/\.[^/.]+$/,"").toLowerCase().trim();
-    const prompt = (item.prompt||"").toLowerCase().trim();
-    return (!prompt || prompt===name) ? null : item.prompt;
   }
 
   /* ══════════════════ MAIN COMPONENT ══════════════════ */
@@ -932,8 +925,7 @@ function DatePickerBox({ label, value, onChange }) {
                 }}
               >
                 {pagedGallery.map((item, index) => {
-                  const displayPrompt = getDisplayPrompt(item);
-                  const isSelected    = selectedIds.has(item.id);
+                  const isSelected = selectedIds.has(item.id);
 
                   return (
                     <Card
@@ -1022,6 +1014,27 @@ function DatePickerBox({ label, value, onChange }) {
                         )}
 
                         {!selectMode && (
+                          <Box sx={{ position:"absolute", top:8, left:8, zIndex:2 }}>
+                            <Tooltip title="Delete image" placement="top">
+                              <IconButton
+                                onClick={(e)=>{ e.stopPropagation(); openConfirm("single", item.id); }}
+                                size="small"
+                                sx={{
+                                  width:32, height:32, borderRadius:"10px",
+                                  background:"rgba(239,68,68,0.9)", backdropFilter:"blur(10px)",
+                                  border:"1px solid rgba(255,255,255,0.7)",
+                                  "&:hover":{ background:"rgba(220,38,38,0.98)", transform:"scale(1.08)" },
+                                  transition:"all 0.15s",
+                                }}
+                                aria-label="Delete image"
+                              >
+                                <DeleteOutlineRoundedIcon sx={{ fontSize:16, color:"#fff" }}/>
+                              </IconButton>
+                            </Tooltip>
+                          </Box>
+                        )}
+
+                        {!selectMode && (
                           <Box sx={{ position:"absolute", top:8, right:8, zIndex:2 }}>
                             <IconButton
                               onClick={()=>openPreview(item)}
@@ -1088,26 +1101,6 @@ function DatePickerBox({ label, value, onChange }) {
                           </Typography>
                         )}
 
-                        <Box sx={{ flexShrink:0, mb:"8px", minHeight:`calc(0.73rem * 1.5 * ${PROMPT_LINES})` }}>
-                          {displayPrompt ? (
-                            <Typography
-                              sx={{
-                                ...F, color:"#64748b", fontSize:"0.73rem", lineHeight:1.5,
-                                display:"-webkit-box",
-                                WebkitLineClamp:PROMPT_LINES,
-                                WebkitBoxOrient:"vertical",
-                                overflow:"hidden",
-                              }}
-                            >
-                              {displayPrompt}
-                            </Typography>
-                          ) : (
-                            <Typography sx={{ ...F, color:"#cbd5e1", fontSize:"0.72rem", fontStyle:"italic" }}>
-                              No prompt available.
-                            </Typography>
-                          )}
-                        </Box>
-
                         <Stack direction="row" spacing={0.7} flexWrap="wrap" useFlexGap sx={{ flexShrink:0, mb:"8px" }}>
                           <Chip
                             size="small"
@@ -1125,58 +1118,35 @@ function DatePickerBox({ label, value, onChange }) {
 
                         <Box sx={{ flexShrink:0 }}>
                           {!selectMode ? (
-                            <div style={{ display:"grid", gap:"6px" }}>
+                            <div style={{ display:"flex", gap:"6px" }}>
                               <button
                                 type="button"
                                 className="users-table-card__action"
-                                style={{ width:"100%", borderRadius:"12px", fontSize:"0.78rem", gap:"6px", fontFamily:"'Sora',sans-serif", minHeight:"36px", padding:"0.55rem 1rem" }}
+                                style={{ flex:1, borderRadius:"12px", fontSize:"0.78rem", gap:"6px", fontFamily:"'Sora',sans-serif", minHeight:"36px", padding:"0.55rem 0.8rem" }}
                                 onClick={()=>handleEditInEditor(item)}
                               >
                                 <EditRoundedIcon style={{ fontSize:15, flexShrink:0 }}/>
-                                Edit &amp; Regenerate
+                                Edit
                               </button>
-                              <div style={{ display:"flex", gap:"6px" }}>
-                                <button
-                                  type="button"
-                                  style={{
-                                    flex:1, display:"flex", alignItems:"center", justifyContent:"center",
-                                    gap:"4px", fontSize:"0.74rem", fontWeight:700, fontFamily:"'Sora',sans-serif",
-                                    minHeight:"32px", padding:"0.45rem 0.7rem",
-                                    borderRadius:"10px", border:"none", cursor:"pointer",
-                                    background:"linear-gradient(135deg,#233971,#2e4fa3)",
-                                    color:"#fff",
-                                    boxShadow:"0 4px 12px rgba(35,57,113,0.32)",
-                                    transition:"transform 0.15s, box-shadow 0.15s, background 0.15s",
-                                  }}
-                                  onMouseEnter={e=>{ e.currentTarget.style.background="linear-gradient(135deg,#1a2d5a,#233971)"; e.currentTarget.style.boxShadow="0 6px 16px rgba(35,57,113,0.42)"; }}
-                                  onMouseLeave={e=>{ e.currentTarget.style.background="linear-gradient(135deg,#233971,#2e4fa3)"; e.currentTarget.style.boxShadow="0 4px 12px rgba(35,57,113,0.32)"; }}
-                                  onClick={()=>handleDownload(item.imageUrl, item.fileName||`generated-${item.id}.png`)}
-                                >
-                                  <DownloadRoundedIcon style={{ fontSize:14 }}/>
-                                  Download
-                                </button>
-                                <Tooltip title="Delete image" placement="top">
-                                  <button
-                                    type="button"
-                                    style={{
-                                      width:"32px", height:"32px", minWidth:"32px",
-                                      display:"flex", alignItems:"center", justifyContent:"center",
-                                      flexShrink:0, padding:0,
-                                      borderRadius:"10px", border:"none", cursor:"pointer",
-                                      background:"linear-gradient(135deg,#ef4444,#dc2626)",
-                                      color:"#fff",
-                                      boxShadow:"0 4px 12px rgba(239,68,68,0.35)",
-                                      transition:"transform 0.15s, box-shadow 0.15s, background 0.15s",
-                                    }}
-                                    onMouseEnter={e=>{ e.currentTarget.style.background="linear-gradient(135deg,#dc2626,#b91c1c)"; e.currentTarget.style.boxShadow="0 6px 16px rgba(239,68,68,0.45)"; }}
-                                    onMouseLeave={e=>{ e.currentTarget.style.background="linear-gradient(135deg,#ef4444,#dc2626)"; e.currentTarget.style.boxShadow="0 4px 12px rgba(239,68,68,0.35)"; }}
-                                    onClick={()=>openConfirm("single", item.id)}
-                                    aria-label="Delete image"
-                                  >
-                                    <DeleteOutlineRoundedIcon style={{ fontSize:16, pointerEvents:"none" }}/>
-                                  </button>
-                                </Tooltip>
-                              </div>
+                              <button
+                                type="button"
+                                style={{
+                                  flex:1, display:"flex", alignItems:"center", justifyContent:"center",
+                                  gap:"4px", fontSize:"0.78rem", fontWeight:700, fontFamily:"'Sora',sans-serif",
+                                  minHeight:"36px", padding:"0.55rem 0.8rem",
+                                  borderRadius:"12px", border:"none", cursor:"pointer",
+                                  background:"linear-gradient(135deg,#233971,#2e4fa3)",
+                                  color:"#fff",
+                                  boxShadow:"0 4px 12px rgba(35,57,113,0.32)",
+                                  transition:"transform 0.15s, box-shadow 0.15s, background 0.15s",
+                                }}
+                                onMouseEnter={e=>{ e.currentTarget.style.background="linear-gradient(135deg,#1a2d5a,#233971)"; e.currentTarget.style.boxShadow="0 6px 16px rgba(35,57,113,0.42)"; }}
+                                onMouseLeave={e=>{ e.currentTarget.style.background="linear-gradient(135deg,#233971,#2e4fa3)"; e.currentTarget.style.boxShadow="0 4px 12px rgba(35,57,113,0.32)"; }}
+                                onClick={()=>handleDownload(item.imageUrl, item.fileName||`generated-${item.id}.png`)}
+                              >
+                                <DownloadRoundedIcon style={{ fontSize:14 }}/>
+                                Download
+                              </button>
                             </div>
                           ) : (
                             <Typography
@@ -1380,9 +1350,8 @@ function DatePickerBox({ label, value, onChange }) {
                     onTouchEnd={onTouchEnd}
                     sx={{
                       width:"100%",
-                      maxWidth:"62vh",
-                      aspectRatio:"1 / 1",
-                      mx:"auto",
+                      height:"62vh",
+                      minHeight:260,
                       overflow:"hidden",
                       borderRadius:"20px",
                       background:"linear-gradient(135deg,rgba(232,237,248,0.9),rgba(234,240,251,0.9))",
