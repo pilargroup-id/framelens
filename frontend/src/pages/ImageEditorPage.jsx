@@ -1199,8 +1199,8 @@ export default function ImageEditorPage() {
           <Box sx={{ flex: 1.05, display: "flex", flexDirection: "column", overflow: "hidden", minHeight: 0 }}>
 
             <CardContent sx={{ p: { xs: 1.5, md: "16px 24px" }, position: "relative", zIndex: 2, overflowY: "auto", flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
-              <Stack spacing={2.2} sx={{ flex: 1 }}>
-                <Box>
+              <Stack spacing={2.2} sx={{ flex: 1, minHeight: 0 }}>
+                <Box sx={{ flexShrink: 0 }}>
                   <Typography sx={{ ...F, fontSize: "0.8rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#0f172a" }}>
                     Image Editor
                   </Typography>
@@ -1209,9 +1209,9 @@ export default function ImageEditorPage() {
                   </Typography>
                 </Box>
 
-                <Divider sx={{ borderColor: "rgba(148,163,184,0.25)" }} />
+                <Divider sx={{ borderColor: "rgba(148,163,184,0.25)", flexShrink: 0 }} />
 
-                <Box>
+                <Box sx={{ flexShrink: 0 }}>
                   <Typography sx={{ ...F, fontWeight: 700, fontSize: "0.78rem", letterSpacing: "0.08em", textTransform: "uppercase", color: "#0f172a", mb: 0.6 }}>
                     Upload Image
                   </Typography>
@@ -1265,21 +1265,23 @@ export default function ImageEditorPage() {
                 </Box>
 
                 {/* -- NEW: Reference Images Section -- */}
-                <ReferenceImageSection
-                  refFiles={refFiles}
-                  refPreviews={refPreviewUrls}
-                  onAdd={handleRefFileChange}
-                  onRemove={removeRefFile}
-                  onPreview={(url) => openLightbox(url, false)}
-                  dragActiveRef={dragActiveRef}
-                  onDragOver={handleRefDragOver}
-                  onDragLeave={handleRefDragLeave}
-                  onDrop={handleRefDrop}
-                  inputRef={refFileInputRef}
-                  F={F}
-                />
+                <Box sx={{ flexShrink: 0 }}>
+                  <ReferenceImageSection
+                    refFiles={refFiles}
+                    refPreviews={refPreviewUrls}
+                    onAdd={handleRefFileChange}
+                    onRemove={removeRefFile}
+                    onPreview={(url) => openLightbox(url, false)}
+                    dragActiveRef={dragActiveRef}
+                    onDragOver={handleRefDragOver}
+                    onDragLeave={handleRefDragLeave}
+                    onDrop={handleRefDrop}
+                    inputRef={refFileInputRef}
+                    F={F}
+                  />
+                </Box>
 
-                <Stack direction={{ xs: "column", md: "row" }} spacing={1.2}>
+                <Stack direction={{ xs: "column", md: "row" }} spacing={1.2} sx={{ flexShrink: 0 }}>
                   {[
                     {
                       label: "Batch Generate",
@@ -1359,8 +1361,8 @@ export default function ImageEditorPage() {
                   ))}
                 </Stack>
 
-                <Box>
-                  <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 0.6 }}>
+                <Box sx={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
+                  <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 0.6, flexShrink: 0 }}>
                     <Stack direction="row" spacing={1.2} alignItems="center">
                       <Typography sx={{ ...F, fontWeight: 700, fontSize: "0.78rem", letterSpacing: "0.08em", textTransform: "uppercase", color: "#0f172a" }}>Input Prompt</Typography>
                       {copied && (
@@ -1456,20 +1458,24 @@ export default function ImageEditorPage() {
                       "&:focus-within": { borderColor: "#233971", boxShadow: "0 0 0 3px rgba(35,57,113,0.10)" },
                       "&:hover": { borderColor: "rgba(148,163,184,0.55)" },
                       overflow: "hidden",
+                      flex: 1,
+                      minHeight: 96,
+                      display: "flex",
+                      flexDirection: "column",
                     }}
                   >
                     <textarea
                       value={prompt}
                       onChange={(e) => setPrompt(e.target.value)}
                       placeholder="Example: Rotate the product to a left-side view and keep the exact same identity, lighting, and background."
-                      rows={4}
                       style={{
                         display: "block",
                         width: "100%",
+                        height: "100%",
                         boxSizing: "border-box",
-                        resize: "vertical",
-                        minHeight: 96,
-                        maxHeight: 190,
+                        resize: "none",
+                        flex: 1,
+                        minHeight: 0,
                         padding: "10px 14px",
                         fontFamily: "Sora, sans-serif",
                         fontSize: "14px",
@@ -1485,7 +1491,7 @@ export default function ImageEditorPage() {
                   </Box>
                 </Box>
 
-                <Stack direction={{ xs: "column", sm: "row" }} spacing={1} sx={{ mt: 0.8 }}>
+                <Stack direction={{ xs: "column", sm: "row" }} spacing={1} sx={{ mt: 0.8, flexShrink: 0 }}>
                   <Button
                     variant="contained"
                     startIcon={<AutoAwesomeIcon />}

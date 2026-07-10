@@ -15,7 +15,6 @@
   import CollectionsRoundedIcon         from "@mui/icons-material/CollectionsRounded";
   import ImageIcon                      from "@mui/icons-material/Image";
   import BoltIcon                       from "@mui/icons-material/Bolt";
-  import InfoOutlinedIcon               from "@mui/icons-material/InfoOutlined";
   import FolderDeleteRoundedIcon        from "@mui/icons-material/FolderDeleteRounded";
   import AutoFixHighRoundedIcon         from "@mui/icons-material/AutoFixHighRounded";
   import PaletteRoundedIcon             from "@mui/icons-material/PaletteRounded";
@@ -79,71 +78,6 @@
   const CARD_H         = 420;
   const FILENAME_LINES = 1;
   const PROMPT_LINES   = 2;
-
-  /* ══ CARD BACKGROUND — navy #233971 ══ */
-  function CardBg({ variant = "left" }) {
-    const isLeft = variant === "left";
-    return (
-      <Box aria-hidden sx={{ position:"absolute", inset:0, zIndex:0, pointerEvents:"none", overflow:"hidden", borderRadius:"inherit" }}>
-        <Box
-          sx={{
-            position:"absolute",
-            inset:0,
-            background: isLeft
-              ? "linear-gradient(145deg,#e8edf8 0%,#f0f4fb 30%,#e6edf9 60%,#eaf0fb 100%)"
-              : "linear-gradient(145deg,#eaf0fb 0%,#e6edf9 30%,#f0f4fb 60%,#e8edf8 100%)",
-          }}
-        />
-        <Box
-          sx={{
-            position:"absolute",
-            inset:0,
-            backgroundImage:`radial-gradient(circle, rgba(35,57,113,0.18) 1px, transparent 1px)`,
-            backgroundSize:"28px 28px",
-            animation:"gridPulse 6s ease-in-out infinite",
-          }}
-        />
-        <Box
-          sx={{
-            position:"absolute",
-            top: isLeft ? "-20%" : "60%",
-            left: isLeft ? "-10%" : "55%",
-            width:280, height:280, borderRadius:"50%",
-            background: isLeft
-              ? "radial-gradient(circle,rgba(35,57,113,0.13) 0%,transparent 70%)"
-              : "radial-gradient(circle,rgba(35,57,113,0.12) 0%,transparent 70%)",
-            animation:"orbDrift0 14s ease-in-out infinite",
-          }}
-        />
-        <Box
-          sx={{
-            position:"absolute",
-            top: isLeft ? "50%" : "-15%",
-            right: isLeft ? "-8%" : "-10%",
-            width:240, height:240, borderRadius:"50%",
-            background: isLeft
-              ? "radial-gradient(circle,rgba(55,80,145,0.10) 0%,transparent 70%)"
-              : "radial-gradient(circle,rgba(35,57,113,0.11) 0%,transparent 70%)",
-            animation:"orbDrift1 18s ease-in-out infinite 2s",
-          }}
-        />
-        <Box
-          sx={{
-            position:"absolute",
-            bottom: isLeft ? "-10%" : "10%",
-            left: isLeft ? "40%" : "10%",
-            width:200, height:200, borderRadius:"50%",
-            background: isLeft
-              ? "radial-gradient(circle,rgba(35,57,113,0.09) 0%,transparent 70%)"
-              : "radial-gradient(circle,rgba(55,80,145,0.09) 0%,transparent 70%)",
-            animation:"orbDrift2 22s ease-in-out infinite 4s",
-          }}
-        />
-        <Box sx={{ position:"absolute", top:0, left:0, right:0, height:"1px", background:"linear-gradient(90deg,transparent,rgba(35,57,113,0.35),transparent)" }}/>
-        <Box sx={{ position:"absolute", bottom:0, left:0, right:0, height:"1px", background:"linear-gradient(90deg,transparent,rgba(35,57,113,0.22),transparent)" }}/>
-      </Box>
-    );
-  }
 
   /* ── card shell ── */
   const cardShell = {
@@ -713,18 +647,19 @@ function DatePickerBox({ label, value, onChange }) {
     });
 
     return (
-      <Box sx={{ position:"relative", ...F, overflowX:"hidden", width:"100%" }}>
+      <Box sx={{ position:"relative", ...F, width:"100%", height:"100%", display:"flex", flexDirection:"column", overflow:"hidden" }}>
         <FontStyle/>
 
-        <Stack spacing={4}>
+        <Stack spacing={2.5} sx={{ flex:1, minHeight:0, overflow:"hidden" }}>
 
-          {/* ══ GALLERY HEADER ══ */}
+          {/* ══ GALLERY HEADER — fixed ══ */}
           <Card
             elevation={0}
             sx={{
               ...cardShell,
               overflow:"hidden",
-              background:"linear-gradient(145deg,#f8fbff 0%,#eef4fb 55%,#f5f9ff 100%)",
+              flexShrink:0,
+              background:"#fff",
               backdropFilter:"none",
             }}
           >
@@ -924,9 +859,9 @@ function DatePickerBox({ label, value, onChange }) {
             )}
           </Card>
 
-          {/* ── Select mode action bar ── */}
+          {/* ── Select mode action bar — fixed ── */}
           {filteredGallery.length > 0 && selectMode && (
-            <Box sx={{ animation:"slideUp 0.3s ease" }}>
+            <Box sx={{ animation:"slideUp 0.3s ease", flexShrink:0 }}>
               <Paper
                 elevation={0}
                 sx={{
@@ -1004,22 +939,27 @@ function DatePickerBox({ label, value, onChange }) {
             </Box>
           )}
 
-          {/* ══ EMPTY STATE ══ */}
+          {/* ══ CONTENT REGION — fills remaining height; grid scrolls internally, pagination stays fixed ══ */}
+          <Box sx={{ flex:1, minHeight:0, display:"flex", flexDirection:"column", overflow:"hidden" }}>
           {filteredGallery.length===0 ? (
             <Card
               elevation={0}
               sx={{
                 ...cardShell,
+                background:"#fff",
                 border:"1.5px dashed rgba(35,57,113,0.28)",
+                flex:1,
+                minHeight:0,
+                display:"flex",
+                flexDirection:"column",
               }}
             >
-              <CardBg variant="left"/>
-              <CardContent sx={{ py:{ xs:7,md:9 }, position:"relative", zIndex:2 }}>
+              <CardContent sx={{ position:"relative", zIndex:2, flex:1, minHeight:0, display:"flex", alignItems:"center", justifyContent:"center", overflowY:"auto" }}>
                 <Stack spacing={2.2} alignItems="center" textAlign="center">
-                  <Box sx={{ position:"relative", width:96, height:96 }}>
+                  <Box sx={{ position:"relative", width:96, height:96, borderRadius:"50%" }}>
                     <Box sx={{ position:"absolute", inset:0, borderRadius:"50%", border:"2px dashed rgba(35,57,113,0.22)", animation:"spinSlow 8s linear infinite" }}/>
-                    <Box sx={{ width:"100%", height:"100%", borderRadius:"28px", background:"linear-gradient(135deg,rgba(35,57,113,0.12),rgba(46,79,163,0.10))", display:"flex", alignItems:"center", justifyContent:"center" }}>
-                      <CollectionsRoundedIcon sx={{ fontSize:44, color:"#233971" }}/>
+                    <Box sx={{ position:"absolute", inset:10, borderRadius:"50%", background:"linear-gradient(135deg,rgba(35,57,113,0.12),rgba(46,79,163,0.10))", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                      <CollectionsRoundedIcon sx={{ fontSize:40, color:"#233971" }}/>
                     </Box>
                   </Box>
 
@@ -1030,35 +970,21 @@ function DatePickerBox({ label, value, onChange }) {
                   <Typography sx={{ ...F, color:"#64748b", maxWidth:520, lineHeight:1.75 }}>
                     Once an image is generated from the editor page, it will automatically appear in this gallery.
                   </Typography>
-
-                  <Paper
-                    variant="outlined"
-                    sx={{
-                      p:2.2, borderRadius:"18px",
-                      background:"rgba(255,255,255,0.72)", backdropFilter:"blur(8px)",
-                      border:"1px solid rgba(35,57,113,0.18)", maxWidth:520,
-                    }}
-                  >
-                    <Stack direction="row" spacing={1.4} alignItems="flex-start">
-                      <Box sx={{ width:32, height:32, borderRadius:"10px", background:"rgba(35,57,113,0.10)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                        <InfoOutlinedIcon sx={{ color:"#233971", fontSize:16 }}/>
-                      </Box>
-                      <Box textAlign="left">
-                        <Typography sx={{ ...F, fontWeight:700, fontSize:"0.78rem", color:"#1a2d5a", mb:"3px" }}>
-                          Storage Info
-                        </Typography>
-                        <Typography sx={{ ...F, fontSize:"0.76rem", color:"#64748b", lineHeight:1.7 }}>
-                          Gallery data is fetched from the backend via API. You can filter by date to view image history.
-                        </Typography>
-                      </Box>
-                    </Stack>
-                  </Paper>
                 </Stack>
               </CardContent>
             </Card>
           ) : (
             <>
-              {/* ══ GALLERY GRID ══ */}
+              {/* ══ GALLERY GRID — scrollable ══ */}
+              <Box
+                sx={{
+                  flex:1, minHeight:0, overflowY:"auto", overflowX:"hidden",
+                  pr:0.5, pb:0.5,
+                  "&::-webkit-scrollbar":{ width:8 },
+                  "&::-webkit-scrollbar-thumb":{ background:"rgba(35,57,113,0.25)", borderRadius:999 },
+                  "&::-webkit-scrollbar-track":{ background:"transparent" },
+                }}
+              >
               <Box
                 sx={{
                   display:"grid",
@@ -1327,12 +1253,14 @@ function DatePickerBox({ label, value, onChange }) {
                   );
                 })}
               </Box>
+              </Box>
 
-              {/* ══ PAGINATION ══ */}
+              {/* ══ PAGINATION — fixed ══ */}
               <Paper
                 elevation={0}
                 sx={{
                   mt:1,
+                  flexShrink:0,
                   p:{ xs:"14px 16px",sm:"14px 24px" },
                   borderRadius:"18px",
                   background:"linear-gradient(145deg,#e8edf8 0%,#f0f4fb 60%,#eaf0fb 100%)",
@@ -1426,6 +1354,7 @@ function DatePickerBox({ label, value, onChange }) {
               </Paper>
             </>
           )}
+          </Box>
 
           {/* ══ PREVIEW DIALOG ══ */}
           <Dialog
