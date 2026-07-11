@@ -1995,8 +1995,8 @@ export default function ImageEditorPage() {
                         background: "rgba(241,245,249,0.9)",
                       }}
                     >
-                      <Box sx={{ width: 30, height: 30, flexShrink: 0, borderRadius: "10px", background: "rgba(35,57,113,0.12)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                        <AddPhotoAlternateIcon sx={{ fontSize: 15, color: "#233971" }} />
+                      <Box sx={{ width: 44, height: 44, flexShrink: 0, borderRadius: "12px", background: "rgba(35,57,113,0.12)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <AddPhotoAlternateIcon sx={{ fontSize: 24, color: "#233971" }} />
                       </Box>
                       <Typography sx={{ ...F, fontSize: "0.75rem", color: "#94a3b8", fontWeight: 500 }}>
                         No reference image yet

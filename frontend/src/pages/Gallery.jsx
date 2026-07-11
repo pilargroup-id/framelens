@@ -9,6 +9,7 @@
   } from "@mui/material";
   import PhotoLibraryRoundedIcon        from "@mui/icons-material/PhotoLibraryRounded";
   import DeleteOutlineRoundedIcon       from "@mui/icons-material/DeleteOutlineRounded";
+  import DeleteRoundedIcon              from "@mui/icons-material/DeleteRounded";
   import DownloadRoundedIcon            from "@mui/icons-material/DownloadRounded";
   import VisibilityRoundedIcon          from "@mui/icons-material/VisibilityRounded";
   import SearchRoundedIcon              from "@mui/icons-material/SearchRounded";
@@ -1018,7 +1019,7 @@ function DatePickerBox({ label, value, onChange }) {
                                 }}
                                 aria-label="Delete image"
                               >
-                                <DeleteOutlineRoundedIcon sx={{ fontSize:16, color:"#fff" }}/>
+                                <DeleteRoundedIcon sx={{ fontSize:16, color:"#fff" }}/>
                               </IconButton>
                             </Tooltip>
                           </Box>
@@ -1087,14 +1088,15 @@ function DatePickerBox({ label, value, onChange }) {
                         </Typography>
 
                         {(item.createdBy || item.username || item.user) && (
-                          <Typography sx={{ ...F, color:"#475569", fontSize:"0.70rem", fontWeight:600, mb:"8px" }}>
+                          <Typography sx={{ ...F, color:"#475569", fontSize:"0.70rem", fontWeight:600, mb:"5px" }}>
                             Created by {item.createdBy || item.username || item.user}
                           </Typography>
                         )}
 
-                        <Stack direction="row" spacing={0.7} flexWrap="wrap" useFlexGap sx={{ flexShrink:0, mb:"8px" }}>
+                        <Stack direction="row" spacing={0.7} flexWrap="wrap" useFlexGap sx={{ flexShrink:0, mb:"5px" }}>
                           <Chip
                             size="small"
+                            icon={<CalendarMonthRoundedIcon sx={{ fontSize:"12px !important", color:"#233971 !important" }}/>}
                             label={normalizeDateOnly(item.createdAt)||"No Date"}
                             sx={{ ...F, fontSize:"0.60rem", fontWeight:700, color:"#233971", background:"rgba(35,57,113,0.08)", border:"1px solid rgba(35,57,113,0.15)" }}
                           />
