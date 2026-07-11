@@ -3,6 +3,7 @@ import Gallery from "./pages/Gallery"
 import ImageEditorPage from "./pages/ImageEditorPage"
 import PromptBuilderPage from "./pages/PromptBuilderPage"
 import PromptBuilderGTPage from "./pages/PromptBuilderGTPage"
+import StudioIklanPage from "./pages/StudioIklanPage"
 import Layout from "./components/Layout"
 import { AuthProvider, useAuth } from "./auth/AuthContext"
 import ProtectedRoute from "./auth/ProtectedRoute"
@@ -25,6 +26,7 @@ function AppRoutes() {
           <Route path="/image-editor" element={<ImageEditorPage />} />
           <Route path="/prompt-builder" element={<PromptBuilderPage />} />
           <Route path="/prompt-builder-gt" element={<PromptBuilderGTPage />} />
+          <Route path="/studio-iklan" element={<StudioIklanPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

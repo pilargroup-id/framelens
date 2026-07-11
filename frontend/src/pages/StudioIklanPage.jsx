@@ -1,0 +1,1574 @@
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  Alert,
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Chip,
+  CircularProgress,
+  Divider,
+  IconButton,
+  Paper,
+  Stack,
+  Switch,
+  TextField,
+  Typography,
+} from "@mui/material";
+import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+import PictureAsPdfRoundedIcon from "@mui/icons-material/PictureAsPdfRounded";
+import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate";
+import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
+import DownloadIcon from "@mui/icons-material/Download";
+import AutoFixHighRoundedIcon from "@mui/icons-material/AutoFixHighRounded";
+import CampaignRoundedIcon from "@mui/icons-material/CampaignRounded";
+import PaletteRoundedIcon from "@mui/icons-material/PaletteRounded";
+import AddRoundedIcon from "@mui/icons-material/AddRounded";
+import KeyboardArrowDownRoundedIcon from "@mui/icons-material/KeyboardArrowDownRounded";
+import KeyboardArrowUpRoundedIcon from "@mui/icons-material/KeyboardArrowUpRounded";
+import api from "../api/client";
+
+/* ================================================================
+   Studio Iklan — generate 6 varian gambar produk + varian warna
+   Port dari studio-iklan.html ke React (logic canvas dipertahankan
+   apa adanya, form diubah jadi controlled React state).
+================================================================ */
+
+const VARIAN = [
+  { num: 1, key: "1-reference", label: "Item + Reference" },
+  { num: 2, key: "2-keypoint", label: "Item + Key Point Sell" },
+  { num: 3, key: "3-spesifikasi", label: "Item + Spesifikasi" },
+  { num: 4, key: "4-cara-penggunaan", label: "Item + Cara Penggunaan" },
+  { num: 5, key: "5-subjek", label: "Item dengan Subjek" },
+  { num: 6, key: "6-improvement", label: "Item + Improvement" },
+];
+
+const DEFAULT_VARIANT_STATE = { 1: false, 2: true, 3: true, 4: true, 5: false, 6: false };
+
+// n8n "Prompt 2 - Item + Key Point Sell" sekarang minta AI gambar judul/tagline/badge sendiri,
+// jadi overlay Canvas di sini dimatikan supaya tidak dobel. Set true lagi kalau n8n dikembalikan
+// ke versi lama (AI cuma gambar produk, badge ditempel web app).
+const CANVAS_OVERLAY_KEYPOINT = false;
+
+const KATEGORI_KEY_POINT = [
+  ["lock", ["kunci", "lock", "gembok", "terkunci", "pengaman kunci"]],
+  ["water", ["air", "waterproof", "tahan air", "anti air", "water", "basah", "hujan", "kedap air", "tumpah"]],
+  ["dust", ["debu", "dust", "anti debu", "berdebu", "kotoran", "kotor"]],
+  ["uv", ["uv", "sinar matahari", "sinar uv", "panas matahari"]],
+  ["star", ["premium", "kualitas", "quality", "material", "bahan", "mewah", "elegan", "eksklusif", "original", "asli", "grade a", "terbaik"]],
+  ["clock", ["waktu", "durasi", "menit", "detik", "jam", "cas", "charging", "charge time", "cepat penuh", "fast charging", "isi ulang"]],
+  ["bolt", ["kuat", "strong", "cepat", "fast", "quick", "instant", "power", "koneksi", "connection", "kokoh", "daya", "baterai", "battery", "watt", "volt", "mah", "tenaga", "performa", "responsif", "tangguh"]],
+  ["shield", ["aman", "safe", "proteksi", "protect", "anti pecah", "tahan benturan", "pengaman", "tahan lama", "awet", "garansi", "tahan banting", "anti gores", "tahan karat"]],
+  ["box", ["ringan", "portable", "praktis", "mudah dibawa", "kemasan", "paket", "kapasitas", "ukuran", "dimensi", "berat", "gram", "kilogram", "liter", "ml", "cm", "lipat", "compact", "simpel", "multifungsi", "serbaguna"]],
+  ["leaf", ["ramah lingkungan", "eco", "organik", "natural", "alami", "bpa free", "food grade", "daur ulang", "biodegradable", "non toxic"]],
+  ["heart", ["nyaman", "empuk", "lembut", "halus", "ergonomis", "wrap-around", "wrap around"]],
+  ["tag", ["murah", "hemat", "ekonomis", "worth it", "terjangkau", "harga", "diskon", "promo", "value"]],
+  ["star2", ["stylish", "trendy", "modis", "cantik", "keren", "fashionable", "desain", "gaya"]],
+];
+
+function cocokkanKategoriKeyPoint(teks) {
+  const t = (teks || "").toLowerCase();
+  let tipe = null, keyword = null, posisiTerbaik = Infinity;
+  KATEGORI_KEY_POINT.forEach(([tp, kws]) => {
+    kws.forEach((k) => {
+      const idx = t.indexOf(k);
+      if (idx !== -1 && idx < posisiTerbaik) { posisiTerbaik = idx; tipe = tp; keyword = k; }
+    });
+  });
+  return { tipe: tipe || "check", keyword };
+}
+
+function gambarIkonUV(ctx, cx, cy, r, color) {
+  ctx.strokeStyle = color; ctx.fillStyle = color;
+  ctx.lineWidth = r * 0.08; ctx.lineCap = "round"; ctx.lineJoin = "round";
+  ctx.font = `900 ${Math.round(r * 0.42)}px "Arial Black", "Segoe UI Black", "Segoe UI", Arial, sans-serif`;
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.fillText("UV", cx, cy - r * 0.02);
+  ctx.beginPath();
+  ctx.arc(cx, cy - r * 0.08, r * 0.58, Math.PI * 1.05, Math.PI * 1.95);
+  ctx.stroke();
+  for (let i = -3; i <= 3; i++) {
+    const a = -Math.PI / 2 + i * 0.25;
+    const x1 = cx + Math.cos(a) * r * 0.58;
+    const y1 = cy - r * 0.08 + Math.sin(a) * r * 0.58;
+    const x2 = cx + Math.cos(a) * r * 0.78;
+    const y2 = cy - r * 0.08 + Math.sin(a) * r * 0.78;
+    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+  }
+  ctx.beginPath();
+  ctx.moveTo(cx - r * 0.55, cy + r * 0.5);
+  ctx.lineTo(cx + r * 0.55, cy + r * 0.5);
+  ctx.moveTo(cx - r * 0.32, cy + r * 0.23);
+  ctx.lineTo(cx, cy + r * 0.5);
+  ctx.lineTo(cx + r * 0.32, cy + r * 0.23);
+  ctx.stroke();
+}
+
+function gambarIkonWater(ctx, cx, cy, r, color) {
+  ctx.strokeStyle = color; ctx.fillStyle = color;
+  ctx.lineWidth = r * 0.08; ctx.lineCap = "round"; ctx.lineJoin = "round";
+  ctx.beginPath();
+  ctx.moveTo(cx, cy - r * 0.72);
+  ctx.bezierCurveTo(cx + r * 0.6, cy - r * 0.08, cx + r * 0.45, cy + r * 0.58, cx, cy + r * 0.58);
+  ctx.bezierCurveTo(cx - r * 0.45, cy + r * 0.58, cx - r * 0.6, cy - r * 0.08, cx, cy - r * 0.72);
+  ctx.closePath();
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(cx - r * 0.65, cy + r * 0.72);
+  ctx.lineTo(cx + r * 0.65, cy + r * 0.72);
+  ctx.stroke();
+}
+
+function gambarIkonDust(ctx, cx, cy, r, color) {
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.arc(cx - r * 0.32, cy - r * 0.08, r * 0.32, Math.PI * 0.55, Math.PI * 1.6);
+  ctx.arc(cx - r * 0.02, cy - r * 0.4, r * 0.34, Math.PI * 1.05, Math.PI * 1.98);
+  ctx.arc(cx + r * 0.34, cy - r * 0.1, r * 0.3, Math.PI * 1.4, Math.PI * 0.42);
+  ctx.closePath();
+  ctx.fill();
+  const dots = [[-0.3, 0.42], [-0.02, 0.5], [0.3, 0.4], [-0.14, 0.62], [0.16, 0.63]];
+  for (const [dx, dy] of dots) {
+    ctx.beginPath();
+    ctx.arc(cx + dx * r, cy + dy * r, r * 0.07, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+function gambarIkonLock(ctx, cx, cy, r, color) {
+  ctx.strokeStyle = color; ctx.fillStyle = color;
+  ctx.lineWidth = r * 0.14; ctx.lineCap = "round"; ctx.lineJoin = "round";
+  ctx.beginPath();
+  ctx.arc(cx, cy - r * 0.12, r * 0.42, Math.PI, 0, false);
+  ctx.stroke();
+  const bw = r * 1.1, bh = r * 0.85, bx = cx - bw / 2, by = cy - r * 0.1, rad = r * 0.14;
+  ctx.beginPath();
+  ctx.moveTo(bx + rad, by);
+  ctx.lineTo(bx + bw - rad, by);
+  ctx.quadraticCurveTo(bx + bw, by, bx + bw, by + rad);
+  ctx.lineTo(bx + bw, by + bh - rad);
+  ctx.quadraticCurveTo(bx + bw, by + bh, bx + bw - rad, by + bh);
+  ctx.lineTo(bx + rad, by + bh);
+  ctx.quadraticCurveTo(bx, by + bh, bx, by + bh - rad);
+  ctx.lineTo(bx, by + rad);
+  ctx.quadraticCurveTo(bx, by, bx + rad, by);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = "#1E3A8A";
+  ctx.beginPath();
+  ctx.arc(cx, by + bh * 0.42, r * 0.09, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(cx - r * 0.05, by + bh * 0.42);
+  ctx.lineTo(cx + r * 0.05, by + bh * 0.42);
+  ctx.lineTo(cx + r * 0.09, by + bh * 0.75);
+  ctx.lineTo(cx - r * 0.09, by + bh * 0.75);
+  ctx.closePath();
+  ctx.fill();
+}
+
+function gambarIkonStar(ctx, cx, cy, r, color) {
+  ctx.fillStyle = color;
+  const spikes = 5, outerR = r * 0.62, innerR = r * 0.27;
+  let rot = -Math.PI / 2;
+  const step = Math.PI / spikes;
+  ctx.beginPath();
+  ctx.moveTo(cx + Math.cos(rot) * outerR, cy + Math.sin(rot) * outerR);
+  for (let i = 0; i < spikes; i++) {
+    rot += step;
+    ctx.lineTo(cx + Math.cos(rot) * innerR, cy + Math.sin(rot) * innerR);
+    rot += step;
+    ctx.lineTo(cx + Math.cos(rot) * outerR, cy + Math.sin(rot) * outerR);
+  }
+  ctx.closePath();
+  ctx.fill();
+}
+
+function gambarIkonBolt(ctx, cx, cy, r, color) {
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(cx + r * 0.12, cy - r * 0.68);
+  ctx.lineTo(cx - r * 0.42, cy + r * 0.08);
+  ctx.lineTo(cx - r * 0.02, cy + r * 0.08);
+  ctx.lineTo(cx - r * 0.12, cy + r * 0.68);
+  ctx.lineTo(cx + r * 0.42, cy - r * 0.12);
+  ctx.lineTo(cx + r * 0.02, cy - r * 0.12);
+  ctx.closePath();
+  ctx.fill();
+}
+
+function gambarIkonShield(ctx, cx, cy, r, color) {
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(cx, cy - r * 0.7);
+  ctx.lineTo(cx + r * 0.55, cy - r * 0.42);
+  ctx.lineTo(cx + r * 0.55, cy + r * 0.05);
+  ctx.quadraticCurveTo(cx + r * 0.5, cy + r * 0.5, cx, cy + r * 0.72);
+  ctx.quadraticCurveTo(cx - r * 0.5, cy + r * 0.5, cx - r * 0.55, cy + r * 0.05);
+  ctx.lineTo(cx - r * 0.55, cy - r * 0.42);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = "#1E3A8A";
+  ctx.lineWidth = r * 0.1; ctx.lineCap = "round"; ctx.lineJoin = "round";
+  ctx.beginPath();
+  ctx.moveTo(cx - r * 0.24, cy);
+  ctx.lineTo(cx - r * 0.04, cy + r * 0.2);
+  ctx.lineTo(cx + r * 0.28, cy - r * 0.22);
+  ctx.stroke();
+}
+
+function gambarIkonBox(ctx, cx, cy, r, color) {
+  ctx.strokeStyle = color;
+  ctx.lineWidth = r * 0.09; ctx.lineCap = "round"; ctx.lineJoin = "round";
+  const w = r * 1.05, h = r * 0.95;
+  ctx.strokeRect(cx - w / 2, cy - h / 2, w, h);
+  ctx.beginPath();
+  ctx.moveTo(cx - w / 2, cy - h * 0.15);
+  ctx.lineTo(cx + w / 2, cy - h * 0.15);
+  ctx.moveTo(cx, cy - h * 0.15);
+  ctx.lineTo(cx - w * 0.18, cy - h / 2);
+  ctx.moveTo(cx, cy - h * 0.15);
+  ctx.lineTo(cx + w * 0.18, cy - h / 2);
+  ctx.stroke();
+}
+
+function gambarIkonCheck(ctx, cx, cy, r, color) {
+  ctx.strokeStyle = color;
+  ctx.lineWidth = r * 0.16; ctx.lineCap = "round"; ctx.lineJoin = "round";
+  ctx.beginPath();
+  ctx.moveTo(cx - r * 0.38, cy + r * 0.02);
+  ctx.lineTo(cx - r * 0.08, cy + r * 0.35);
+  ctx.lineTo(cx + r * 0.42, cy - r * 0.32);
+  ctx.stroke();
+}
+
+function gambarIkonClock(ctx, cx, cy, r, color) {
+  ctx.strokeStyle = color; ctx.fillStyle = color;
+  ctx.lineWidth = r * 0.11; ctx.lineCap = "round"; ctx.lineJoin = "round";
+  ctx.beginPath();
+  ctx.arc(cx, cy, r * 0.62, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(cx, cy);
+  ctx.lineTo(cx, cy - r * 0.4);
+  ctx.moveTo(cx, cy);
+  ctx.lineTo(cx + r * 0.28, cy + r * 0.1);
+  ctx.stroke();
+}
+
+function gambarIkonLeaf(ctx, cx, cy, r, color) {
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(cx - r * 0.5, cy + r * 0.55);
+  ctx.quadraticCurveTo(cx - r * 0.65, cy - r * 0.35, cx + r * 0.1, cy - r * 0.65);
+  ctx.quadraticCurveTo(cx + r * 0.7, cy - r * 0.55, cx + r * 0.55, cy + r * 0.1);
+  ctx.quadraticCurveTo(cx + r * 0.35, cy + r * 0.6, cx - r * 0.5, cy + r * 0.55);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = "#1E3A8A";
+  ctx.lineWidth = r * 0.07; ctx.lineCap = "round";
+  ctx.beginPath();
+  ctx.moveTo(cx - r * 0.4, cy + r * 0.45);
+  ctx.lineTo(cx + r * 0.3, cy - r * 0.3);
+  ctx.stroke();
+}
+
+function gambarIkonHeart(ctx, cx, cy, r, color) {
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(cx, cy + r * 0.58);
+  ctx.bezierCurveTo(cx - r * 0.75, cy + r * 0.05, cx - r * 0.55, cy - r * 0.62, cx, cy - r * 0.22);
+  ctx.bezierCurveTo(cx + r * 0.55, cy - r * 0.62, cx + r * 0.75, cy + r * 0.05, cx, cy + r * 0.58);
+  ctx.closePath();
+  ctx.fill();
+}
+
+function gambarIkonTag(ctx, cx, cy, r, color) {
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(cx - r * 0.6, cy - r * 0.55);
+  ctx.lineTo(cx + r * 0.15, cy - r * 0.55);
+  ctx.lineTo(cx + r * 0.62, cy - r * 0.02);
+  ctx.lineTo(cx - r * 0.05, cy + r * 0.62);
+  ctx.lineTo(cx - r * 0.6, cy + r * 0.05);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = "#1E3A8A";
+  ctx.beginPath();
+  ctx.arc(cx - r * 0.32, cy - r * 0.3, r * 0.11, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function gambarIkonKeyPoint(tipe, ctx, cx, cy, r, color) {
+  if (tipe === "uv") return gambarIkonUV(ctx, cx, cy, r, color);
+  if (tipe === "water") return gambarIkonWater(ctx, cx, cy, r, color);
+  if (tipe === "dust") return gambarIkonDust(ctx, cx, cy, r, color);
+  if (tipe === "lock") return gambarIkonLock(ctx, cx, cy, r, color);
+  if (tipe === "star") return gambarIkonStar(ctx, cx, cy, r, color);
+  if (tipe === "bolt") return gambarIkonBolt(ctx, cx, cy, r, color);
+  if (tipe === "shield") return gambarIkonShield(ctx, cx, cy, r, color);
+  if (tipe === "box") return gambarIkonBox(ctx, cx, cy, r, color);
+  if (tipe === "clock") return gambarIkonClock(ctx, cx, cy, r, color);
+  if (tipe === "leaf") return gambarIkonLeaf(ctx, cx, cy, r, color);
+  if (tipe === "heart") return gambarIkonHeart(ctx, cx, cy, r, color);
+  if (tipe === "tag") return gambarIkonTag(ctx, cx, cy, r, color);
+  return gambarIkonCheck(ctx, cx, cy, r, color);
+}
+
+function bungkusTeksCanvas(ctx, text, maxWidth) {
+  const kata = text.split(/\s+/).filter(Boolean);
+  const baris = [];
+  let sekarang = "";
+  kata.forEach((w) => {
+    const coba = sekarang ? sekarang + " " + w : w;
+    if (ctx.measureText(coba).width > maxWidth && sekarang) {
+      baris.push(sekarang);
+      sekarang = w;
+    } else {
+      sekarang = coba;
+    }
+  });
+  if (sekarang) baris.push(sekarang);
+  return baris;
+}
+
+async function tempelJudulProduk(imageDataUrl, judulText, taglineText) {
+  judulText = (judulText || "").trim();
+  taglineText = (taglineText || "").trim();
+  if (!judulText && !taglineText) return { image: imageDataUrl, bottomY: null };
+
+  try {
+    await Promise.all([
+      document.fonts.load("800 40px Montserrat"),
+      document.fonts.load("800 80px Montserrat"),
+      document.fonts.ready,
+    ]);
+  } catch (e) { console.warn("Font Montserrat gagal dimuat, judul tetap ditempel pakai font fallback.", e); }
+
+  const img = await new Promise((resolve, reject) => {
+    const el = new Image();
+    el.onload = () => resolve(el);
+    el.onerror = reject;
+    el.src = imageDataUrl;
+  });
+
+  const canvas = document.createElement("canvas");
+  canvas.width = img.naturalWidth;
+  canvas.height = img.naturalHeight;
+  const ctx = canvas.getContext("2d");
+  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+  const W = canvas.width, H = canvas.height;
+  const rightEdge = W * 0.97;
+  const maxWidth = W * 0.58;
+  ctx.textAlign = "right";
+  ctx.textBaseline = "alphabetic";
+  ctx.lineJoin = "round";
+
+  let y = H * 0.155;
+
+  if (judulText) {
+    let fontSize = Math.round(W * 0.052);
+    ctx.font = `800 ${fontSize}px "Montserrat","Arial Black","Segoe UI Black",Arial,sans-serif`;
+    let baris = bungkusTeksCanvas(ctx, judulText.toUpperCase(), maxWidth);
+    while (baris.length > 3 && fontSize > W * 0.03) {
+      fontSize -= 2;
+      ctx.font = `800 ${fontSize}px "Montserrat","Arial Black","Segoe UI Black",Arial,sans-serif`;
+      baris = bungkusTeksCanvas(ctx, judulText.toUpperCase(), maxWidth);
+    }
+    const lineHeight = fontSize * 1.32;
+    ctx.lineWidth = Math.max(2, fontSize * 0.1);
+    ctx.strokeStyle = "rgba(0,0,0,.55)";
+    ctx.fillStyle = "#ffffff";
+    baris.forEach((line) => {
+      ctx.strokeText(line, rightEdge, y);
+      ctx.fillText(line, rightEdge, y);
+      y += lineHeight;
+    });
+    y += lineHeight * 0.02;
+  }
+
+  if (taglineText) {
+    let fontSize = Math.round(W * 0.034);
+    const minFontSizeTagline = W * 0.02;
+    ctx.font = `800 ${fontSize}px "Montserrat","Arial Black","Segoe UI Black",Arial,sans-serif`;
+    let barisTagline = bungkusTeksCanvas(ctx, taglineText, maxWidth);
+    while (barisTagline.length > 3 && fontSize > minFontSizeTagline) {
+      fontSize -= 1;
+      ctx.font = `800 ${fontSize}px "Montserrat","Arial Black","Segoe UI Black",Arial,sans-serif`;
+      barisTagline = bungkusTeksCanvas(ctx, taglineText, maxWidth);
+    }
+    const taglineLineHeight = fontSize * 1.28;
+    y += fontSize * 0.05;
+    ctx.lineWidth = Math.max(2, fontSize * 0.1);
+    ctx.strokeStyle = "rgba(0,0,0,.55)";
+    ctx.fillStyle = "#FFD500";
+    barisTagline.forEach((line, i) => {
+      ctx.strokeText(line, rightEdge, y);
+      ctx.fillText(line, rightEdge, y);
+      if (i < barisTagline.length - 1) y += taglineLineHeight;
+    });
+  }
+
+  return { image: canvas.toDataURL("image/png"), bottomY: y };
+}
+
+async function tempelBadgeInfo(imageDataUrl, teksMentah, judulBottomY, opsi) {
+  const { pesanKosong, jumlahTetap, jumlahMax } = opsi;
+  let poin = (teksMentah || "").split(/\r?\n|,/).map((s) => s.trim()).filter(Boolean);
+  if (poin.length === 0) throw new Error(pesanKosong);
+  if (jumlahTetap) {
+    while (poin.length < jumlahTetap) poin.push(poin[poin.length - 1]);
+    poin = poin.slice(0, jumlahTetap);
+  } else if (jumlahMax) {
+    poin = poin.slice(0, jumlahMax);
+  }
+
+  try {
+    await Promise.all([
+      document.fonts.load("800 16px Montserrat"),
+      document.fonts.load("800 40px Montserrat"),
+      document.fonts.load("800 80px Montserrat"),
+      document.fonts.ready,
+    ]);
+  } catch (e) { console.warn("Font Montserrat gagal dimuat, badge tetap ditempel pakai font fallback.", e); }
+
+  const img = await new Promise((resolve, reject) => {
+    const el = new Image();
+    el.onload = () => resolve(el);
+    el.onerror = reject;
+    el.src = imageDataUrl;
+  });
+
+  const canvas = document.createElement("canvas");
+  canvas.width = img.naturalWidth;
+  canvas.height = img.naturalHeight;
+  const ctx = canvas.getContext("2d");
+  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+  const W = canvas.width, H = canvas.height;
+  const iconCx = W * 0.83;
+  const labelMaxWidth = W * 0.27;
+  const iconBlue = "#1E3A8A";
+  const labelGapFactor = 0.28;
+  const blockGapFactor = 1.05;
+
+  const LABEL_KATEGORI = {
+    lock: "Terkunci Aman",
+    water: "Tahan Air",
+    dust: "Anti Debu",
+    uv: "Anti UV",
+    star: "Kualitas Premium",
+    star2: "Desain Stylish",
+    clock: "Cas Cepat",
+    bolt: "Tenaga Kuat",
+    shield: "Aman Terlindungi",
+    box: "Praktis Dibawa",
+    leaf: "Ramah Lingkungan",
+    heart: "Nyaman Dipakai",
+    tag: "Harga Hemat",
+  };
+  const KATA_SAMBUNG = new Set(["dan", "atau", "yang", "dengan", "untuk", "ke", "di", "dari", "serta", "juga", "pada", "akan", "agar", "supaya", "ini", "itu", "adalah", "sebuah", "satu", "bisa", "dapat", "sudah", "tanpa", "saja", "sekali", "sangat", "banget", "tetap", "tak", "tidak", "jadi", "biar", "si", "se", "para"]);
+  const ambilKataInti = (s, maksKata) => {
+    const kata = s.split(/\s+/).filter(Boolean);
+    const inti = kata.filter((k) => !KATA_SAMBUNG.has(k.toLowerCase()));
+    const dipakai = (inti.length ? inti : kata).slice(0, maksKata);
+    return dipakai.join(" ");
+  };
+  const jadiTitleCase = (s) => s.toLowerCase().replace(/(^|\s)\S/g, (c) => c.toUpperCase());
+
+  ctx.textBaseline = "middle";
+
+  const siapkanBlok = (circleR, baseFontSize, minFontSize) => {
+    const mentah = poin.map((teks) => {
+      const bersih = teks.replace(/^[-–—•*\d.)\s]+/, "").replace(/\s+/g, " ").trim();
+      const { tipe } = cocokkanKategoriKeyPoint(bersih);
+      const label = tipe !== "check" ? LABEL_KATEGORI[tipe] : jadiTitleCase(ambilKataInti(bersih, 2));
+      return { bersih, label, tipe: tipe === "star2" ? "star" : tipe };
+    });
+    const wrapSemua = (fontSize) => {
+      ctx.font = `800 ${fontSize}px "Montserrat", "Arial Black", "Segoe UI Black", "Segoe UI", Arial, sans-serif`;
+      return mentah.map((m) => bungkusTeksCanvas(ctx, m.label, labelMaxWidth));
+    };
+    let labelFontSize = baseFontSize;
+    let wrapped = wrapSemua(labelFontSize);
+    while (wrapped.some((baris) => baris.length > 2) && labelFontSize > minFontSize) {
+      labelFontSize -= 1;
+      wrapped = wrapSemua(labelFontSize);
+    }
+    const labelLineHeight = labelFontSize * 1.22;
+    return mentah.map((m, i) => ({
+      bersih: m.bersih,
+      tipe: m.tipe,
+      labelBaris: wrapped[i],
+      labelFontSize,
+      labelLineHeight,
+      tinggiLabel: wrapped[i].length * labelLineHeight,
+    }));
+  };
+  const hitungTinggi = (blok, circleR, labelGap, blockGap) =>
+    blok.reduce((total, b) => total + circleR * 2 + labelGap + b.tinggiLabel, 0) + blockGap * (blok.length - 1);
+
+  const jarakDariJudul = H * 0.05;
+  const zonaAtas = judulBottomY != null ? judulBottomY + jarakDariJudul : H * 0.14;
+  const zonaBawah = H * 0.94;
+  const zonaTinggi = zonaBawah - zonaAtas;
+
+  let circleR = W * 0.07;
+  let baseFontSize = Math.round(W * 0.031);
+  let minFontSize = W * 0.021;
+  let labelGap = circleR * labelGapFactor;
+  let blockGap = circleR * blockGapFactor;
+  let blok = siapkanBlok(circleR, baseFontSize, minFontSize);
+  let tinggiTotal = hitungTinggi(blok, circleR, labelGap, blockGap);
+
+  if (tinggiTotal > zonaTinggi) {
+    const skala = Math.max(0.55, zonaTinggi / tinggiTotal);
+    circleR *= skala;
+    baseFontSize = Math.round(baseFontSize * skala);
+    minFontSize *= skala;
+    labelGap = circleR * labelGapFactor;
+    blockGap = circleR * blockGapFactor;
+    blok = siapkanBlok(circleR, baseFontSize, minFontSize);
+    tinggiTotal = hitungTinggi(blok, circleR, labelGap, blockGap);
+  }
+
+  let cy = zonaAtas + Math.max(0, (zonaTinggi - tinggiTotal) * 0.12) + circleR;
+
+  blok.forEach((b) => {
+    ctx.font = `800 ${b.labelFontSize}px "Montserrat", "Arial Black", "Segoe UI Black", "Segoe UI", Arial, sans-serif`;
+    ctx.textAlign = "center";
+
+    ctx.beginPath();
+    ctx.arc(iconCx, cy, circleR, 0, Math.PI * 2);
+    ctx.fillStyle = iconBlue;
+    ctx.fill();
+
+    gambarIkonKeyPoint(b.tipe, ctx, iconCx, cy, circleR * 0.72, "#fff");
+
+    ctx.font = `800 ${b.labelFontSize}px "Montserrat", "Arial Black", "Segoe UI Black", "Segoe UI", Arial, sans-serif`;
+    ctx.lineJoin = "round";
+    ctx.miterLimit = 2;
+    ctx.lineWidth = Math.max(4, b.labelFontSize * 0.26);
+    ctx.strokeStyle = "rgba(0,0,0,.9)";
+    ctx.fillStyle = "#fff";
+    ctx.shadowColor = "rgba(0,0,0,.55)";
+    ctx.shadowBlur = Math.max(3, b.labelFontSize * 0.12);
+    let labelY = cy + circleR + labelGap + b.labelLineHeight / 2;
+    b.labelBaris.forEach((baris) => {
+      ctx.strokeText(baris, iconCx, labelY);
+      ctx.fillText(baris, iconCx, labelY);
+      labelY += b.labelLineHeight;
+    });
+
+    cy += circleR * 2 + labelGap + b.tinggiLabel + blockGap;
+  });
+
+  return canvas.toDataURL("image/png");
+}
+
+async function tempelBadgeKeyPoint(imageDataUrl, keypointText, judulBottomY) {
+  return tempelBadgeInfo(imageDataUrl, keypointText, judulBottomY, {
+    pesanKosong: 'Field "Key point sell" kosong atau nonaktif - tidak ada teks untuk ditempel jadi badge dilewati.',
+    jumlahTetap: 3,
+  });
+}
+
+async function bersihkanPojokKiriAtas(imageDataUrl) {
+  const img = await new Promise((resolve, reject) => {
+    const el = new Image();
+    el.onload = () => resolve(el);
+    el.onerror = reject;
+    el.src = imageDataUrl;
+  });
+
+  const canvas = document.createElement("canvas");
+  canvas.width = img.naturalWidth;
+  canvas.height = img.naturalHeight;
+  const ctx = canvas.getContext("2d");
+  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+  const W = canvas.width, H = canvas.height;
+  const regionW = W * 0.5;
+  const regionH = H * 0.15;
+
+  const cekW = Math.max(1, Math.round(regionW));
+  const cekH = Math.max(1, Math.round(regionH));
+  const data = ctx.getImageData(0, 0, cekW, cekH).data;
+  let sum = 0, sumSq = 0, n = 0;
+  for (let i = 0; i < data.length; i += 4 * 29) {
+    const lum = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+    sum += lum; sumSq += lum * lum; n++;
+  }
+  const rata = sum / n;
+  const stdDev = Math.sqrt(Math.max(0, sumSq / n - rata * rata));
+  const AMBANG_POLOS = 14;
+  if (stdDev > AMBANG_POLOS) {
+    return canvas.toDataURL("image/png");
+  }
+
+  ctx.drawImage(canvas, 0, regionH, regionW, regionH, 0, 0, regionW, regionH);
+
+  return canvas.toDataURL("image/png");
+}
+
+/* ---------------- Shared theme tokens (senada dengan halaman lain) ---------------- */
+
+const FontStyle = () => (
+  <style>{`@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap');`}</style>
+);
+
+const F = { fontFamily: "'Sora',sans-serif" };
+
+const cardShell = {
+  borderRadius: "32px",
+  border: "1px solid rgba(148,163,184,0.25)",
+  background: "#fff",
+  boxShadow: "0 2px 8px rgba(0,0,0,0.05), 0 16px 40px -8px rgba(35,57,113,0.13)",
+  overflow: "hidden",
+  position: "relative",
+};
+
+const inputSx = {
+  "& .MuiOutlinedInput-root": {
+    borderRadius: "14px",
+    background: "rgba(241,245,249,0.9)",
+    backdropFilter: "blur(8px)",
+    ...F,
+    "& fieldset": { borderColor: "rgba(148,163,184,0.35)" },
+    "&:hover fieldset": { borderColor: "rgba(148,163,184,0.6)" },
+    "&.Mui-focused fieldset": { borderColor: "#233971", borderWidth: "1.5px" },
+  },
+  "& .MuiInputLabel-root": { ...F, "&.Mui-focused": { color: "#233971" } },
+  "& .MuiFormHelperText-root": { ...F },
+};
+
+const sectionLabel = { ...F, fontWeight: 700, fontSize: "0.78rem", letterSpacing: "0.06em", textTransform: "uppercase", color: "#0f172a" };
+
+const sectionCardSx = {
+  borderRadius: "18px",
+  border: "1px solid rgba(35,57,113,0.13)",
+  background: "rgba(255,255,255,0.7)",
+  boxShadow: "0 1px 4px rgba(15,23,42,0.04), 0 8px 20px -10px rgba(35,57,113,0.14)",
+  p: 1.5,
+};
+
+const compactSwitchSx = {
+  width: 32, height: 19, padding: 0,
+  "& .MuiSwitch-switchBase": {
+    padding: "2.5px",
+    transitionDuration: "220ms",
+    "&.Mui-checked": {
+      transform: "translateX(13px)",
+      color: "#fff",
+      "& + .MuiSwitch-track": {
+        background: "linear-gradient(135deg,#2a9d8f,#23857a)",
+        opacity: 1,
+        border: "none",
+      },
+      "& .MuiSwitch-thumb": { boxShadow: "0 2px 6px rgba(42,157,143,0.5)" },
+    },
+  },
+  "& .MuiSwitch-thumb": {
+    width: 14, height: 14,
+    boxShadow: "0 1px 3px rgba(15,23,42,0.3)",
+  },
+  "& .MuiSwitch-track": {
+    borderRadius: 999,
+    background: "rgba(148,163,184,0.55)",
+    opacity: 1,
+    transition: "background 0.25s ease",
+  },
+};
+
+const gridCanvasSx = {
+  aspectRatio: "1 / 1",
+  borderRadius: "12px",
+  overflow: "hidden",
+  position: "relative",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  background: "linear-gradient(135deg,rgba(232,237,248,0.9),rgba(234,240,251,0.9))",
+};
+
+/* ---------------- UI helper components ---------------- */
+
+function ToggleField({ label, hint, value, onChange, active, onActiveChange, textarea = false, placeholder }) {
+  return (
+    <Box sx={{ opacity: active ? 1 : 0.6, transition: "opacity 0.2s" }}>
+      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={0.6}>
+        <Typography sx={sectionLabel}>
+          {label}{" "}
+          {hint && <Typography component="span" sx={{ ...F, fontWeight: 400, textTransform: "none", fontSize: "0.7rem", color: "#94a3b8" }}>{hint}</Typography>}
+        </Typography>
+        <Switch size="small" checked={active} onChange={(e) => onActiveChange(e.target.checked)} sx={compactSwitchSx} />
+      </Stack>
+      <TextField
+        fullWidth
+        size="small"
+        multiline={textarea}
+        minRows={textarea ? 3 : 1}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        disabled={!active}
+        placeholder={placeholder}
+        sx={inputSx}
+      />
+    </Box>
+  );
+}
+
+function UploadBox({ icon, title, subtitle, accept, multiple = false, onFile, disabled = false, dashed = true, gradient = "linear-gradient(135deg,#233971,#2e4fa3)" }) {
+  const inputRef = useRef(null);
+  return (
+    <Paper
+      variant="outlined"
+      onClick={() => { if (!disabled) inputRef.current?.click(); }}
+      sx={{
+        p: 1.2,
+        cursor: disabled ? "not-allowed" : "pointer",
+        opacity: disabled ? 0.5 : 1,
+        borderRadius: "14px",
+        borderStyle: dashed ? "dashed" : "solid",
+        borderWidth: 1.5,
+        borderColor: "rgba(148,163,184,0.35)",
+        background: "rgba(241,245,249,0.9)",
+        backdropFilter: "blur(8px)",
+        transition: "all 0.25s ease",
+        "&:hover": disabled ? undefined : { borderColor: "rgba(35,57,113,0.4)" },
+      }}
+    >
+      <Stack direction="row" spacing={1.2} alignItems="center">
+        <Box sx={{ width: 30, height: 30, flexShrink: 0, borderRadius: "10px", background: gradient, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 6px 16px rgba(35,57,113,0.35)" }}>
+          {icon}
+        </Box>
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Typography noWrap sx={{ ...F, fontWeight: 700, fontSize: "0.75rem", color: "#1e293b" }}>{title}</Typography>
+          <Typography noWrap sx={{ ...F, fontSize: "0.64rem", color: "#94a3b8" }}>{subtitle}</Typography>
+        </Box>
+        <input ref={inputRef} type="file" accept={accept} multiple={multiple} hidden onChange={(e) => { onFile(e.target.files); e.target.value = ""; }} />
+      </Stack>
+    </Paper>
+  );
+}
+
+function ResultCard({ label, index, active, onToggleActive, status, data, onEdit, subtitle }) {
+  return (
+    <Paper
+      variant="outlined"
+      sx={{
+        p: 1,
+        borderRadius: "16px",
+        background: active ? "rgba(255,255,255,0.72)" : "rgba(241,245,249,0.55)",
+        backdropFilter: "blur(10px)",
+        border: "1px solid rgba(148,163,184,0.3)",
+        opacity: active ? 1 : 0.6,
+        transition: "opacity 0.2s, box-shadow 0.2s",
+      }}
+    >
+      <Stack spacing={1}>
+        <Stack direction="row" justifyContent="space-between" alignItems="center">
+          <Typography noWrap sx={{ ...F, fontWeight: 700, fontSize: "0.72rem", color: "#334155" }}>
+            {String(index + 1).padStart(2, "0")}. {subtitle || label}
+          </Typography>
+          {onToggleActive && (
+            <Switch size="small" checked={active} onChange={(e) => onToggleActive(e.target.checked)} sx={compactSwitchSx} />
+          )}
+        </Stack>
+        <Box sx={gridCanvasSx}>
+          {status === "loading" && <CircularProgress size={26} thickness={4} sx={{ color: "#233971" }} />}
+          {status === "idle" && (
+            <Typography sx={{ ...F, fontSize: "0.66rem", color: "#94a3b8", textAlign: "center", px: 2 }}>
+              Hasil akan muncul di sini
+            </Typography>
+          )}
+          {status === "skip" && (
+            <Typography sx={{ ...F, fontSize: "0.66rem", color: "#94a3b8", textAlign: "center", px: 2 }}>
+              Dinonaktifkan
+            </Typography>
+          )}
+          {status === "error" && (
+            <Typography sx={{ ...F, fontSize: "0.66rem", color: "#b45309", textAlign: "center", px: 2 }}>
+              {data?.errorMsg || "Gagal generate"}
+            </Typography>
+          )}
+          {status === "done" && (
+            <Box component="img" src={data.image} alt={label} sx={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+          )}
+        </Box>
+        {status === "done" && (
+          <Stack direction="row" spacing={0.8}>
+            <Button
+              size="small"
+              variant="outlined"
+              onClick={onEdit}
+              startIcon={<AutoFixHighRoundedIcon sx={{ fontSize: "14px !important" }} />}
+              sx={{ ...F, flex: 1, borderRadius: "999px", textTransform: "none", fontWeight: 700, fontSize: "0.68rem", color: "#233971", borderColor: "rgba(35,57,113,0.25)", "&:hover": { borderColor: "rgba(35,57,113,0.45)", background: "rgba(35,57,113,0.06)" } }}
+            >
+              Edit
+            </Button>
+            <Button
+              size="small"
+              variant="contained"
+              component="a"
+              href={data.image}
+              download={data.fileName}
+              startIcon={<DownloadIcon sx={{ fontSize: "14px !important" }} />}
+              sx={{ ...F, flex: 1, borderRadius: "999px", textTransform: "none", fontWeight: 700, fontSize: "0.68rem", background: "linear-gradient(135deg,#233971,#2e4fa3)", boxShadow: "0 6px 16px rgba(35,57,113,0.3)" }}
+            >
+              Unduh
+            </Button>
+          </Stack>
+        )}
+      </Stack>
+    </Paper>
+  );
+}
+
+/* ================================================================ */
+
+export default function StudioIklanPage() {
+  const MAX_PRODUK = 10;
+
+  const [filePdf, setFilePdf] = useState(null);
+  const [pdfStatus, setPdfStatus] = useState({ type: "", text: "" });
+
+  const [produkFiles, setProdukFiles] = useState([]);
+  const [fileFrame, setFileFrame] = useState(null);
+  const [frameOn, setFrameOn] = useState(true);
+
+  const [judulProduk, setJudulProduk] = useState("");
+  const [judulOn, setJudulOn] = useState(true);
+  const [tagline, setTagline] = useState("");
+  const [taglineOn, setTaglineOn] = useState(true);
+  const [deskripsi, setDeskripsi] = useState("");
+  const [deskripsiOn, setDeskripsiOn] = useState(true);
+  const [spesifikasi, setSpesifikasi] = useState("");
+  const [spesifikasiOn, setSpesifikasiOn] = useState(true);
+  const [keypoint1, setKeypoint1] = useState("");
+  const [keypoint2, setKeypoint2] = useState("");
+  const [keypoint3, setKeypoint3] = useState("");
+  const [keypointOn, setKeypointOn] = useState(true);
+  const [cara, setCara] = useState("");
+  const [caraOn, setCaraOn] = useState(true);
+  const [negativePrompt, setNegativePrompt] = useState("");
+  const [negativePromptOn, setNegativePromptOn] = useState(false);
+  const [subjek, setSubjek] = useState("");
+  const [subjekOn, setSubjekOn] = useState(false);
+  const [improvement, setImprovement] = useState("");
+  const [improvementOn, setImprovementOn] = useState(false);
+  const [background, setBackground] = useState("");
+  const [backgroundOn, setBackgroundOn] = useState(false);
+
+  const [warnaList, setWarnaList] = useState([]);
+  const [warnaOn, setWarnaOn] = useState(false);
+  const [warnaInput, setWarnaInput] = useState("");
+
+  const [variantState, setVariantState] = useState(DEFAULT_VARIANT_STATE);
+  const [variantSlots, setVariantSlots] = useState({});
+  const [warnaSlots, setWarnaSlots] = useState([]);
+
+  const [generating, setGenerating] = useState(false);
+  const [status, setStatus] = useState({ type: "", text: "" });
+
+  const [editKey, setEditKey] = useState(null);
+  const [editInstruksi, setEditInstruksi] = useState("");
+  const [editStatus, setEditStatus] = useState({ type: "", text: "" });
+  const [editLoading, setEditLoading] = useState(false);
+  const editCanvasRef = useRef(null);
+
+  const [lainLainOpen, setLainLainOpen] = useState(false);
+
+  const produkPreviews = useMemo(() => produkFiles.map((f) => URL.createObjectURL(f)), [produkFiles]);
+  useEffect(() => () => produkPreviews.forEach((u) => URL.revokeObjectURL(u)), [produkPreviews]);
+
+  const framePreview = useMemo(() => (fileFrame ? URL.createObjectURL(fileFrame) : ""), [fileFrame]);
+  useEffect(() => () => { if (framePreview) URL.revokeObjectURL(framePreview); }, [framePreview]);
+
+  const totalAktifVarian = (vs = variantState) => VARIAN.filter((v) => vs[v.num] !== false).length;
+
+  const handleProdukFilesSelected = (fileList) => {
+    const sisa = MAX_PRODUK - produkFiles.length;
+    const dipilih = Array.from(fileList || []).slice(0, sisa);
+    if (dipilih.length) setProdukFiles((prev) => [...prev, ...dipilih]);
+  };
+  const removeProdukFile = (i) => setProdukFiles((prev) => prev.filter((_, idx) => idx !== i));
+
+  const extractFromPdf = async (file) => {
+    const fd = new FormData();
+    fd.append("pdf", file);
+    setPdfStatus({ type: "", text: "Membaca PDF dengan AI…" });
+    try {
+      const res = await api.post("/studio-iklan/extract-pdf", fd);
+      const data = res.data;
+      if (data.sukses === false) throw new Error(data.error || "Ekstraksi gagal tanpa keterangan.");
+
+      let terisi = 0;
+      const setIfVal = (val, setter, toggleSetter) => {
+        const v = (val || "").trim();
+        if (!v) return;
+        setter(v);
+        terisi++;
+        if (toggleSetter) toggleSetter(true);
+      };
+      setIfVal(data.judul_produk, setJudulProduk, setJudulOn);
+      setIfVal(data.tagline, setTagline, setTaglineOn);
+      setIfVal(data.deskripsi, setDeskripsi, setDeskripsiOn);
+      setIfVal(data.spesifikasi, setSpesifikasi, setSpesifikasiOn);
+      setIfVal(data.cara_penggunaan, setCara, setCaraOn);
+      setIfVal(data.subjek, setSubjek, setSubjekOn);
+      setIfVal(data.improvement, setImprovement, setImprovementOn);
+      setIfVal(data.background, setBackground, setBackgroundOn);
+
+      const kpMentah = data.key_point_sell;
+      const kpList = Array.isArray(kpMentah)
+        ? kpMentah.map((s) => String(s).trim()).filter(Boolean)
+        : String(kpMentah || "").split(/\r?\n|,/).map((s) => s.trim()).filter(Boolean);
+      if (kpList.length) {
+        setKeypoint1(kpList[0] || "");
+        setKeypoint2(kpList[1] || "");
+        setKeypoint3(kpList[2] || "");
+        terisi++;
+        setKeypointOn(true);
+      }
+
+      const warnaDariPdf = (data.warna || "").trim();
+      if (warnaDariPdf) {
+        const tambahan = warnaDariPdf.split(/\r?\n|,/).map((w) => w.trim()).filter(Boolean);
+        setWarnaList((prev) => {
+          const merged = [...prev];
+          tambahan.forEach((w) => { if (!merged.some((x) => x.toLowerCase() === w.toLowerCase())) merged.push(w); });
+          return merged;
+        });
+        setWarnaOn(true);
+        terisi++;
+      }
+
+      setPdfStatus({
+        type: "ok",
+        text: terisi > 0 ? `${terisi} field terisi otomatis dari PDF. Cek & edit sebelum generate.` : "PDF terbaca tapi tidak ada field yang bisa diisi otomatis.",
+      });
+    } catch (err) {
+      const msg = err?.response?.data?.detail || err.message;
+      setPdfStatus({ type: "err", text: "Gagal membaca PDF: " + msg });
+    }
+  };
+
+  const handlePdfSelected = (fileList) => {
+    const f = fileList && fileList[0];
+    if (!f) return;
+    setFilePdf(f);
+    extractFromPdf(f);
+  };
+
+  const tambahWarna = () => {
+    const nilai = warnaInput.trim();
+    if (!nilai) return;
+    if (warnaList.some((w) => w.toLowerCase() === nilai.toLowerCase())) { setWarnaInput(""); return; }
+    setWarnaList((prev) => [...prev, nilai]);
+    setWarnaInput("");
+  };
+  const hapusWarna = (i) => setWarnaList((prev) => prev.filter((_, idx) => idx !== i));
+
+  const buildFormDataDasar = (gunakanFrame) => {
+    const fd = new FormData();
+    produkFiles.forEach((f, i) => fd.append("produk_" + (i + 1), f));
+    if (gunakanFrame && fileFrame) fd.append("frame", fileFrame);
+    fd.append("gunakan_frame", gunakanFrame ? "true" : "false");
+    fd.append("deskripsi", deskripsiOn ? deskripsi : "");
+    fd.append("spesifikasi", spesifikasiOn ? spesifikasi : "");
+    const keypointGabung = keypointOn ? [keypoint1, keypoint2, keypoint3].map((s) => s.trim()).filter(Boolean).join("\n") : "";
+    fd.append("key_point_sell", keypointGabung);
+    fd.append("judul_produk", judulOn ? judulProduk : "");
+    fd.append("tagline", taglineOn ? tagline : "");
+    fd.append("cara_penggunaan", caraOn ? cara : "");
+    fd.append("subjek", subjekOn ? subjek : "");
+    fd.append("improvement", improvementOn ? improvement : "");
+    fd.append("background", backgroundOn ? background : "");
+    fd.append("negative_prompt", negativePromptOn ? negativePrompt : "");
+    fd.append("gunakan_negative_prompt", negativePromptOn ? "true" : "false");
+    return fd;
+  };
+
+  const handleGenerate = async () => {
+    setStatus({ type: "", text: "" });
+    if (produkFiles.length === 0) { setStatus({ type: "err", text: "Foto produk belum dipilih (minimal 1, maks 10)." }); return; }
+    const gunakanFrame = frameOn;
+    if (gunakanFrame && !fileFrame) { setStatus({ type: "err", text: "Frame acuan belum dipilih (atau nonaktifkan toggle Frame Acuan)." }); return; }
+    const totalAktif = totalAktifVarian();
+    const warnaAktif = warnaOn && warnaList.length > 0;
+    if (totalAktif === 0 && !warnaAktif) {
+      setStatus({ type: "err", text: "Pilih minimal 1 varian gambar (toggle di kartu hasil) atau tambahkan minimal 1 warna untuk digenerate." });
+      return;
+    }
+
+    const totalSemua = totalAktif + (warnaAktif ? warnaList.length : 0);
+    setGenerating(true);
+    setStatus({ type: "", text: `Mengirim ke n8n. Generate + cleanup AI berjalan, proses sekitar 2-4 menit untuk ${totalSemua} gambar.` });
+
+    const initialSlots = {};
+    VARIAN.forEach((v) => { initialSlots[v.key] = variantState[v.num] !== false ? { status: totalAktif > 0 ? "loading" : "skip" } : { status: "skip" }; });
+    setVariantSlots(initialSlots);
+    setWarnaSlots(warnaAktif ? warnaList.map((w) => ({ warna: w, status: "loading" })) : []);
+
+    let okTotal = 0;
+
+    try {
+      if (totalAktif > 0) {
+        const fd = buildFormDataDasar(gunakanFrame);
+        VARIAN.forEach((v) => fd.append("varian_" + v.num + "_aktif", variantState[v.num] !== false ? "true" : "false"));
+        fd.append("varian_7_aktif", "false");
+
+        const res = await api.post("/studio-iklan/generate", fd);
+        const data = res.data;
+        const hasil = data.hasil || [];
+
+        const newSlots = { ...initialSlots };
+        for (const v of VARIAN) {
+          if (variantState[v.num] === false) { newSlots[v.key] = { status: "skip" }; continue; }
+          const item = hasil.find((h) => h.varian === v.key);
+          if (item && item.image) {
+            okTotal++;
+            let finalImage = item.image;
+            try { finalImage = await bersihkanPojokKiriAtas(finalImage); } catch (e) { console.warn("Gagal membersihkan pojok kiri atas:", e); }
+            let badgeError = "";
+            if (v.key === "2-keypoint" && CANVAS_OVERLAY_KEYPOINT) {
+              let judulBottomY = null;
+              try {
+                const hasilJudul = await tempelJudulProduk(finalImage, judulOn ? judulProduk : "", taglineOn ? tagline : "");
+                finalImage = hasilJudul.image;
+                judulBottomY = hasilJudul.bottomY;
+              } catch (e) { console.warn("Gagal menempel judul produk:", e); }
+              const sebelumBadge = finalImage;
+              try {
+                const keypointGabung = keypointOn ? [keypoint1, keypoint2, keypoint3].map((s) => s.trim()).filter(Boolean).join("\n") : "";
+                finalImage = await tempelBadgeKeyPoint(sebelumBadge, keypointGabung, judulBottomY);
+              } catch (e) {
+                console.error("Gagal menempel badge key point sell:", e);
+                badgeError = e && e.message ? e.message : "Badge key point gagal ditempel.";
+                finalImage = sebelumBadge;
+              }
+            }
+            const m = /^data:([^;]+);base64,(.*)$/.exec(finalImage);
+            newSlots[v.key] = {
+              status: "done",
+              image: finalImage,
+              fileName: item.fileName || (v.key + ".png"),
+              mimeType: m ? m[1] : "image/png",
+              base64: m ? m[2] : "",
+              badgeError,
+            };
+          } else {
+            newSlots[v.key] = { status: "error", errorMsg: "Tidak ada gambar dari API" };
+          }
+        }
+        setVariantSlots(newSlots);
+      }
+
+      if (warnaAktif) {
+        let okWarna = 0;
+        const slotsAcc = warnaList.map((w) => ({ warna: w, status: "loading" }));
+        setWarnaSlots([...slotsAcc]);
+        for (let i = 0; i < warnaList.length; i++) {
+          const warna = warnaList[i];
+          try {
+            const fd = buildFormDataDasar(gunakanFrame);
+            VARIAN.forEach((v) => fd.append("varian_" + v.num + "_aktif", "false"));
+            fd.append("varian_7_aktif", "true");
+            fd.append("warna", warna);
+
+            const res = await api.post("/studio-iklan/generate", fd);
+            const data = res.data;
+            const item = (data.hasil || []).find((h) => h.varian === "7-warna");
+            if (!item || !item.image) throw new Error("Tidak ada gambar dari API");
+
+            okWarna++; okTotal++;
+            let finalImage = item.image;
+            try { finalImage = await bersihkanPojokKiriAtas(finalImage); } catch (e) { console.warn("Gagal membersihkan pojok kiri atas:", e); }
+            const m = /^data:([^;]+);base64,(.*)$/.exec(finalImage);
+            slotsAcc[i] = {
+              warna,
+              status: "done",
+              image: finalImage,
+              fileName: item.fileName || ("warna-" + warna + ".png"),
+              mimeType: m ? m[1] : "image/png",
+              base64: m ? m[2] : "",
+            };
+          } catch (e) {
+            console.error('Gagal generate warna "' + warna + '":', e);
+            slotsAcc[i] = { warna, status: "error", errorMsg: e?.response?.data?.detail || e.message || "Gagal" };
+          }
+          setWarnaSlots([...slotsAcc]);
+        }
+      }
+
+      setStatus({
+        type: "ok",
+        text: okTotal === totalSemua ? `Selesai! ${totalSemua} gambar berhasil dibuat.` : `Selesai dengan ${okTotal} dari ${totalSemua} gambar.`,
+      });
+    } catch (err) {
+      setVariantSlots({});
+      setWarnaSlots([]);
+      const msg = err?.response?.data?.detail || err.message;
+      setStatus({ type: "err", text: "Gagal: " + msg + ". Pastikan workflow n8n aktif." });
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const openEditor = (key) => {
+    const data = key.startsWith("7-warna-") ? warnaSlots[Number(key.split("-").pop())] : variantSlots[key];
+    if (!data || !data.image) return;
+    const img = new Image();
+    img.onload = () => {
+      setEditKey(key);
+      setEditInstruksi("");
+      setEditStatus({ type: "", text: "" });
+      const canvas = editCanvasRef.current;
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      canvas.getContext("2d").drawImage(img, 0, 0);
+    };
+    img.src = data.image;
+  };
+
+  const closeEditor = () => setEditKey(null);
+
+  const handleEditAi = async () => {
+    if (!editKey) return;
+    const instruksi = editInstruksi.trim();
+    if (!instruksi) { setEditStatus({ type: "err", text: "Isi dulu instruksi editnya (contoh: ganti background jadi biru)." }); return; }
+
+    setEditLoading(true);
+    setEditStatus({ type: "", text: "Mengirim gambar + instruksi ke AI, proses sekitar 30-60 detik…" });
+    try {
+      const canvas = editCanvasRef.current;
+      const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
+      const fd = new FormData();
+      fd.append("gambar", blob, "gambar.png");
+      fd.append("instruksi", instruksi);
+
+      const res = await api.post("/studio-iklan/edit-image", fd);
+      const data = res.data;
+      if (data.sukses === false || !data.image) throw new Error(data.error || "AI tidak mengembalikan gambar.");
+
+      const img2 = await new Promise((resolve, reject) => {
+        const el = new Image();
+        el.onload = () => resolve(el);
+        el.onerror = reject;
+        el.src = data.image;
+      });
+      canvas.width = img2.naturalWidth;
+      canvas.height = img2.naturalHeight;
+      canvas.getContext("2d").drawImage(img2, 0, 0);
+
+      setEditStatus({ type: "ok", text: "Selesai! Cek hasilnya, kalau sudah pas tekan Simpan Perubahan. Bisa juga kirim instruksi lain lagi buat edit lanjutan." });
+    } catch (err) {
+      const msg = err?.response?.data?.detail || err.message;
+      setEditStatus({ type: "err", text: "Gagal edit: " + msg });
+    } finally {
+      setEditLoading(false);
+    }
+  };
+
+  const handleEditSave = () => {
+    if (!editKey) return;
+    const canvas = editCanvasRef.current;
+    const dataUrl = canvas.toDataURL("image/png");
+    const m = /^data:([^;]+);base64,(.*)$/.exec(dataUrl);
+    const patch = { image: dataUrl, mimeType: m ? m[1] : "image/png", base64: m ? m[2] : "" };
+    if (editKey.startsWith("7-warna-")) {
+      const idx = Number(editKey.split("-").pop());
+      setWarnaSlots((prev) => { const next = [...prev]; next[idx] = { ...next[idx], ...patch }; return next; });
+    } else {
+      setVariantSlots((prev) => ({ ...prev, [editKey]: { ...prev[editKey], ...patch } }));
+    }
+    setEditKey(null);
+  };
+
+  const totalAktif = totalAktifVarian();
+  const warnaAktif = warnaOn && warnaList.length > 0;
+  const doneCount = VARIAN.reduce((n, v) => n + (variantSlots[v.key]?.status === "done" ? 1 : 0), 0);
+  const warnaDoneCount = warnaSlots.reduce((n, s) => n + (s.status === "done" ? 1 : 0), 0);
+
+  return (
+    <Box sx={{ position: "relative", ...F, height: "100%", display: "flex", flexDirection: "column", overflow: "hidden" }}>
+      <FontStyle />
+
+      {/* ============ MODAL EDIT GAMBAR (AI) ============ */}
+      {editKey && (
+        <Box
+          onClick={(e) => { if (e.target === e.currentTarget) closeEditor(); }}
+          sx={{ position: "fixed", inset: 0, zIndex: 1300, display: "flex", alignItems: "center", justifyContent: "center", p: 2, background: "rgba(2,6,23,0.6)", backdropFilter: "blur(6px)" }}
+        >
+          <Paper sx={{ ...cardShell, borderRadius: "24px", maxWidth: 900, width: "100%", maxHeight: "92vh", overflow: "auto", display: "flex", flexDirection: "column" }}>
+            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ px: 2.5, py: 1.6, borderBottom: "1px solid rgba(148,163,184,0.25)" }}>
+              <Typography sx={{ ...F, fontWeight: 700, fontSize: "0.95rem", color: "#0f172a" }}>Edit Gambar dengan AI</Typography>
+              <IconButton size="small" onClick={closeEditor}><CloseRoundedIcon fontSize="small" /></IconButton>
+            </Stack>
+            <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ p: 2.5 }}>
+              <Box sx={{ flex: 1, minWidth: 280, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "14px", overflow: "hidden", background: "linear-gradient(135deg,rgba(232,237,248,0.9),rgba(234,240,251,0.9))" }}>
+                <canvas ref={editCanvasRef} style={{ maxWidth: "100%", maxHeight: "60vh", display: "block" }} />
+              </Box>
+              <Stack spacing={1.2} sx={{ width: { xs: "100%", sm: 240 }, flexShrink: 0 }}>
+                <Typography sx={{ ...F, fontWeight: 700, fontSize: "0.7rem", color: "#64748b" }}>Instruksi edit</Typography>
+                <TextField
+                  multiline
+                  minRows={4}
+                  size="small"
+                  value={editInstruksi}
+                  onChange={(e) => setEditInstruksi(e.target.value)}
+                  placeholder="Contoh: ganti background jadi gradasi biru, hapus bayangan di kiri, perbesar produk sedikit"
+                  sx={inputSx}
+                />
+                <Button
+                  variant="contained"
+                  disabled={editLoading}
+                  onClick={handleEditAi}
+                  startIcon={editLoading ? <CircularProgress size={14} sx={{ color: "#fff" }} /> : <AutoFixHighRoundedIcon />}
+                  sx={{ ...F, fontWeight: 700, textTransform: "none", borderRadius: "999px", background: "linear-gradient(135deg,#233971,#2e4fa3)" }}
+                >
+                  {editLoading ? "Sedang diedit AI…" : "Edit dengan AI"}
+                </Button>
+                {editStatus.text && (
+                  <Alert severity={editStatus.type === "err" ? "error" : editStatus.type === "ok" ? "success" : "info"} sx={{ ...F, fontSize: "0.72rem", borderRadius: "12px" }}>
+                    {editStatus.text}
+                  </Alert>
+                )}
+                <Button
+                  variant="outlined"
+                  onClick={handleEditSave}
+                  sx={{ ...F, fontWeight: 700, textTransform: "none", borderRadius: "999px", color: "#233971", borderColor: "rgba(35,57,113,0.3)" }}
+                >
+                  Simpan Perubahan
+                </Button>
+              </Stack>
+            </Stack>
+          </Paper>
+        </Box>
+      )}
+
+      <Card elevation={0} sx={{ ...cardShell, flex: 1, height: "100%", minHeight: 0, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+        <Stack direction={{ xs: "column", lg: "row" }} spacing={0} alignItems="stretch" sx={{ flex: 1, minHeight: 0, overflow: { xs: "auto", lg: "hidden" } }}>
+
+          {/* ============ FORM ============ */}
+          <Box sx={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", minHeight: 0, borderRight: { lg: "1px solid rgba(148,163,184,0.18)" } }}>
+            <CardContent sx={{ p: { xs: 1.5, md: "16px 24px" }, overflowY: "auto", flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
+              <Stack spacing={2.2}>
+                <Stack direction="row" spacing={1.2} alignItems="center">
+                  <Box sx={{ width: 34, height: 34, borderRadius: "11px", flexShrink: 0, background: "linear-gradient(135deg,#233971,#2e4fa3)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 6px 16px rgba(35,57,113,0.35)" }}>
+                    <CampaignRoundedIcon sx={{ fontSize: 18, color: "#fff" }} />
+                  </Box>
+                  <Box>
+                    <Typography sx={{ ...F, fontSize: "0.8rem", fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "#0f172a" }}>
+                      Studio Iklan
+                    </Typography>
+                    <Typography sx={{ ...F, fontSize: "0.7rem", color: "#94a3b8", mt: "2px" }}>
+                      Upload foto produk + frame acuan, generate 6 varian gambar iklan otomatis
+                    </Typography>
+                  </Box>
+                </Stack>
+
+                <Divider sx={{ borderColor: "rgba(148,163,184,0.25)" }} />
+
+                <Box>
+                  <Typography sx={{ ...sectionLabel, mb: 0.6 }}>Upload PDF Produk <Typography component="span" sx={{ ...F, fontWeight: 400, textTransform: "none", fontSize: "0.68rem", color: "#94a3b8" }}>(opsional, auto isi form)</Typography></Typography>
+                  <UploadBox
+                    icon={<PictureAsPdfRoundedIcon sx={{ fontSize: 15, color: "#fff" }} />}
+                    title={filePdf ? filePdf.name : "Upload PDF produk"}
+                    subtitle={filePdf ? "Terisi otomatis · klik untuk ganti" : "Klik untuk pilih, form terisi otomatis"}
+                    accept="application/pdf"
+                    onFile={handlePdfSelected}
+                  />
+                  {pdfStatus.text && (
+                    <Alert severity={pdfStatus.type === "err" ? "error" : pdfStatus.type === "ok" ? "success" : "info"} sx={{ ...F, fontSize: "0.68rem", borderRadius: "10px", mt: 0.8, py: 0 }}>
+                      {pdfStatus.text}
+                    </Alert>
+                  )}
+                </Box>
+
+                <Box>
+                  <Typography sx={{ ...sectionLabel, mb: 0.6 }}>Foto Produk <Typography component="span" sx={{ ...F, fontWeight: 400, textTransform: "none", fontSize: "0.68rem", color: "#94a3b8" }}>(maks {MAX_PRODUK})</Typography></Typography>
+                  {produkFiles.length === 0 ? (
+                    <UploadBox
+                      icon={<CloudUploadIcon sx={{ fontSize: 15, color: "#fff" }} />}
+                      title="Upload foto produk"
+                      subtitle="Klik atau drag & drop · bisa multi-select"
+                      accept="image/*"
+                      multiple
+                      onFile={handleProdukFilesSelected}
+                    />
+                  ) : (
+                    <Paper variant="outlined" sx={{ p: 1.2, borderRadius: "14px", borderColor: "rgba(35,57,113,0.25)", background: "rgba(241,245,249,0.9)" }}>
+                      <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(56px,1fr))", gap: 0.8 }}>
+                        {produkPreviews.map((url, i) => (
+                          <Box key={i} sx={{ position: "relative", borderRadius: "8px", overflow: "hidden", aspectRatio: "1/1" }}>
+                            <Box component="img" src={url} alt={`produk-${i}`} sx={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                            <IconButton
+                              size="small"
+                              onClick={() => removeProdukFile(i)}
+                              sx={{ position: "absolute", top: 2, right: 2, width: 18, height: 18, background: "rgba(0,0,0,0.6)", color: "#fff", "&:hover": { background: "#b45309" }, "& svg": { fontSize: 12 } }}
+                            >
+                              <CloseRoundedIcon />
+                            </IconButton>
+                          </Box>
+                        ))}
+                        {produkFiles.length < MAX_PRODUK && (
+                          <Box
+                            onClick={() => document.getElementById("siqFileProduk")?.click()}
+                            sx={{ aspectRatio: "1/1", borderRadius: "8px", border: "1.5px dashed rgba(148,163,184,0.5)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#94a3b8", "&:hover": { borderColor: "#233971", color: "#233971" } }}
+                          >
+                            <AddPhotoAlternateIcon sx={{ fontSize: 18 }} />
+                          </Box>
+                        )}
+                      </Box>
+                      <input id="siqFileProduk" type="file" accept="image/*" multiple hidden onChange={(e) => { handleProdukFilesSelected(e.target.files); e.target.value = ""; }} />
+                      <Typography sx={{ ...F, fontSize: "0.64rem", color: "#94a3b8", mt: 0.8 }}>{produkFiles.length} / {MAX_PRODUK} foto dipilih</Typography>
+                    </Paper>
+                  )}
+                </Box>
+
+                <Box sx={{ opacity: frameOn ? 1 : 0.6 }}>
+                  <Stack direction="row" justifyContent="space-between" alignItems="center" mb={0.6}>
+                    <Typography sx={sectionLabel}>Frame Acuan <Typography component="span" sx={{ ...F, fontWeight: 400, textTransform: "none", fontSize: "0.68rem", color: "#94a3b8" }}>(untuk rasio/layout)</Typography></Typography>
+                    <Switch size="small" checked={frameOn} onChange={(e) => setFrameOn(e.target.checked)} sx={compactSwitchSx} />
+                  </Stack>
+                  <UploadBox
+                    icon={<AddPhotoAlternateIcon sx={{ fontSize: 15, color: "#fff" }} />}
+                    title={fileFrame ? fileFrame.name : "Upload frame acuan"}
+                    subtitle="Tidak ikut muncul di hasil"
+                    accept="image/*"
+                    disabled={!frameOn}
+                    onFile={(files) => setFileFrame(files && files[0] ? files[0] : null)}
+                  />
+                </Box>
+
+                <ToggleField
+                  label="Judul Produk"
+                  hint="(judul besar di gambar hasil, khusus varian Key Point)"
+                  value={judulProduk}
+                  onChange={setJudulProduk}
+                  active={judulOn}
+                  onActiveChange={setJudulOn}
+                  placeholder="Contoh: Eco Brava Fashion Safety Glasses"
+                />
+
+                <ToggleField
+                  label="Tagline"
+                  hint="(subjudul kecil di bawah judul)"
+                  value={tagline}
+                  onChange={setTagline}
+                  active={taglineOn}
+                  onActiveChange={setTaglineOn}
+                  placeholder="Contoh: Gaya Dalam Safety"
+                />
+
+                <ToggleField
+                  label="Deskripsi produk"
+                  value={deskripsi}
+                  onChange={setDeskripsi}
+                  active={deskripsiOn}
+                  onActiveChange={setDeskripsiOn}
+                  textarea
+                  placeholder="Contoh: Blender portabel untuk kebutuhan sehari-hari, desain ringkas dan mudah dibawa…"
+                />
+
+                <ToggleField
+                  label="Spesifikasi"
+                  value={spesifikasi}
+                  onChange={setSpesifikasi}
+                  active={spesifikasiOn}
+                  onActiveChange={setSpesifikasiOn}
+                  textarea
+                  placeholder="Contoh: Kapasitas 500ml, baterai 2000mAh, 6 mata pisau stainless, waktu cas 2 jam"
+                />
+
+                <Box sx={{ opacity: keypointOn ? 1 : 0.6 }}>
+                  <Stack direction="row" justifyContent="space-between" alignItems="center" mb={0.6}>
+                    <Typography sx={sectionLabel}>Key point sell <Typography component="span" sx={{ ...F, fontWeight: 400, textTransform: "none", fontSize: "0.68rem", color: "#94a3b8" }}>(tepat 3 poin)</Typography></Typography>
+                    <Switch size="small" checked={keypointOn} onChange={(e) => setKeypointOn(e.target.checked)} sx={compactSwitchSx} />
+                  </Stack>
+                  <Stack spacing={0.8}>
+                    <TextField size="small" fullWidth value={keypoint1} onChange={(e) => setKeypoint1(e.target.value)} disabled={!keypointOn} placeholder="Poin 1: Charge sekali, blend 15x" sx={inputSx} />
+                    <TextField size="small" fullWidth value={keypoint2} onChange={(e) => setKeypoint2(e.target.value)} disabled={!keypointOn} placeholder="Poin 2: Bisa dibawa ke mana saja" sx={inputSx} />
+                    <TextField size="small" fullWidth value={keypoint3} onChange={(e) => setKeypoint3(e.target.value)} disabled={!keypointOn} placeholder="Poin 3: Baterai tahan seharian" sx={inputSx} />
+                  </Stack>
+                </Box>
+
+                <ToggleField
+                  label="Cara penggunaan"
+                  value={cara}
+                  onChange={setCara}
+                  active={caraOn}
+                  onActiveChange={setCaraOn}
+                  textarea
+                  placeholder="Contoh: 1) Isi buah & air 2) Pasang tutup 3) Tekan tombol 2x"
+                />
+
+                <ToggleField
+                  label="Negative prompt"
+                  value={negativePrompt}
+                  onChange={setNegativePrompt}
+                  active={negativePromptOn}
+                  onActiveChange={setNegativePromptOn}
+                  textarea
+                  placeholder="Contoh: teks buram, watermark, jari cacat, proporsi salah, latar berantakan"
+                />
+
+                <Box sx={sectionCardSx}>
+                  <Stack direction="row" justifyContent="space-between" alignItems="center" onClick={() => setLainLainOpen((v) => !v)} sx={{ cursor: "pointer" }}>
+                    <Typography sx={sectionLabel}>Lain-lain <Typography component="span" sx={{ ...F, fontWeight: 400, textTransform: "none", fontSize: "0.68rem", color: "#94a3b8" }}>(subjek, improvement, background, warna)</Typography></Typography>
+                    <IconButton size="small">{lainLainOpen ? <KeyboardArrowUpRoundedIcon fontSize="small" /> : <KeyboardArrowDownRoundedIcon fontSize="small" />}</IconButton>
+                  </Stack>
+                  {lainLainOpen && (
+                    <Stack spacing={2} sx={{ mt: 1.5 }}>
+                      <ToggleField
+                        label="Subjek / model"
+                        value={subjek}
+                        onChange={setSubjek}
+                        active={subjekOn}
+                        onActiveChange={setSubjekOn}
+                        placeholder="Contoh: wanita muda di dapur modern"
+                      />
+                      <ToggleField
+                        label="Improvement kreatif"
+                        value={improvement}
+                        onChange={setImprovement}
+                        active={improvementOn}
+                        onActiveChange={setImprovementOn}
+                        placeholder="Contoh: splash buah segar, kesan dinamis"
+                      />
+                      <ToggleField
+                        label="Background & cahaya"
+                        value={background}
+                        onChange={setBackground}
+                        active={backgroundOn}
+                        onActiveChange={setBackgroundOn}
+                        placeholder="Contoh: gradasi oranye, cahaya pagi hangat"
+                      />
+
+                      <Box sx={{ opacity: warnaOn ? 1 : 0.6 }}>
+                        <Stack direction="row" justifyContent="space-between" alignItems="center" mb={0.6}>
+                          <Typography sx={sectionLabel}>Varian warna <Typography component="span" sx={{ ...F, fontWeight: 400, textTransform: "none", fontSize: "0.68rem", color: "#94a3b8" }}>(1 gambar per warna)</Typography></Typography>
+                          <Switch size="small" checked={warnaOn} onChange={(e) => setWarnaOn(e.target.checked)} sx={compactSwitchSx} />
+                        </Stack>
+                        <Stack direction="row" spacing={0.8}>
+                          <TextField
+                            size="small"
+                            fullWidth
+                            value={warnaInput}
+                            onChange={(e) => setWarnaInput(e.target.value)}
+                            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); tambahWarna(); } }}
+                            disabled={!warnaOn}
+                            placeholder="Contoh: hitam, lalu tekan Tambah"
+                            sx={inputSx}
+                          />
+                          <Button
+                            variant="contained"
+                            disabled={!warnaOn}
+                            onClick={tambahWarna}
+                            startIcon={<AddRoundedIcon sx={{ fontSize: "16px !important" }} />}
+                            sx={{ ...F, flexShrink: 0, borderRadius: "999px", textTransform: "none", fontWeight: 700, fontSize: "0.75rem", background: "linear-gradient(135deg,#233971,#2e4fa3)" }}
+                          >
+                            Tambah
+                          </Button>
+                        </Stack>
+                        {warnaList.length > 0 && (
+                          <Stack direction="row" flexWrap="wrap" gap={0.8} sx={{ mt: 1 }}>
+                            {warnaList.map((warna, i) => (
+                              <Chip
+                                key={warna + i}
+                                label={warna}
+                                onDelete={() => hapusWarna(i)}
+                                size="small"
+                                icon={<PaletteRoundedIcon sx={{ fontSize: "14px !important" }} />}
+                                sx={{ ...F, fontWeight: 600, background: "rgba(35,57,113,0.08)", color: "#233971", border: "1px solid rgba(35,57,113,0.2)" }}
+                              />
+                            ))}
+                          </Stack>
+                        )}
+                      </Box>
+                    </Stack>
+                  )}
+                </Box>
+
+                <Button
+                  fullWidth
+                  variant="contained"
+                  disabled={generating}
+                  onClick={handleGenerate}
+                  startIcon={generating ? <CircularProgress size={16} sx={{ color: "#fff" }} /> : <CampaignRoundedIcon />}
+                  sx={{ ...F, fontWeight: 700, textTransform: "none", fontSize: "0.85rem", borderRadius: "999px", py: 1.1, background: "linear-gradient(135deg,#233971,#2e4fa3)", boxShadow: "0 8px 20px rgba(35,57,113,0.35)" }}
+                >
+                  {generating ? "Sedang generate…" : "Generate 6 Gambar"}
+                </Button>
+                {status.text && (
+                  <Alert severity={status.type === "err" ? "error" : status.type === "ok" ? "success" : "info"} sx={{ ...F, fontSize: "0.72rem", borderRadius: "12px" }}>
+                    {status.text}
+                  </Alert>
+                )}
+              </Stack>
+            </CardContent>
+          </Box>
+
+          {/* ============ HASIL ============ */}
+          <Box sx={{ flex: 1.15, display: "flex", flexDirection: "column", overflow: "hidden", minHeight: 0 }}>
+            <CardContent sx={{ p: { xs: 1.5, md: "16px 24px" }, overflowY: "auto", flex: 1, minHeight: 0 }}>
+              <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1.2}>
+                <Typography sx={sectionLabel}>Hasil Generate</Typography>
+                <Chip size="small" label={`${doneCount} / ${totalAktif}`} sx={{ ...F, fontWeight: 700, fontSize: "0.68rem", background: "rgba(35,57,113,0.08)", color: "#233971" }} />
+              </Stack>
+              <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(190px,1fr))", gap: 1.2 }}>
+                {VARIAN.map((v, i) => {
+                  const aktif = variantState[v.num] !== false;
+                  const slot = variantSlots[v.key];
+                  const status2 = aktif ? (slot?.status || "idle") : "skip";
+                  return (
+                    <ResultCard
+                      key={v.key}
+                      label={v.label}
+                      index={i}
+                      active={aktif}
+                      onToggleActive={(checked) => setVariantState((s) => ({ ...s, [v.num]: checked }))}
+                      status={status2}
+                      data={slot}
+                      onEdit={() => openEditor(v.key)}
+                    />
+                  );
+                })}
+              </Box>
+
+              {warnaAktif && (
+                <>
+                  <Stack direction="row" justifyContent="space-between" alignItems="center" mt={2.5} mb={1.2}>
+                    <Typography sx={sectionLabel}>Varian Warna</Typography>
+                    <Chip size="small" label={`${warnaDoneCount} / ${warnaList.length}`} sx={{ ...F, fontWeight: 700, fontSize: "0.68rem", background: "rgba(35,57,113,0.08)", color: "#233971" }} />
+                  </Stack>
+                  <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(190px,1fr))", gap: 1.2 }}>
+                    {warnaList.map((warna, i) => {
+                      const slot = warnaSlots[i];
+                      const status2 = slot?.status || "idle";
+                      return (
+                        <ResultCard
+                          key={warna + i}
+                          label={`Warna ${warna}`}
+                          subtitle={`Warna: ${warna}`}
+                          index={i}
+                          active
+                          status={status2}
+                          data={slot}
+                          onEdit={() => openEditor("7-warna-" + i)}
+                        />
+                      );
+                    })}
+                  </Box>
+                </>
+              )}
+            </CardContent>
+          </Box>
+        </Stack>
+      </Card>
+    </Box>
+  );
+}

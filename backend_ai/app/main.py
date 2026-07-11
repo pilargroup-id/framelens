@@ -7,6 +7,7 @@ from pathlib import Path
 from datetime import datetime
 
 from typing import Optional
+import httpx
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Request, Depends, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
@@ -21,6 +22,9 @@ from app.config import (
     OUTPUT_DIR,
     GEMINI_API_KEY_ECOMMERCE,
     GEMINI_API_KEY_PRODUCT,
+    STUDIO_IKLAN_WEBHOOK_GENERATE,
+    STUDIO_IKLAN_WEBHOOK_PDF,
+    STUDIO_IKLAN_WEBHOOK_EDIT,
 )
 from app.gemini_service import edit_image_with_gemini
 from app.auth import verify_token
@@ -440,6 +444,58 @@ async def delete_gallery_bulk(
             errors.append(f"{safe_name}: {e}")
 
     return {"success": True, "message": f"{deleted} file berhasil dihapus", "deleted": deleted, "errors": errors}
+
+
+# ── Studio Iklan — proxy ke n8n (URL webhook cuma ada di server, tidak dikirim ke frontend) ──
+
+async def _proxy_multipart_to_webhook(webhook_url: str, request: Request):
+    if not webhook_url:
+        raise HTTPException(
+            status_code=503,
+            detail="Webhook Studio Iklan belum dikonfigurasi di server. Hubungi admin IT.",
+        )
+
+    form = await request.form()
+    data = {}
+    files = {}
+    for key, value in form.multi_items():
+        if hasattr(value, "read"):
+            content = await value.read()
+            files[key] = (value.filename, content, value.content_type or "application/octet-stream")
+        else:
+            data[key] = value
+
+    try:
+        async with httpx.AsyncClient(timeout=300.0) as client:
+            resp = await client.post(webhook_url, data=data, files=files or None)
+    except httpx.RequestError as e:
+        raise HTTPException(status_code=502, detail=f"Gagal menghubungi workflow n8n: {e}")
+
+    if resp.status_code >= 400:
+        raise HTTPException(status_code=502, detail=f"n8n merespons dengan status {resp.status_code}")
+
+    try:
+        return resp.json()
+    except ValueError:
+        raise HTTPException(status_code=502, detail="n8n tidak mengembalikan JSON yang valid")
+
+
+@app.post("/studio-iklan/generate")
+@app.post("/api/studio-iklan/generate")
+async def studio_iklan_generate(request: Request, current_user: dict = Depends(verify_token)):
+    return await _proxy_multipart_to_webhook(STUDIO_IKLAN_WEBHOOK_GENERATE, request)
+
+
+@app.post("/studio-iklan/extract-pdf")
+@app.post("/api/studio-iklan/extract-pdf")
+async def studio_iklan_extract_pdf(request: Request, current_user: dict = Depends(verify_token)):
+    return await _proxy_multipart_to_webhook(STUDIO_IKLAN_WEBHOOK_PDF, request)
+
+
+@app.post("/studio-iklan/edit-image")
+@app.post("/api/studio-iklan/edit-image")
+async def studio_iklan_edit_image(request: Request, current_user: dict = Depends(verify_token)):
+    return await _proxy_multipart_to_webhook(STUDIO_IKLAN_WEBHOOK_EDIT, request)
 
 
 # ── Static & SPA ─────────────────────────────────────────────────────────────
