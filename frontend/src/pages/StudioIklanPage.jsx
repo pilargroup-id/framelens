@@ -46,9 +46,9 @@ const VARIAN = [
 const DEFAULT_VARIANT_STATE = { 1: false, 2: true, 3: true, 4: true, 5: false, 6: false };
 const MAX_VARIAN_GENERATE = 3;
 const KEYPOINT_BACKGROUND_RULE =
-  "Khusus varian Key Point Sell: area belakang 3 key point harus bersih, polos, dan menyatu. Jangan tambahkan tulisan, label, logo, watermark, stempel, badge tambahan, badge 'AI approved', teks 'approved', ikon ekstra, bentuk dekoratif, panel aneh, atau elemen apa pun selain tepat 3 key point yang diminta.";
+  "Khusus varian Key Point Sell: boleh meniru arah layout foto iklan marketplace seperti produk besar di kiri/tengah, judul di kanan atas, dan tepat 3 key point di kanan. Tapi JANGAN masukkan frame/template acuan: jangan buat border/bingkai tepi biru, rounded frame, kotak/logo brand di kiri atas, banner atas, watermark, tulisan GOSAVE/PASTI AMAN dari contoh, garis diagonal, atau elemen template lain. JANGAN buat panel/kolom biru solid di belakang 3 key point dan jangan buat wash/tint/bayangan/glow biru di background. Background di belakang 3 key point harus tetap foto natural yang menyatu dengan background utama. Untuk 3 key point, boleh pakai tepat 3 lingkaran icon kecil berwarna biru/navy seperti contoh, tapi hanya itu saja; jangan tambah badge, logo, teks 'AI approved', teks 'approved', stempel, atau elemen lain.";
 const EXTRA_NEGATIVE_PROMPT =
-  "AI approved, approved, watermark, logo tambahan, badge tambahan, stempel, label tambahan, ikon ekstra, elemen dekoratif aneh, teks tambahan di luar instruksi, panel aneh di belakang key point";
+  "frame acuan masuk ke hasil, border biru, bingkai tepi biru, rounded frame, logo GOSAVE, GOSAVE PASTI AMAN, banner logo kiri atas, watermark, panel biru solid, kolom biru solid, background biru solid, navy panel, navy wash, blue wash, blue tint, blue shadow, glow biru, bayangan biru, garis diagonal, garis geometris, pola garis, AI approved, approved, logo tambahan, badge tambahan selain 3 key point, stempel, label tambahan, ikon ekstra, elemen dekoratif aneh, teks tambahan di luar instruksi";
 
 // n8n "Prompt 2 - Item + Key Point Sell" sekarang minta AI gambar judul/tagline/badge sendiri,
 // jadi overlay Canvas di sini dimatikan supaya tidak dobel. Set true lagi kalau n8n dikembalikan
