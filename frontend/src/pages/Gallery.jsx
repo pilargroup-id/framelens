@@ -788,30 +788,23 @@ function DatePickerBox({ label, value, onChange }) {
                       </TextField>
                     </Stack>
 
-                    <Button
-                      onClick={()=>{
-                        if (selectMode) { setSelectMode(false); setSelectedIds(new Set()); }
-                        else setSelectMode(true);
-                      }}
-                      variant="contained"
-                      size="small"
-                      startIcon={<CheckBoxOutlineBlankRoundedIcon sx={{ fontSize:"14px !important" }}/>}
-                      sx={{
-                        ...pill({ py:0.45, px:1.6, fontSize:"0.72rem" }),
-                        background: selectMode
-                          ? "rgba(35,57,113,0.1)"
-                          : "linear-gradient(135deg,#2a9d8f,#23857a)",
-                        color: selectMode ? "#233971" : "#fff",
-                        border: selectMode ? "1px solid rgba(35,57,113,0.3)" : "none",
-                        boxShadow: selectMode ? "none" : "0 6px 16px rgba(42,157,143,0.32)",
-                        "&:hover":{
-                          background: selectMode ? "rgba(35,57,113,0.16)" : "linear-gradient(135deg,#23857a,#1c6b62)",
-                          boxShadow: selectMode ? "none" : "0 8px 20px rgba(42,157,143,0.42)",
-                        },
-                      }}
-                    >
-                      Select Images
-                    </Button>
+                    {!selectMode && (
+                      <Button
+                        onClick={()=>setSelectMode(true)}
+                        variant="contained"
+                        size="small"
+                        startIcon={<CheckBoxOutlineBlankRoundedIcon sx={{ fontSize:"14px !important" }}/>}
+                        sx={{
+                          ...pill({ py:0.45, px:1.6, fontSize:"0.72rem" }),
+                          background:"linear-gradient(135deg,#2a9d8f,#23857a)",
+                          color:"#fff",
+                          boxShadow:"0 6px 16px rgba(42,157,143,0.32)",
+                          "&:hover":{ background:"linear-gradient(135deg,#23857a,#1c6b62)", boxShadow:"0 8px 20px rgba(42,157,143,0.42)" },
+                        }}
+                      >
+                        Select Images
+                      </Button>
+                    )}
 
                     {selectMode && (
                       <Stack direction="row" spacing={0.8} alignItems="center" flexWrap="wrap" useFlexGap>
@@ -822,6 +815,20 @@ function DatePickerBox({ label, value, onChange }) {
                           label={selectedIds.size>0 ? `${selectedIds.size} Selected` : "Select Mode Active"}
                           sx={{ ...F, fontWeight:800, fontSize:"0.7rem", height:24, color:"#fff", background:"linear-gradient(135deg,#2a9d8f,#23857a)", borderRadius:"999px", boxShadow:"0 6px 16px rgba(42,157,143,0.3)", cursor:"pointer", "&:hover":{ background:"linear-gradient(135deg,#23857a,#1c6b62)" } }}
                         />
+                        <Button
+                          onClick={toggleAll}
+                          variant="contained"
+                          size="small"
+                          sx={{
+                            ...pill({ py:0.3, px:1.2, fontSize:"0.68rem" }),
+                            background:"rgba(35,57,113,0.1)",
+                            color:"#233971",
+                            boxShadow:"none",
+                            "&:hover":{ background:"rgba(35,57,113,0.18)" },
+                          }}
+                        >
+                          {allSelected ? "Deselect All" : "Select All"}
+                        </Button>
                         {selectedIds.size>0 && (
                           <Button
                             onClick={()=>openConfirm("selected", null, selectedIds.size)}
@@ -939,8 +946,6 @@ function DatePickerBox({ label, value, onChange }) {
                         } : {},
                       }}
                     >
-                      <WaterMark index={index}/>
-
                       {/* ── Image area ── */}
                       <Box
                         onClick={()=>!selectMode && openPreview(item)}
@@ -1060,6 +1065,7 @@ function DatePickerBox({ label, value, onChange }) {
                       <CardContent
                         sx={{
                           p:"12px 14px 14px",
+                          "&:last-child":{ pb:"14px" },
                           position:"relative", zIndex:1,
                           flex:1, display:"flex", flexDirection:"column",
                           overflow:"hidden", boxSizing:"border-box",
@@ -1105,7 +1111,7 @@ function DatePickerBox({ label, value, onChange }) {
                               <button
                                 type="button"
                                 className="users-table-card__action"
-                                style={{ flex:1, borderRadius:"12px", fontSize:"0.78rem", gap:"6px", fontFamily:"'Sora',sans-serif", minHeight:"36px", padding:"0.55rem 0.8rem" }}
+                                style={{ flex:1, borderRadius:"999px", fontSize:"0.78rem", gap:"6px", fontFamily:"'Sora',sans-serif", minHeight:"36px", padding:"0.55rem 0.8rem" }}
                                 onClick={()=>handleEditInEditor(item)}
                               >
                                 <EditRoundedIcon style={{ fontSize:15, flexShrink:0 }}/>
@@ -1117,7 +1123,7 @@ function DatePickerBox({ label, value, onChange }) {
                                   flex:1, display:"flex", alignItems:"center", justifyContent:"center",
                                   gap:"4px", fontSize:"0.78rem", fontWeight:700, fontFamily:"'Sora',sans-serif",
                                   minHeight:"36px", padding:"0.55rem 0.8rem",
-                                  borderRadius:"12px", border:"none", cursor:"pointer",
+                                  borderRadius:"999px", border:"none", cursor:"pointer",
                                   background:"linear-gradient(135deg,#233971,#2e4fa3)",
                                   color:"#fff",
                                   boxShadow:"0 4px 12px rgba(35,57,113,0.32)",
