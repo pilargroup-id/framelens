@@ -1006,12 +1006,6 @@ export default function PromptBuilderGTPage() {
                     </Stack>
                   </Stack>
 
-                  {copied && (
-                    <Alert severity="success" sx={{ borderRadius: "12px", ...F, fontSize: "0.8rem", mb: 1.5, border: "1px solid rgba(35,57,113,0.18)", background: "rgba(232,237,248,0.9)", "& .MuiAlert-icon": { color: "#233971" }, color: "#233971", flexShrink: 0 }}>
-                      Prompt copied — paste directly into AI image generator!
-                    </Alert>
-                  )}
-
                   <Box sx={{
                     borderRadius: "16px",
                     border: "1.5px solid rgba(35,57,113,0.2)",

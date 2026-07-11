@@ -75,7 +75,7 @@
   const F = { fontFamily:"'Sora',sans-serif" };
 
   const IMG_H          = 180;
-  const CARD_H         = 420;
+  const CARD_H         = 370;
   const FILENAME_LINES = 1;
 
   /* ── card shell ── */
@@ -647,14 +647,14 @@ function DatePickerBox({ label, value, onChange }) {
               backdropFilter:"none",
             }}
           >
-            <CardContent sx={{ p:{ xs:2,md:"16px 20px" }, position:"relative", zIndex:2 }}>
-              <Stack spacing={1.75}>
-                <Stack direction={{ xs:"column", lg:"row" }} alignItems={{ xs:"stretch", lg:"center" }} justifyContent="space-between" spacing={1.5}>
+            <CardContent sx={{ p:{ xs:1.2,md:"8px 16px" }, "&:last-child":{ pb:{ xs:1.2,md:"8px" } }, position:"relative", zIndex:2 }}>
+              <Stack spacing={0.7}>
+                <Stack direction={{ xs:"column", lg:"row" }} alignItems={{ xs:"stretch", lg:"center" }} justifyContent="space-between" spacing={1}>
                   <Box>
-                    <Typography sx={{ ...F, fontSize:"0.72rem", fontWeight:700, letterSpacing:"0.08em", textTransform:"uppercase", color:"#0f172a" }}>
+                    <Typography sx={{ ...F, fontSize:"0.7rem", fontWeight:700, letterSpacing:"0.08em", textTransform:"uppercase", color:"#0f172a" }}>
                       Gallery Header
                     </Typography>
-                    <Typography sx={{ ...F, fontSize:"0.66rem", color:"#64748b", mt:0.4 }}>
+                    <Typography sx={{ ...F, fontSize:"0.64rem", color:"#64748b", mt:0.2 }}>
                       Item count summary and active filters for the image gallery.
                     </Typography>
                   </Box>
@@ -754,11 +754,11 @@ function DatePickerBox({ label, value, onChange }) {
 
                 <Stack direction="row" spacing={2} alignItems="flex-start" justifyContent="space-between">
                   <Box sx={{ flexShrink:0 }}>
-                    <Typography sx={{ ...F, fontSize:"0.68rem", color:"#64748b", mb:0.25 }}>Total items</Typography>
-                    <Typography sx={{ ...F, fontSize:"1.3rem", fontWeight:800, color:"#0f172a" }}>{filteredGallery.length}</Typography>
+                    <Typography sx={{ ...F, fontSize:"0.62rem", color:"#64748b", mb:0.1 }}>Total items</Typography>
+                    <Typography sx={{ ...F, fontSize:"0.92rem", fontWeight:800, color:"#0f172a" }}>{filteredGallery.length}</Typography>
                   </Box>
 
-                  <Stack direction="row" spacing={1.4} alignItems="center" flexWrap="wrap" justifyContent="flex-end" useFlexGap>
+                  <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" justifyContent="flex-end" useFlexGap>
                     <Stack direction="row" spacing={0.8} alignItems="center">
                       <Typography sx={{ ...F, fontSize:"0.72rem", fontWeight:600, color:"#64748b", whiteSpace:"nowrap" }}>
                         Show:
@@ -788,45 +788,40 @@ function DatePickerBox({ label, value, onChange }) {
                       </TextField>
                     </Stack>
 
-                    {!selectMode && (
-                      <Button
-                        onClick={()=>setSelectMode(true)}
-                        variant="contained"
-                        size="small"
-                        startIcon={<CheckBoxOutlineBlankRoundedIcon sx={{ fontSize:"14px !important" }}/>}
-                        sx={{
-                          ...pill({ py:0.45, px:1.6, fontSize:"0.72rem" }),
-                          background:"linear-gradient(135deg,#2a9d8f,#23857a)",
-                          boxShadow:"0 6px 16px rgba(42,157,143,0.32)",
-                          "&:hover":{ background:"linear-gradient(135deg,#23857a,#1c6b62)", boxShadow:"0 8px 20px rgba(42,157,143,0.42)" },
-                        }}
-                      >
-                        Select Images
-                      </Button>
-                    )}
+                    <Button
+                      onClick={()=>{
+                        if (selectMode) { setSelectMode(false); setSelectedIds(new Set()); }
+                        else setSelectMode(true);
+                      }}
+                      variant="contained"
+                      size="small"
+                      startIcon={<CheckBoxOutlineBlankRoundedIcon sx={{ fontSize:"14px !important" }}/>}
+                      sx={{
+                        ...pill({ py:0.45, px:1.6, fontSize:"0.72rem" }),
+                        background: selectMode
+                          ? "rgba(35,57,113,0.1)"
+                          : "linear-gradient(135deg,#2a9d8f,#23857a)",
+                        color: selectMode ? "#233971" : "#fff",
+                        border: selectMode ? "1px solid rgba(35,57,113,0.3)" : "none",
+                        boxShadow: selectMode ? "none" : "0 6px 16px rgba(42,157,143,0.32)",
+                        "&:hover":{
+                          background: selectMode ? "rgba(35,57,113,0.16)" : "linear-gradient(135deg,#23857a,#1c6b62)",
+                          boxShadow: selectMode ? "none" : "0 8px 20px rgba(42,157,143,0.42)",
+                        },
+                      }}
+                    >
+                      Select Images
+                    </Button>
 
                     {selectMode && (
                       <Stack direction="row" spacing={0.8} alignItems="center" flexWrap="wrap" useFlexGap>
                         <Chip
                           size="small"
+                          onClick={()=>{ setSelectMode(false); setSelectedIds(new Set()); }}
                           icon={<CheckBoxRoundedIcon sx={{ fontSize:"14px !important", color:"#fff !important" }}/>}
                           label={selectedIds.size>0 ? `${selectedIds.size} Selected` : "Select Mode Active"}
-                          sx={{ ...F, fontWeight:800, fontSize:"0.7rem", height:24, color:"#fff", background:"linear-gradient(135deg,#2a9d8f,#23857a)", borderRadius:"999px", boxShadow:"0 6px 16px rgba(42,157,143,0.3)" }}
+                          sx={{ ...F, fontWeight:800, fontSize:"0.7rem", height:24, color:"#fff", background:"linear-gradient(135deg,#2a9d8f,#23857a)", borderRadius:"999px", boxShadow:"0 6px 16px rgba(42,157,143,0.3)", cursor:"pointer", "&:hover":{ background:"linear-gradient(135deg,#23857a,#1c6b62)" } }}
                         />
-                        <Button
-                          onClick={toggleAll}
-                          variant="outlined"
-                          size="small"
-                          sx={{
-                            ...pill({ py:0.3, px:1.2, fontSize:"0.68rem" }),
-                            borderColor:"rgba(35,57,113,0.35)", color:"#233971",
-                            background:"rgba(255,255,255,0.85)",
-                            "&:hover":{ borderColor:"#233971", background:"rgba(35,57,113,0.06)" },
-                          }}
-                        >
-                          {allSelected ? "Deselect All" : "Select All"}
-                        </Button>
-
                         {selectedIds.size>0 && (
                           <Button
                             onClick={()=>openConfirm("selected", null, selectedIds.size)}
@@ -843,20 +838,12 @@ function DatePickerBox({ label, value, onChange }) {
                             Delete {selectedIds.size}
                           </Button>
                         )}
-
-                        <IconButton
-                          onClick={()=>{ setSelectMode(false); setSelectedIds(new Set()); }}
-                          size="small"
-                          sx={{ width:26, height:26, borderRadius:"9px", border:"1px solid rgba(35,57,113,0.22)", background:"rgba(255,255,255,0.85)", "&:hover":{ background:"#fff" } }}
-                        >
-                          <CloseRoundedIcon sx={{ fontSize:14, color:"#233971" }}/>
-                        </IconButton>
                       </Stack>
                     )}
 
                     <Box sx={{ minWidth:0, textAlign:"right" }}>
-                      <Typography sx={{ ...F, fontSize:"0.68rem", color:"#64748b", mb:0.25 }}>Date Range</Typography>
-                      <Typography sx={{ ...F, fontSize:{ xs:"0.75rem", sm:"0.85rem" }, fontWeight:700, color:"#0f172a", wordBreak:"break-word" }}>{dateRangeText}</Typography>
+                      <Typography sx={{ ...F, fontSize:"0.62rem", color:"#64748b", lineHeight:1.2, mb:0 }}>Date Range</Typography>
+                      <Typography sx={{ ...F, fontSize:{ xs:"0.66rem", sm:"0.72rem" }, fontWeight:700, color:"#0f172a", lineHeight:1.2, wordBreak:"break-word" }}>{dateRangeText}</Typography>
                     </Box>
                   </Stack>
                 </Stack>
@@ -879,22 +866,20 @@ function DatePickerBox({ label, value, onChange }) {
                 flexDirection:"column",
               }}
             >
-              <CardContent sx={{ position:"relative", zIndex:2, flex:1, minHeight:0, display:"flex", alignItems:"center", justifyContent:"center", overflowY:"auto" }}>
-                <Stack spacing={2.2} alignItems="center" textAlign="center">
-                  <Box sx={{ position:"relative", width:96, height:96, borderRadius:"50%" }}>
-                    <Box sx={{ position:"absolute", inset:0, borderRadius:"50%", border:"2px dashed rgba(35,57,113,0.22)", animation:"spinSlow 8s linear infinite" }}/>
-                    <Box sx={{ position:"absolute", inset:10, borderRadius:"50%", background:"linear-gradient(135deg,rgba(35,57,113,0.12),rgba(46,79,163,0.10))", display:"flex", alignItems:"center", justifyContent:"center" }}>
-                      <CollectionsRoundedIcon sx={{ fontSize:40, color:"#233971" }}/>
-                    </Box>
+              <CardContent sx={{ p:{ xs:1.5,md:"10px 18px" }, position:"relative", zIndex:2, flex:1, minHeight:0, display:"flex", alignItems:"center", justifyContent:"center", overflowY:"auto" }}>
+                <Stack spacing={1} alignItems="center" textAlign="center">
+                  <Box sx={{ width:56, height:56, borderRadius:"16px", background:"rgba(35,57,113,0.12)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                    <CollectionsRoundedIcon sx={{ fontSize:28, color:"#233971" }}/>
                   </Box>
 
-                  <Typography variant="h6" sx={{ ...F, fontWeight:800, color:"#0f172a" }}>
-                    No generated results yet
-                  </Typography>
-
-                  <Typography sx={{ ...F, color:"#64748b", maxWidth:520, lineHeight:1.75 }}>
-                    Once an image is generated from the editor page, it will automatically appear in this gallery.
-                  </Typography>
+                  <Box>
+                    <Typography sx={{ ...F, fontWeight:800, fontSize:"0.85rem", color:"#0f172a" }}>
+                      No generated results yet
+                    </Typography>
+                    <Typography sx={{ ...F, fontSize:"0.7rem", color:"#64748b", mt:0.1 }}>
+                      Once an image is generated from the editor page, it will automatically appear here.
+                    </Typography>
+                  </Box>
                 </Stack>
               </CardContent>
             </Card>
@@ -1114,10 +1099,8 @@ function DatePickerBox({ label, value, onChange }) {
                           />
                         </Stack>
 
-                        <Box sx={{ flex:1 }}/>
-
-                        <Box sx={{ flexShrink:0 }}>
-                          {!selectMode ? (
+                        {!selectMode && (
+                          <Box sx={{ flexShrink:0 }}>
                             <div style={{ display:"flex", gap:"6px" }}>
                               <button
                                 type="button"
@@ -1148,18 +1131,8 @@ function DatePickerBox({ label, value, onChange }) {
                                 Download
                               </button>
                             </div>
-                          ) : (
-                            <Typography
-                              sx={{
-                                ...F, fontSize:"0.72rem", fontWeight:600,
-                                color:isSelected ? "#233971" : "#94a3b8",
-                                textAlign:"center", py:0.5,
-                              }}
-                            >
-                              {isSelected ? "✓ Selected" : "Tap to select"}
-                            </Typography>
-                          )}
-                        </Box>
+                          </Box>
+                        )}
                       </CardContent>
                     </Card>
                   );
@@ -1173,31 +1146,29 @@ function DatePickerBox({ label, value, onChange }) {
                 sx={{
                   mt:1,
                   flexShrink:0,
-                  p:{ xs:"14px 16px",sm:"14px 24px" },
-                  borderRadius:"18px",
+                  p:{ xs:"10px 14px",sm:"10px 18px" },
+                  borderRadius:"16px",
                   background:"linear-gradient(145deg,#e8edf8 0%,#f0f4fb 60%,#eaf0fb 100%)",
                   border:"1px solid rgba(35,57,113,0.18)",
                   boxShadow:"0 2px 12px rgba(35,57,113,0.07)",
                   position:"relative", overflow:"hidden",
                 }}
               >
-                <GridViewRoundedIcon aria-hidden sx={{ position:"absolute", right:-8, top:-10, fontSize:88, color:"rgba(35,57,113,0.07)", pointerEvents:"none" }}/>
-
                 <Stack
                   direction={{ xs:"column",sm:"row" }}
                   alignItems={{ xs:"flex-start",sm:"center" }}
                   justifyContent="space-between"
                   spacing={{ xs:2,sm:0 }}
                 >
-                  <Stack direction="row" spacing={1.2} alignItems="center">
-                    <Box sx={{ width:32, height:32, borderRadius:"10px", background:"linear-gradient(135deg,#233971,#2e4fa3)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                      <GridViewRoundedIcon sx={{ color:"#fff", fontSize:16 }}/>
+                  <Stack direction="row" spacing={1} alignItems="center">
+                    <Box sx={{ width:26, height:26, borderRadius:"8px", background:"linear-gradient(135deg,#233971,#2e4fa3)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                      <GridViewRoundedIcon sx={{ color:"#fff", fontSize:13 }}/>
                     </Box>
                     <Box>
-                      <Typography sx={{ ...F, fontWeight:700, fontSize:"0.82rem", color:"#0f172a" }}>
+                      <Typography sx={{ ...F, fontWeight:700, fontSize:"0.76rem", color:"#0f172a" }}>
                         Page {safePage} of {totalPages}
                       </Typography>
-                      <Typography sx={{ ...F, fontSize:"0.70rem", color:"#94a3b8" }}>
+                      <Typography sx={{ ...F, fontSize:"0.66rem", color:"#94a3b8" }}>
                         {filteredGallery.length} images · showing {Math.min((safePage-1)*perPage+1,filteredGallery.length)}–{Math.min(safePage*perPage,filteredGallery.length)}
                       </Typography>
                     </Box>
@@ -1209,13 +1180,13 @@ function DatePickerBox({ label, value, onChange }) {
                       disabled={safePage===1}
                       size="small"
                       sx={{
-                        width:34, height:34, borderRadius:"10px",
+                        width:28, height:28, borderRadius:"8px",
                         border:"1px solid rgba(35,57,113,0.22)", background:"rgba(255,255,255,0.85)",
                         "&:hover":{ background:"rgba(35,57,113,0.07)", borderColor:"rgba(35,57,113,0.3)" },
                         "&.Mui-disabled":{ opacity:0.35 },
                       }}
                     >
-                      <ChevronLeftRoundedIcon sx={{ fontSize:20, color:"#233971" }}/>
+                      <ChevronLeftRoundedIcon sx={{ fontSize:17, color:"#233971" }}/>
                     </IconButton>
 
                     {Array.from({ length:totalPages },(_,i)=>i+1)
@@ -1232,13 +1203,13 @@ function DatePickerBox({ label, value, onChange }) {
                           key={n}
                           onClick={()=>setPage(n)}
                           sx={{
-                            width:34, height:34, borderRadius:"10px",
+                            width:28, height:28, borderRadius:"8px",
                             display:"flex", alignItems:"center", justifyContent:"center",
                             cursor:"pointer",
                             background: safePage===n ? "linear-gradient(135deg,#233971,#2e4fa3)" : "rgba(255,255,255,0.85)",
                             border: safePage===n ? "1.5px solid #233971" : "1px solid rgba(35,57,113,0.22)",
                             color: safePage===n ? "#fff" : "#64748b",
-                            fontSize:"13px", fontWeight:safePage===n ? 800 : 600, ...F,
+                            fontSize:"12px", fontWeight:safePage===n ? 800 : 600, ...F,
                             boxShadow: safePage===n ? "0 4px 12px rgba(35,57,113,0.25)" : "none",
                             transition:"all 0.15s",
                             "&:hover": safePage!==n ? { background:"rgba(35,57,113,0.07)", borderColor:"rgba(35,57,113,0.3)", color:"#233971" } : {},
@@ -1253,13 +1224,13 @@ function DatePickerBox({ label, value, onChange }) {
                       disabled={safePage===totalPages}
                       size="small"
                       sx={{
-                        width:34, height:34, borderRadius:"10px",
+                        width:28, height:28, borderRadius:"8px",
                         border:"1px solid rgba(35,57,113,0.22)", background:"rgba(255,255,255,0.85)",
                         "&:hover":{ background:"rgba(35,57,113,0.07)", borderColor:"rgba(35,57,113,0.3)" },
                         "&.Mui-disabled":{ opacity:0.35 },
                       }}
                     >
-                      <ChevronRightRoundedIcon sx={{ fontSize:20, color:"#233971" }}/>
+                      <ChevronRightRoundedIcon sx={{ fontSize:17, color:"#233971" }}/>
                     </IconButton>
                   </Stack>
                 </Stack>

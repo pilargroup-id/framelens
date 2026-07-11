@@ -18,6 +18,7 @@ import {
   MenuItem,
   Modal,
   Fade,
+  Snackbar,
 } from "@mui/material";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
@@ -1566,11 +1567,6 @@ export default function ImageEditorPage() {
                     {error}
                   </Alert>
                 )}
-                {successMessage && (
-                  <Alert severity="success" sx={{ borderRadius: "14px", ...F, fontSize: "0.82rem", border: "1px solid rgba(35,57,113,0.18)", background: "rgba(232,237,248,0.9)" }}>
-                    {successMessage}
-                  </Alert>
-                )}
               </Stack>
             </CardContent>
           </Box>
@@ -1585,7 +1581,7 @@ export default function ImageEditorPage() {
           <Box sx={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", minHeight: 0 }}>
 
             <CardContent sx={{ p: { xs: 1.5, md: "16px 24px" }, position: "relative", zIndex: 2, overflowY: "auto", flex: 1, minHeight: 0 }}>
-              <Stack spacing={1.3}>
+              <Stack spacing={1.3} sx={{ height: "100%" }}>
                 <Box sx={{ pb: 0.9 }}>
                   <Typography sx={{ ...F, fontSize: "0.8rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#0f172a" }}>
                     Preview Result
@@ -1844,8 +1840,8 @@ export default function ImageEditorPage() {
                 )}
 
                 {/* -- NEW: Reference preview strip in result card -- */}
-                <Box>
-                  <Stack direction="row" justifyContent="space-between" alignItems="center" mb={0.6}>
+                <Box sx={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
+                  <Stack direction="row" justifyContent="space-between" alignItems="center" mb={0.6} sx={{ flexShrink: 0 }}>
                     <Stack direction="row" spacing={0.8} alignItems="center">
                       <Typography sx={{ ...F, fontWeight: 700, fontSize: "0.78rem", letterSpacing: "0.08em", textTransform: "uppercase", color: "#0f172a" }}>
                         Reference Images
@@ -1881,14 +1877,33 @@ export default function ImageEditorPage() {
                     />
                   </Stack>
                   {refPreviewUrls.length ? (
-                    <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                    <Box sx={{ position: "relative", height: 158 }}>
+                    <Stack
+                      direction="row"
+                      spacing={1}
+                      sx={{
+                        height: "100%",
+                        boxSizing: "border-box",
+                        overflowX: "auto",
+                        overflowY: "hidden",
+                        flexWrap: "nowrap",
+                        pt: 1.2,
+                        pb: 0.2,
+                        pr: 3,
+                        scrollSnapType: "x mandatory",
+                        scrollBehavior: "smooth",
+                        "&::-webkit-scrollbar": { height: 6 },
+                        "&::-webkit-scrollbar-thumb": { background: "rgba(35,57,113,0.25)", borderRadius: "999px" },
+                      }}
+                    >
                       {refPreviewUrls.map((item, idx) => (
                         <Box
                           key={`ref-preview-${item.file.name}-${idx}`}
                           sx={{
                             position: "relative",
-                            width: 52,
-                            height: 52,
+                            width: 140,
+                            height: 140,
+                            scrollSnapAlign: "start",
                             flexShrink: 0,
                           }}
                         >
@@ -1898,7 +1913,7 @@ export default function ImageEditorPage() {
                             sx={{
                               width: "100%",
                               height: "100%",
-                              borderRadius: "10px",
+                              borderRadius: "20px",
                               overflow: "hidden",
                               border: "1.5px solid rgba(35,57,113,0.28)",
                               background: "rgba(255,255,255,0.7)",
@@ -1908,22 +1923,25 @@ export default function ImageEditorPage() {
                             }}
                           >
                             <Box component="img" src={item.url} alt={item.file.name} sx={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
-                            <Box
-                              sx={{
-                                position: "absolute",
-                                bottom: 0,
-                                left: 0,
-                                right: 0,
-                                background: "linear-gradient(to top,rgba(35,57,113,0.75),transparent)",
-                                py: "3px",
-                                textAlign: "center",
-                              }}
-                            >
-                              <Typography sx={{ fontFamily: "'Sora',sans-serif", fontSize: "0.58rem", fontWeight: 800, color: "#fff" }}>
-                                REF {idx + 1}
-                              </Typography>
-                            </Box>
                           </Box>
+                          <Chip
+                            size="small"
+                            label={`REF ${idx + 1}`}
+                            sx={{
+                              ...F,
+                              position: "absolute",
+                              bottom: 6,
+                              left: "50%",
+                              transform: "translateX(-50%)",
+                              fontWeight: 800,
+                              fontSize: "0.62rem",
+                              height: 18,
+                              borderRadius: "999px",
+                              background: "#233971",
+                              color: "#fff",
+                              border: "1.5px solid #fff",
+                            }}
+                          />
                           <IconButton
                             size="small"
                             onClick={(e) => {
@@ -1932,10 +1950,10 @@ export default function ImageEditorPage() {
                             }}
                             sx={{
                               position: "absolute",
-                              top: -6,
-                              right: -6,
-                              width: 18,
-                              height: 18,
+                              top: -8,
+                              right: -8,
+                              width: 24,
+                              height: 24,
                               p: 0,
                               background: "rgba(239,68,68,0.95)",
                               border: "1.5px solid #fff",
@@ -1943,7 +1961,7 @@ export default function ImageEditorPage() {
                               zIndex: 3,
                               boxShadow: "0 2px 6px rgba(0,0,0,0.25)",
                               "&:hover": { background: "rgba(220,38,38,1)" },
-                              "& svg": { fontSize: "12px !important" },
+                              "& svg": { fontSize: "16px !important" },
                             }}
                           >
                             <CloseIcon />
@@ -1951,84 +1969,41 @@ export default function ImageEditorPage() {
                         </Box>
                       ))}
                     </Stack>
+                    <Box
+                      sx={{
+                        position: "absolute",
+                        top: 0,
+                        right: 0,
+                        bottom: 6,
+                        width: 32,
+                        background: "linear-gradient(to right, transparent, rgba(255,255,255,0.95))",
+                        pointerEvents: "none",
+                      }}
+                    />
+                    </Box>
                   ) : (
                     <Box
                       sx={{
+                        height: 158,
                         display: "flex",
                         alignItems: "center",
+                        justifyContent: "center",
                         gap: 1.2,
                         p: 1.2,
-                        borderRadius: "12px",
+                        borderRadius: "14px",
                         border: "1px solid rgba(148,163,184,0.3)",
                         background: "rgba(241,245,249,0.9)",
                       }}
                     >
-                      <Box sx={{ width: 50, height: 50, flexShrink: 0, borderRadius: "14px", background: "rgba(35,57,113,0.12)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                        <AddPhotoAlternateIcon sx={{ fontSize: 24, color: "#233971" }} />
+                      <Box sx={{ width: 30, height: 30, flexShrink: 0, borderRadius: "10px", background: "rgba(35,57,113,0.12)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <AddPhotoAlternateIcon sx={{ fontSize: 15, color: "#233971" }} />
                       </Box>
-                      <Typography sx={{ ...F, fontSize: "0.76rem", color: "#94a3b8", fontWeight: 500 }}>
+                      <Typography sx={{ ...F, fontSize: "0.75rem", color: "#94a3b8", fontWeight: 500 }}>
                         No reference image yet
                       </Typography>
                     </Box>
                   )}
                 </Box>
-
-                {!!batchResults.length && (
-                  <Box>
-                    <Stack direction="row" justifyContent="space-between" alignItems="center" mb={0.6}>
-                      <Typography sx={{ ...F, fontWeight: 700, fontSize: "0.78rem", letterSpacing: "0.08em", textTransform: "uppercase", color: "#0f172a" }}>Batch Results</Typography>
-                      <Stack direction="row" spacing={0.6} alignItems="center">
-                        <Chip
-                          size="small"
-                          label={`${batchResults.length} result`}
-                          sx={{
-                            ...F,
-                            fontWeight: 700,
-                            fontSize: "0.68rem",
-                            height: 20,
-                            borderRadius: "999px",
-                            background: "rgba(35,57,113,0.08)",
-                            color: "#233971",
-                            border: "1px solid rgba(35,57,113,0.2)",
-                          }}
-                        />
-                        <Button
-                          size="small"
-                          startIcon={<DownloadIcon sx={{ fontSize: "13px !important" }} />}
-                          onClick={handleDownloadAll}
-                          sx={{
-                            ...F,
-                            minWidth: "unset",
-                            height: 20,
-                            px: 1,
-                            borderRadius: "999px",
-                            textTransform: "none",
-                            fontWeight: 700,
-                            fontSize: "0.66rem",
-                            color: "#233971",
-                            background: "rgba(35,57,113,0.09)",
-                            "&:hover": { background: "rgba(35,57,113,0.16)" },
-                          }}
-                        >
-                          Download All
-                        </Button>
-                      </Stack>
-                    </Stack>
-                    <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                      {batchResults.map((item, idx) => (
-                        <BatchCard
-                          key={item.id}
-                          item={item}
-                          index={idx}
-                          aspectRatio={aspectRatio}
-                          onPreview={() => setBatchViewIndex(idx)}
-                          onDownload={() => handleDownloadSingle(item, `edited-${idx + 1}-${item.fileName || Date.now()}.png`)}
-                          F={F}
-                        />
-                      ))}
-                    </Stack>
-                  </Box>
-                )}
 
               </Stack>
             </CardContent>
@@ -2036,6 +2011,22 @@ export default function ImageEditorPage() {
         </Stack>
         </Card>
       </Stack>
+
+      <Snackbar
+        open={!!successMessage}
+        autoHideDuration={3000}
+        onClose={() => setSuccess("")}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+      >
+        <Alert
+          onClose={() => setSuccess("")}
+          severity="success"
+          variant="filled"
+          sx={{ ...F, borderRadius: "12px", fontSize: "0.82rem" }}
+        >
+          {successMessage}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }
