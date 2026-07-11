@@ -390,14 +390,14 @@ function PreviewBox({ src, alt, aspectRatio, minHeight = 240, onPreview, square 
                 left: 6,
                 top: "50%",
                 transform: "translateY(-50%)",
-                width: 26,
-                height: 26,
+                width: 34,
+                height: 34,
                 zIndex: 2,
                 background: "rgba(15,23,42,0.45)",
                 backdropFilter: "blur(6px)",
                 color: "#fff",
                 "&:hover": { background: "rgba(15,23,42,0.65)" },
-                "& svg": { fontSize: 16 },
+                "& svg": { fontSize: 20 },
               }}
             >
               <ArrowBackRoundedIcon />
@@ -415,14 +415,14 @@ function PreviewBox({ src, alt, aspectRatio, minHeight = 240, onPreview, square 
                 right: 6,
                 top: "50%",
                 transform: "translateY(-50%)",
-                width: 26,
-                height: 26,
+                width: 34,
+                height: 34,
                 zIndex: 2,
                 background: "rgba(15,23,42,0.45)",
                 backdropFilter: "blur(6px)",
                 color: "#fff",
                 "&:hover": { background: "rgba(15,23,42,0.65)" },
-                "& svg": { fontSize: 16 },
+                "& svg": { fontSize: 20 },
               }}
             >
               <ArrowBackRoundedIcon sx={{ transform: "rotate(180deg)" }} />
@@ -1580,7 +1580,7 @@ export default function ImageEditorPage() {
 
           <Box sx={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", minHeight: 0 }}>
 
-            <CardContent sx={{ p: { xs: 1.5, md: "16px 24px" }, position: "relative", zIndex: 2, overflowY: "auto", flex: 1, minHeight: 0 }}>
+            <CardContent sx={{ p: { xs: 1.5, md: "16px 24px" }, "&:last-child": { pb: { xs: 1.5, md: "16px" } }, position: "relative", zIndex: 2, overflowY: "auto", flex: 1, minHeight: 0 }}>
               <Stack spacing={1.3} sx={{ height: "100%" }}>
                 <Box sx={{ pb: 0.9 }}>
                   <Typography sx={{ ...F, fontSize: "0.8rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#0f172a" }}>

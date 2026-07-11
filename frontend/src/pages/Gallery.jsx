@@ -76,7 +76,7 @@
   const F = { fontFamily:"'Sora',sans-serif" };
 
   const IMG_H          = 180;
-  const CARD_H         = 370;
+  const CARD_H         = 320;
   const FILENAME_LINES = 1;
 
   /* ── card shell ── */
