@@ -29,7 +29,7 @@ import KeyboardArrowUpRoundedIcon from "@mui/icons-material/KeyboardArrowUpRound
 import api from "../api/client";
 
 /* ================================================================
-   Studio Iklan — generate 6 varian gambar produk + varian warna
+   Studio Iklan — generate 3 varian gambar produk + varian warna
    Port dari studio-iklan.html ke React (logic canvas dipertahankan
    apa adanya, form diubah jadi controlled React state).
 ================================================================ */
@@ -44,6 +44,11 @@ const VARIAN = [
 ];
 
 const DEFAULT_VARIANT_STATE = { 1: false, 2: true, 3: true, 4: true, 5: false, 6: false };
+const MAX_VARIAN_GENERATE = 3;
+const KEYPOINT_BACKGROUND_RULE =
+  "Khusus varian Key Point Sell: area belakang 3 key point harus bersih, polos, dan menyatu. Jangan tambahkan tulisan, label, logo, watermark, stempel, badge tambahan, badge 'AI approved', teks 'approved', ikon ekstra, bentuk dekoratif, panel aneh, atau elemen apa pun selain tepat 3 key point yang diminta.";
+const EXTRA_NEGATIVE_PROMPT =
+  "AI approved, approved, watermark, logo tambahan, badge tambahan, stempel, label tambahan, ikon ekstra, elemen dekoratif aneh, teks tambahan di luar instruksi, panel aneh di belakang key point";
 
 // n8n "Prompt 2 - Item + Key Point Sell" sekarang minta AI gambar judul/tagline/badge sendiri,
 // jadi overlay Canvas di sini dimatikan supaya tidak dobel. Set true lagi kalau n8n dikembalikan
@@ -886,7 +891,9 @@ export default function StudioIklanPage() {
   const framePreview = useMemo(() => (fileFrame ? URL.createObjectURL(fileFrame) : ""), [fileFrame]);
   useEffect(() => () => { if (framePreview) URL.revokeObjectURL(framePreview); }, [framePreview]);
 
-  const totalAktifVarian = (vs = variantState) => VARIAN.filter((v) => vs[v.num] !== false).length;
+  const getAktifVarian = (vs = variantState) => VARIAN.filter((v) => vs[v.num] !== false).slice(0, MAX_VARIAN_GENERATE);
+  const totalAktifVarian = (vs = variantState) => getAktifVarian(vs).length;
+  const isVarianAktifUntukGenerate = (v, vs = variantState) => getAktifVarian(vs).some((aktif) => aktif.num === v.num);
 
   const handleProdukFilesSelected = (fileList) => {
     const sisa = MAX_PRODUK - produkFiles.length;
@@ -985,9 +992,11 @@ export default function StudioIklanPage() {
     fd.append("cara_penggunaan", caraOn ? cara : "");
     fd.append("subjek", subjekOn ? subjek : "");
     fd.append("improvement", improvementOn ? improvement : "");
-    fd.append("background", backgroundOn ? background : "");
-    fd.append("negative_prompt", negativePromptOn ? negativePrompt : "");
-    fd.append("gunakan_negative_prompt", negativePromptOn ? "true" : "false");
+    const backgroundFinal = [backgroundOn ? background.trim() : "", KEYPOINT_BACKGROUND_RULE].filter(Boolean).join("\n");
+    const negativePromptFinal = [negativePromptOn ? negativePrompt.trim() : "", EXTRA_NEGATIVE_PROMPT].filter(Boolean).join(", ");
+    fd.append("background", backgroundFinal);
+    fd.append("negative_prompt", negativePromptFinal);
+    fd.append("gunakan_negative_prompt", "true");
     return fd;
   };
 
@@ -998,6 +1007,12 @@ export default function StudioIklanPage() {
     if (gunakanFrame && !fileFrame) { setStatus({ type: "err", text: "Frame acuan belum dipilih (atau nonaktifkan toggle Frame Acuan)." }); return; }
     const totalAktif = totalAktifVarian();
     const warnaAktif = warnaOn && warnaList.length > 0;
+    const keypointAktif = isVarianAktifUntukGenerate(VARIAN.find((v) => v.key === "2-keypoint"));
+    const keypointList = [keypoint1, keypoint2, keypoint3].map((s) => s.trim());
+    if (keypointAktif && (!keypointOn || keypointList.some((s) => !s))) {
+      setStatus({ type: "err", text: "Untuk varian Key Point Sell, isi tepat 3 key point dulu supaya AI tidak menambah poin aneh sendiri." });
+      return;
+    }
     if (totalAktif === 0 && !warnaAktif) {
       setStatus({ type: "err", text: "Pilih minimal 1 varian gambar (toggle di kartu hasil) atau tambahkan minimal 1 warna untuk digenerate." });
       return;
@@ -1008,7 +1023,7 @@ export default function StudioIklanPage() {
     setStatus({ type: "", text: `Mengirim ke n8n. Generate + cleanup AI berjalan, proses sekitar 2-4 menit untuk ${totalSemua} gambar.` });
 
     const initialSlots = {};
-    VARIAN.forEach((v) => { initialSlots[v.key] = variantState[v.num] !== false ? { status: totalAktif > 0 ? "loading" : "skip" } : { status: "skip" }; });
+    VARIAN.forEach((v) => { initialSlots[v.key] = isVarianAktifUntukGenerate(v) ? { status: totalAktif > 0 ? "loading" : "skip" } : { status: "skip" }; });
     setVariantSlots(initialSlots);
     setWarnaSlots(warnaAktif ? warnaList.map((w) => ({ warna: w, status: "loading" })) : []);
 
@@ -1017,7 +1032,7 @@ export default function StudioIklanPage() {
     try {
       if (totalAktif > 0) {
         const fd = buildFormDataDasar(gunakanFrame);
-        VARIAN.forEach((v) => fd.append("varian_" + v.num + "_aktif", variantState[v.num] !== false ? "true" : "false"));
+        VARIAN.forEach((v) => fd.append("varian_" + v.num + "_aktif", isVarianAktifUntukGenerate(v) ? "true" : "false"));
         fd.append("varian_7_aktif", "false");
 
         const res = await api.post("/studio-iklan/generate", fd);
@@ -1026,7 +1041,7 @@ export default function StudioIklanPage() {
 
         const newSlots = { ...initialSlots };
         for (const v of VARIAN) {
-          if (variantState[v.num] === false) { newSlots[v.key] = { status: "skip" }; continue; }
+          if (!isVarianAktifUntukGenerate(v)) { newSlots[v.key] = { status: "skip" }; continue; }
           const item = hasil.find((h) => h.varian === v.key);
           if (item && item.image) {
             okTotal++;
@@ -1067,7 +1082,6 @@ export default function StudioIklanPage() {
       }
 
       if (warnaAktif) {
-        let okWarna = 0;
         const slotsAcc = warnaList.map((w) => ({ warna: w, status: "loading" }));
         setWarnaSlots([...slotsAcc]);
         for (let i = 0; i < warnaList.length; i++) {
@@ -1083,7 +1097,7 @@ export default function StudioIklanPage() {
             const item = (data.hasil || []).find((h) => h.varian === "7-warna");
             if (!item || !item.image) throw new Error("Tidak ada gambar dari API");
 
-            okWarna++; okTotal++;
+            okTotal++;
             let finalImage = item.image;
             try { finalImage = await bersihkanPojokKiriAtas(finalImage); } catch (e) { console.warn("Gagal membersihkan pojok kiri atas:", e); }
             const m = /^data:([^;]+);base64,(.*)$/.exec(finalImage);
@@ -1191,6 +1205,17 @@ export default function StudioIklanPage() {
   const warnaAktif = warnaOn && warnaList.length > 0;
   const doneCount = VARIAN.reduce((n, v) => n + (variantSlots[v.key]?.status === "done" ? 1 : 0), 0);
   const warnaDoneCount = warnaSlots.reduce((n, s) => n + (s.status === "done" ? 1 : 0), 0);
+  const handleVariantToggle = (num, checked) => {
+    setVariantState((prev) => {
+      if (!checked) return { ...prev, [num]: false };
+      if (totalAktifVarian(prev) >= MAX_VARIAN_GENERATE && prev[num] === false) {
+        setStatus({ type: "err", text: `Maksimal ${MAX_VARIAN_GENERATE} varian utama per generate. Matikan salah satu varian dulu kalau mau ganti.` });
+        return prev;
+      }
+      setStatus((current) => current.type === "err" && current.text.includes("Maksimal") ? { type: "", text: "" } : current);
+      return { ...prev, [num]: true };
+    });
+  };
 
   return (
     <Box sx={{ position: "relative", ...F, height: "100%", display: "flex", flexDirection: "column", overflow: "hidden" }}>
@@ -1265,7 +1290,7 @@ export default function StudioIklanPage() {
                       Studio Iklan
                     </Typography>
                     <Typography sx={{ ...F, fontSize: "0.7rem", color: "#94a3b8", mt: "2px" }}>
-                      Upload foto produk + frame acuan, generate 6 varian gambar iklan otomatis
+                      Upload foto produk + frame acuan, generate 3 varian gambar iklan otomatis
                     </Typography>
                   </Box>
                 </Stack>
@@ -1501,7 +1526,7 @@ export default function StudioIklanPage() {
                   startIcon={generating ? <CircularProgress size={16} sx={{ color: "#fff" }} /> : <CampaignRoundedIcon />}
                   sx={{ ...F, fontWeight: 700, textTransform: "none", fontSize: "0.85rem", borderRadius: "999px", py: 1.1, background: "linear-gradient(135deg,#233971,#2e4fa3)", boxShadow: "0 8px 20px rgba(35,57,113,0.35)" }}
                 >
-                  {generating ? "Sedang generate…" : "Generate 6 Gambar"}
+                  {generating ? "Sedang generate…" : "Generate 3 Gambar"}
                 </Button>
                 {status.text && (
                   <Alert severity={status.type === "err" ? "error" : status.type === "ok" ? "success" : "info"} sx={{ ...F, fontSize: "0.72rem", borderRadius: "12px" }}>
@@ -1521,7 +1546,7 @@ export default function StudioIklanPage() {
               </Stack>
               <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(190px,1fr))", gap: 1.2 }}>
                 {VARIAN.map((v, i) => {
-                  const aktif = variantState[v.num] !== false;
+                  const aktif = isVarianAktifUntukGenerate(v);
                   const slot = variantSlots[v.key];
                   const status2 = aktif ? (slot?.status || "idle") : "skip";
                   return (
@@ -1530,7 +1555,7 @@ export default function StudioIklanPage() {
                       label={v.label}
                       index={i}
                       active={aktif}
-                      onToggleActive={(checked) => setVariantState((s) => ({ ...s, [v.num]: checked }))}
+                      onToggleActive={(checked) => handleVariantToggle(v.num, checked)}
                       status={status2}
                       data={slot}
                       onEdit={() => openEditor(v.key)}
