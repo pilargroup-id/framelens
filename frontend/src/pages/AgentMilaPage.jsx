@@ -1906,7 +1906,7 @@ export default function AgentMilaPage() {
               <Divider sx={{ my: 0.8, borderColor: "rgba(148,163,184,0.25)", flexShrink: 0 }} />
 
               {resultTab === "utama" ? (
-                <Box sx={{ flex: 1, minHeight: 0, display: "grid", gridTemplateColumns: { xs: "repeat(2,minmax(0,1fr))", xl: "repeat(3,minmax(0,1fr))" }, gridTemplateRows: "repeat(2,minmax(0,1fr))", gap: 1 }}>
+                <Box sx={{ flex: 1, minHeight: 0, display: "grid", gridTemplateColumns: { xs: "repeat(2,minmax(0,1fr))", xl: "repeat(3,minmax(0,1fr))" }, gridTemplateRows: { xs: "repeat(3,minmax(0,1fr))", xl: "repeat(2,minmax(0,1fr))" }, gap: 1, overflow: "hidden" }}>
                   {VARIAN.map((v, i) => {
                     const aktif = isVarianAktifUntukGenerate(v);
                     const slot = variantSlots[v.key];
@@ -1930,7 +1930,7 @@ export default function AgentMilaPage() {
                 </Box>
               ) : (
                 <>
-                  <Box sx={{ flex: 1, minHeight: 0, display: "grid", gridTemplateColumns: { xs: "repeat(2,minmax(0,1fr))", xl: "repeat(3,minmax(0,1fr))" }, gridTemplateRows: "repeat(2,minmax(0,1fr))", gap: 1, overflow: "hidden" }}>
+                  <Box sx={{ flex: 1, minHeight: 0, display: "grid", gridTemplateColumns: { xs: "repeat(2,minmax(0,1fr))", xl: "repeat(3,minmax(0,1fr))" }, gridTemplateRows: { xs: "repeat(3,minmax(0,1fr))", xl: "repeat(2,minmax(0,1fr))" }, gap: 1, overflow: "hidden" }}>
                     {visibleWarnaList.map((warna, localIndex) => {
                       const i = warnaPage * warnaPageSize + localIndex;
                       const slot = warnaSlots[i];
