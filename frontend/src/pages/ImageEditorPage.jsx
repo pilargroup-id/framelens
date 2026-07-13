@@ -1567,11 +1567,6 @@ export default function ImageEditorPage() {
                     </Typography>
                   </Box>
                 )}
-                {error && (
-                  <Alert severity="error" sx={{ borderRadius: "14px", ...F, fontSize: "0.82rem", border: "1px solid rgba(239,68,68,0.18)", background: "rgba(254,242,242,0.9)" }}>
-                    {error}
-                  </Alert>
-                )}
               </Stack>
             </CardContent>
           </Box>
@@ -2033,6 +2028,22 @@ export default function ImageEditorPage() {
           sx={{ ...F, borderRadius: "12px", fontSize: "0.82rem" }}
         >
           {successMessage}
+        </Alert>
+      </Snackbar>
+
+      <Snackbar
+        open={!!error}
+        autoHideDuration={5000}
+        onClose={() => setError("")}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+      >
+        <Alert
+          onClose={() => setError("")}
+          severity="error"
+          variant="filled"
+          sx={{ ...F, borderRadius: "12px", fontSize: "0.82rem" }}
+        >
+          {error}
         </Alert>
       </Snackbar>
     </Box>

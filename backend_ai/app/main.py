@@ -526,8 +526,14 @@ async def _proxy_multipart_to_webhook(webhook_url: str, request: Request):
             data[key] = value
 
     try:
-        async with httpx.AsyncClient(timeout=300.0) as client:
+        timeout = httpx.Timeout(900.0, connect=30.0)
+        async with httpx.AsyncClient(timeout=timeout) as client:
             resp = await client.post(webhook_url, data=data, files=files or None)
+    except httpx.TimeoutException:
+        raise HTTPException(
+            status_code=504,
+            detail="Workflow n8n terlalu lama merespons (lebih dari 15 menit). Coba kurangi jumlah varian yang di-generate sekaligus.",
+        )
     except httpx.RequestError as e:
         raise HTTPException(status_code=502, detail=f"Gagal menghubungi workflow n8n: {e}")
 
