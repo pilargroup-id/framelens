@@ -1295,7 +1295,7 @@ export default function AgentMilaPage() {
   }, []);
 
   return (
-    <Box sx={{ position: "relative", ...F, height: "100%", display: "flex", flexDirection: "column", overflow: "hidden" }}>
+    <Box sx={{ position: "relative", ...F, height: { xs: "auto", lg: "100%" }, display: "flex", flexDirection: "column", overflow: { xs: "visible", lg: "hidden" } }}>
       <FontStyle />
 
       {/* ============ MODAL EDIT GAMBAR (AI) ============ */}
@@ -1639,22 +1639,22 @@ export default function AgentMilaPage() {
         </Box>
       )}
 
-      <Card elevation={0} sx={{ ...cardShell, flex: 1, height: "100%", minHeight: 0, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-        <Stack direction={{ xs: "column", lg: "row" }} spacing={0} alignItems="stretch" sx={{ flex: 1, minHeight: 0, overflow: "hidden" }}>
+      <Card elevation={0} sx={{ ...cardShell, flex: 1, height: { xs: "auto", lg: "100%" }, minHeight: 0, display: "flex", flexDirection: "column", overflow: { xs: "visible", lg: "hidden" } }}>
+        <Stack direction={{ xs: "column", lg: "row" }} spacing={0} alignItems="stretch" sx={{ flex: 1, minHeight: 0, overflow: { xs: "visible", lg: "hidden" } }}>
 
           {/* ============ FORM ============ */}
-          <Box sx={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", minHeight: 0, borderRight: { lg: "1px solid rgba(148,163,184,0.18)" } }}>
-            <CardContent sx={{ p: { xs: 1.1, md: "10px 14px" }, overflow: "hidden", flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
+          <Box sx={{ flex: 1, display: "flex", flexDirection: "column", overflow: { xs: "visible", lg: "hidden" }, minHeight: 0, borderRight: { lg: "1px solid rgba(148,163,184,0.18)" } }}>
+            <CardContent sx={{ p: { xs: 1.4, md: "10px 14px" }, overflow: { xs: "visible", lg: "hidden" }, flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
               <Box
                 sx={{
                   flex: 1,
                   minHeight: 0,
-                  overflow: "hidden",
+                  overflow: { xs: "visible", lg: "hidden" },
                   display: "grid",
                   gridTemplateColumns: { xs: "1fr", md: "repeat(12,minmax(0,1fr))" },
                   gridAutoRows: "min-content",
-                  gap: 0.4,
-                  alignContent: "space-between",
+                  gap: { xs: 0.9, md: 0.4 },
+                  alignContent: { xs: "start", lg: "space-between" },
                   alignItems: "start",
                 }}
               >
@@ -1856,8 +1856,8 @@ export default function AgentMilaPage() {
           </Box>
 
           {/* ============ HASIL ============ */}
-          <Box sx={{ flex: 1.15, display: "flex", flexDirection: "column", overflow: "hidden", minHeight: 0 }}>
-            <CardContent sx={{ p: { xs: 1.1, md: "12px 16px" }, overflow: "hidden", flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
+          <Box sx={{ flex: 1.15, display: "flex", flexDirection: "column", overflow: { xs: "visible", lg: "hidden" }, minHeight: { xs: 640, lg: 0 } }}>
+            <CardContent sx={{ p: { xs: 1.4, md: "12px 16px" }, overflow: { xs: "visible", lg: "hidden" }, flex: 1, minHeight: { xs: 640, lg: 0 }, display: "flex", flexDirection: "column" }}>
               <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={1} sx={{ flexShrink: 0 }}>
                 <Box sx={{ minWidth: 0 }}>
                   <Typography sx={sectionLabel}>Generated Results</Typography>
