@@ -1,8 +1,7 @@
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded'
 import PhotoLibraryRoundedIcon from '@mui/icons-material/PhotoLibraryRounded'
 import NoteAltRoundedIcon from '@mui/icons-material/NoteAltRounded'
-import ShoppingBagRoundedIcon from '@mui/icons-material/ShoppingBagRounded'
-import CampaignRoundedIcon from '@mui/icons-material/CampaignRounded'
+import AndroidRoundedIcon from '@mui/icons-material/AndroidRounded'
 
 export const defaultNavigationPath = '/'
 
@@ -22,22 +21,27 @@ export const primaryNavigationItems = [
     icon: AutoAwesomeRoundedIcon,
   },
   {
-    id: 'prompt-builder',
-    label: 'Prompt Builder GS',
-    href: '/prompt-builder',
+    id: 'prompt-builder-group',
+    label: 'Prompt Builder',
     icon: NoteAltRoundedIcon,
-  },
-  {
-    id: 'prompt-builder-gt',
-    label: 'Prompt Builder GT',
-    href: '/prompt-builder-gt',
-    icon: ShoppingBagRoundedIcon,
+    children: [
+      {
+        id: 'prompt-builder',
+        label: 'Prompt Builder GS',
+        href: '/prompt-builder',
+      },
+      {
+        id: 'prompt-builder-gt',
+        label: 'Prompt Builder GT',
+        href: '/prompt-builder-gt',
+      },
+    ],
   },
   {
     id: 'studio-iklan',
-    label: 'Studio Iklan',
+    label: 'Agent Mila',
     href: '/studio-iklan',
-    icon: CampaignRoundedIcon,
+    icon: AndroidRoundedIcon,
   },
 ]
 

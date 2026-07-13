@@ -290,8 +290,8 @@ function PreviewBox({ src, alt, aspectRatio, minHeight = 240, onPreview, square 
         overflow: "hidden",
         background: src
           ? "linear-gradient(135deg,rgba(232,237,248,0.6),rgba(240,244,251,0.6))"
-          : "linear-gradient(135deg,rgba(232,237,248,0.7),rgba(234,240,251,0.7))",
-        border: `1px solid ${src ? "rgba(148,163,184,0.35)" : "rgba(148,163,184,0.28)"}`,
+          : "rgba(226,232,240,0.52)",
+        border: src ? "1px solid rgba(148,163,184,0.35)" : "1.5px dashed rgba(100,116,139,0.32)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -299,6 +299,7 @@ function PreviewBox({ src, alt, aspectRatio, minHeight = 240, onPreview, square 
         position: "relative",
         cursor: src ? "zoom-in" : "default",
         transition: "all 0.3s ease",
+        ...(!src && { boxShadow: "inset 0 1px 0 rgba(255,255,255,0.72)" }),
       }}
     >
       {src ? (
@@ -451,10 +452,10 @@ function PreviewBox({ src, alt, aspectRatio, minHeight = 240, onPreview, square 
         </>
       ) : (
         <Stack spacing={1} alignItems="center">
-          <Box sx={{ width: 50, height: 50, borderRadius: "14px", background: "rgba(35,57,113,0.12)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <AutoAwesomeIcon sx={{ fontSize: 24, color: "#233971" }} />
+          <Box sx={{ width: 50, height: 50, borderRadius: "14px", background: "rgba(100,116,139,0.14)", color: "#64748b", border: "1px solid rgba(100,116,139,0.2)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "inset 0 1px 0 rgba(255,255,255,0.72)" }}>
+            <AutoAwesomeIcon sx={{ fontSize: 24, color: "currentColor" }} />
           </Box>
-          <Typography sx={{ fontFamily: "'Sora',sans-serif", fontSize: "0.82rem", color: "#94a3b8", fontWeight: 500 }}>
+          <Typography sx={{ fontFamily: "'Sora',sans-serif", fontSize: "0.82rem", color: "#64748b", fontWeight: 700 }}>
             AI result will appear here
           </Typography>
         </Stack>
@@ -612,8 +613,8 @@ function ReferenceImageSection({ refPreviews, onAdd, onRemove, onPreview, dragAc
         }}
       >
         <Stack direction="row" spacing={1.2} alignItems="center">
-          <Box sx={{ width: 30, height: 30, flexShrink: 0, borderRadius: "10px", background: "linear-gradient(135deg,#2a4a9e,#1e3a7a)", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.25s ease", boxShadow: "0 6px 16px rgba(42,74,158,0.35)" }}>
-            <AddPhotoAlternateIcon sx={{ fontSize: 15, color: "#fff", transition: "color 0.25s" }} />
+          <Box sx={{ width: 30, height: 30, flexShrink: 0, borderRadius: "10px", background: "rgba(100,116,139,0.12)", color: "#64748b", border: "1px solid rgba(100,116,139,0.18)", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.25s ease", boxShadow: "inset 0 1px 0 rgba(255,255,255,0.72)" }}>
+            <AddPhotoAlternateIcon sx={{ fontSize: 15, color: "currentColor", transition: "color 0.25s" }} />
           </Box>
           <Box sx={{ flex: 1, minWidth: 0 }}>
             <Typography noWrap sx={{ ...F, fontWeight: 700, fontSize: "0.75rem", color: "#1e293b" }}>
@@ -1243,8 +1244,8 @@ export default function ImageEditorPage() {
                     }}
                   >
                     <Stack direction="row" spacing={1.2} alignItems="center">
-                      <Box sx={{ width: 30, height: 30, flexShrink: 0, borderRadius: "10px", background: "linear-gradient(135deg,#233971,#2e4fa3)", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.25s ease", boxShadow: "0 6px 16px rgba(35,57,113,0.35)" }}>
-                        <CloudUploadIcon sx={{ fontSize: 15, color: "#fff", transition: "color 0.25s" }} />
+                      <Box sx={{ width: 30, height: 30, flexShrink: 0, borderRadius: "10px", background: "rgba(100,116,139,0.12)", color: "#64748b", border: "1px solid rgba(100,116,139,0.18)", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.25s ease", boxShadow: "inset 0 1px 0 rgba(255,255,255,0.72)" }}>
+                        <CloudUploadIcon sx={{ fontSize: 15, color: "currentColor", transition: "color 0.25s" }} />
                       </Box>
                       <Box sx={{ flex: 1, minWidth: 0 }}>
                         <Typography noWrap sx={{ ...F, fontWeight: 700, fontSize: "0.75rem", color: "#1e293b" }}>
@@ -1290,8 +1291,8 @@ export default function ImageEditorPage() {
                       onChange: (e) => setBatchCount(Number(e.target.value)),
                       options: BATCH_OPTIONS,
                       icon: (
-                        <Box sx={{ width: 22, height: 22, borderRadius: "7px", background: "rgba(100,116,139,0.14)", display: "flex", alignItems: "center", justifyContent: "center", mr: 0.9, flexShrink: 0 }}>
-                          <DynamicFeedRoundedIcon sx={{ color: "#64748b", fontSize: 13 }} />
+                        <Box sx={{ width: 24, height: 24, borderRadius: "8px", background: "rgba(100,116,139,0.16)", color: "#475569", border: "1px solid rgba(100,116,139,0.22)", display: "flex", alignItems: "center", justifyContent: "center", mr: 0.9, flexShrink: 0, boxShadow: "inset 0 1px 0 rgba(255,255,255,0.72)" }}>
+                          <DynamicFeedRoundedIcon sx={{ color: "currentColor", fontSize: 14 }} />
                         </Box>
                       ),
                       accentColor: "#233971",
@@ -1303,8 +1304,8 @@ export default function ImageEditorPage() {
                       onChange: (e) => setAspectRatio(e.target.value),
                       options: ASPECT_RATIO_OPTIONS,
                       icon: (
-                        <Box sx={{ width: 22, height: 22, borderRadius: "7px", background: "rgba(100,116,139,0.14)", display: "flex", alignItems: "center", justifyContent: "center", mr: 0.9, flexShrink: 0 }}>
-                          <AspectRatioRoundedIcon sx={{ color: "#64748b", fontSize: 13 }} />
+                        <Box sx={{ width: 24, height: 24, borderRadius: "8px", background: "rgba(100,116,139,0.16)", color: "#475569", border: "1px solid rgba(100,116,139,0.22)", display: "flex", alignItems: "center", justifyContent: "center", mr: 0.9, flexShrink: 0, boxShadow: "inset 0 1px 0 rgba(255,255,255,0.72)" }}>
+                          <AspectRatioRoundedIcon sx={{ color: "currentColor", fontSize: 14 }} />
                         </Box>
                       ),
                       accentColor: "#2a4a9e",
@@ -1315,8 +1316,8 @@ export default function ImageEditorPage() {
                       onChange: (e) => setResolution(e.target.value),
                       options: RESOLUTION_OPTIONS,
                       icon: (
-                        <Box sx={{ width: 22, height: 22, borderRadius: "7px", background: "rgba(100,116,139,0.14)", display: "flex", alignItems: "center", justifyContent: "center", mr: 0.9, flexShrink: 0 }}>
-                          <HighQualityRoundedIcon sx={{ color: "#64748b", fontSize: 13 }} />
+                        <Box sx={{ width: 24, height: 24, borderRadius: "8px", background: "rgba(100,116,139,0.16)", color: "#475569", border: "1px solid rgba(100,116,139,0.22)", display: "flex", alignItems: "center", justifyContent: "center", mr: 0.9, flexShrink: 0, boxShadow: "inset 0 1px 0 rgba(255,255,255,0.72)" }}>
+                          <HighQualityRoundedIcon sx={{ color: "currentColor", fontSize: 14 }} />
                         </Box>
                       ),
                       accentColor: "#1a5276",
@@ -1343,12 +1344,16 @@ export default function ImageEditorPage() {
                           borderRadius: "999px",
                           background: "rgba(241,245,249,0.9)",
                           backdropFilter: "blur(8px)",
+                          boxShadow: "0 1px 3px rgba(15,23,42,0.04), inset 0 1px 0 rgba(255,255,255,0.75)",
                           ...F,
                         },
                         "& .MuiSelect-select": { py: "8px !important", pl: "14px !important", minHeight: "unset !important" },
-                        "& .MuiOutlinedInput-root fieldset": { borderColor: "rgba(148,163,184,0.35)" },
-                        "& .MuiOutlinedInput-root:hover fieldset": { borderColor: "rgba(148,163,184,0.6)" },
+                        "& .MuiOutlinedInput-root fieldset": { borderColor: "rgba(100,116,139,0.28)" },
+                        "& .MuiOutlinedInput-root:hover fieldset": { borderColor: "rgba(100,116,139,0.48)" },
                         "& .MuiOutlinedInput-root.Mui-focused fieldset": { borderColor: accentColor, borderWidth: "1.5px" },
+                        "& .MuiSelect-icon": { color: "#94a3b8" },
+                        "& .MuiOutlinedInput-root:hover .MuiSelect-icon": { color: "#64748b" },
+                        "& .MuiOutlinedInput-root.Mui-focused .MuiSelect-icon": { color: accentColor },
                         "& .MuiInputLabel-root": { ...F, fontSize: "0.78rem", "&.Mui-focused": { color: accentColor } },
                         "& .MuiFormHelperText-root": { ...F, ml: 1.5, fontSize: "0.62rem", mt: "3px" },
                       }}
@@ -1623,9 +1628,9 @@ export default function ImageEditorPage() {
                         aspectRatio: "1 / 1",
                         borderRadius: "16px",
                         overflow: "hidden",
-                        background: "rgba(241,245,249,0.9)",
+                        background: primaryPreviewUrl ? "rgba(241,245,249,0.9)" : "rgba(226,232,240,0.52)",
                         backdropFilter: "blur(8px)",
-                        border: "1px solid rgba(148,163,184,0.3)",
+                        border: primaryPreviewUrl ? "1px solid rgba(148,163,184,0.3)" : "1.5px dashed rgba(100,116,139,0.32)",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
@@ -1633,6 +1638,7 @@ export default function ImageEditorPage() {
                         cursor: primaryPreviewUrl ? "zoom-in" : "default",
                         position: "relative",
                         transition: "border-color 0.2s",
+                        ...(!primaryPreviewUrl && { boxShadow: "inset 0 1px 0 rgba(255,255,255,0.72)" }),
                         "&:hover": primaryPreviewUrl ? { borderColor: "rgba(148,163,184,0.5)" } : {},
                       }}
                     >
@@ -1687,10 +1693,10 @@ export default function ImageEditorPage() {
                         </>
                       ) : (
                         <Stack spacing={1} alignItems="center">
-                          <Box sx={{ width: 50, height: 50, borderRadius: "14px", background: "rgba(35,57,113,0.12)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                            <ImageIcon sx={{ fontSize: 24, color: "#233971" }} />
+                          <Box sx={{ width: 50, height: 50, borderRadius: "14px", background: "rgba(100,116,139,0.14)", color: "#64748b", border: "1px solid rgba(100,116,139,0.2)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "inset 0 1px 0 rgba(255,255,255,0.72)" }}>
+                            <ImageIcon sx={{ fontSize: 24, color: "currentColor" }} />
                           </Box>
-                          <Typography sx={{ ...F, fontSize: "0.76rem", color: "#94a3b8", fontWeight: 500 }}>
+                          <Typography sx={{ ...F, fontSize: "0.76rem", color: "#64748b", fontWeight: 700 }}>
                             No image uploaded yet
                           </Typography>
                         </Stack>
@@ -1877,7 +1883,7 @@ export default function ImageEditorPage() {
                     />
                   </Stack>
                   {refPreviewUrls.length ? (
-                    <Box sx={{ position: "relative", height: 158 }}>
+                    <Box sx={{ position: "relative", flex: 1, minHeight: 158 }}>
                     <Stack
                       direction="row"
                       spacing={1}
@@ -1984,21 +1990,23 @@ export default function ImageEditorPage() {
                   ) : (
                     <Box
                       sx={{
-                        height: 158,
+                        flex: 1,
+                        minHeight: 158,
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
                         gap: 1.2,
                         p: 1.2,
                         borderRadius: "14px",
-                        border: "1px solid rgba(148,163,184,0.3)",
-                        background: "rgba(241,245,249,0.9)",
+                        border: "1.5px dashed rgba(100,116,139,0.32)",
+                        background: "rgba(226,232,240,0.52)",
+                        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.72)",
                       }}
                     >
-                      <Box sx={{ width: 44, height: 44, flexShrink: 0, borderRadius: "12px", background: "rgba(35,57,113,0.12)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                        <AddPhotoAlternateIcon sx={{ fontSize: 24, color: "#233971" }} />
+                      <Box sx={{ width: 44, height: 44, flexShrink: 0, borderRadius: "12px", background: "rgba(100,116,139,0.14)", color: "#64748b", border: "1px solid rgba(100,116,139,0.2)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "inset 0 1px 0 rgba(255,255,255,0.72)" }}>
+                        <AddPhotoAlternateIcon sx={{ fontSize: 24, color: "currentColor" }} />
                       </Box>
-                      <Typography sx={{ ...F, fontSize: "0.75rem", color: "#94a3b8", fontWeight: 500 }}>
+                      <Typography sx={{ ...F, fontSize: "0.76rem", color: "#64748b", fontWeight: 700 }}>
                         No reference image yet
                       </Typography>
                     </Box>

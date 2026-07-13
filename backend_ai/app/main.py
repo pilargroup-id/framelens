@@ -3,6 +3,9 @@ load_dotenv(".env.local", override=True)
 load_dotenv()
 import os
 import json
+import base64
+import asyncio
+import re
 from pathlib import Path
 from datetime import datetime
 
@@ -26,8 +29,10 @@ from app.config import (
     STUDIO_IKLAN_WEBHOOK_PDF,
     STUDIO_IKLAN_WEBHOOK_EDIT,
 )
-from app.gemini_service import edit_image_with_gemini
+from app.gemini_service import edit_image_with_gemini, save_inline_image
 from app.auth import verify_token
+
+GALLERY_RETENTION_DAYS = 60
 
 # ── Department detection ──────────────────────────────────────────────────────
 
@@ -79,6 +84,65 @@ def can_view_file(filename: str, user_dept: str) -> bool:
         return True
     return get_file_dept(filename) == user_dept
 
+
+def get_user_display_name(user: dict) -> str:
+    return (
+        user.get("name") or
+        user.get("full_name") or
+        user.get("fullName") or
+        user.get("username") or
+        user.get("email") or
+        ""
+    ).strip()
+
+
+def cleanup_old_gallery_files() -> int:
+    """Hapus file gallery (+ sidecar .json) yang lebih tua dari GALLERY_RETENTION_DAYS."""
+    if not OUTPUT_DIR.exists():
+        return 0
+
+    cutoff = datetime.now().timestamp() - GALLERY_RETENTION_DAYS * 86400
+    allowed_exts = {".png", ".jpg", ".jpeg", ".webp"}
+    deleted = 0
+
+    for file_path in OUTPUT_DIR.iterdir():
+        if not file_path.is_file() or file_path.suffix.lower() not in allowed_exts:
+            continue
+        try:
+            if file_path.stat().st_ctime < cutoff:
+                file_path.unlink()
+                meta_path = OUTPUT_DIR / (file_path.name + ".json")
+                if meta_path.exists():
+                    meta_path.unlink()
+                deleted += 1
+        except Exception as e:
+            print(f"[GALLERY CLEANUP] Gagal hapus {file_path.name}: {e}")
+
+    if deleted:
+        print(f"[GALLERY CLEANUP] {deleted} file lebih tua dari {GALLERY_RETENTION_DAYS} hari dihapus")
+    return deleted
+
+
+async def _gallery_cleanup_loop():
+    while True:
+        try:
+            cleanup_old_gallery_files()
+        except Exception as e:
+            print(f"[GALLERY CLEANUP] Error: {e}")
+        await asyncio.sleep(24 * 60 * 60)
+
+
+def _decode_data_uri(data_uri: str):
+    match = re.match(r"^data:([^;]+);base64,(.*)$", data_uri or "", re.DOTALL)
+    if not match:
+        return None, None
+    mime_type, b64 = match.group(1), match.group(2)
+    try:
+        return base64.b64decode(b64), mime_type
+    except Exception:
+        return None, None
+
+
 print("MAIN PY CORS_ORIGINS:", CORS_ORIGINS)
 
 BASE_DIR          = Path(__file__).resolve().parent.parent
@@ -107,6 +171,11 @@ async def add_basic_security_headers(request: Request, call_next):
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     return response
+
+
+@app.on_event("startup")
+async def start_gallery_cleanup_loop():
+    asyncio.create_task(_gallery_cleanup_loop())
 
 
 if FRONTEND_ASSETS_DIR.exists():
@@ -281,16 +350,7 @@ async def edit_image(
     user_dept   = get_dept_category(current_user)
     dept_api_key = get_api_key_for_dept(user_dept)
     dept_prefix  = get_filename_prefix_for_dept(user_dept)
-
-    # Ambil nama user dari JWT
-    user_display_name = (
-        current_user.get("name") or
-        current_user.get("full_name") or
-        current_user.get("fullName") or
-        current_user.get("username") or
-        current_user.get("email") or
-        ""
-    ).strip()
+    user_display_name = get_user_display_name(current_user)
 
     if not dept_api_key:
         raise HTTPException(
@@ -480,10 +540,32 @@ async def _proxy_multipart_to_webhook(webhook_url: str, request: Request):
         raise HTTPException(status_code=502, detail="n8n tidak mengembalikan JSON yang valid")
 
 
+def _save_studio_iklan_image(current_user: dict, data_uri: str, label: str):
+    data, mime_type = _decode_data_uri(data_uri)
+    if not data:
+        return
+    try:
+        user_dept = get_dept_category(current_user)
+        save_inline_image(
+            data=data,
+            mime_type=mime_type or "image/png",
+            prefix=get_filename_prefix_for_dept(user_dept),
+            created_by=get_user_display_name(current_user),
+            prompt=f"Agent Mila - {label}",
+        )
+    except Exception as e:
+        print(f"[AGENT MILA] Gagal menyimpan gambar ke gallery ({label}): {e}")
+
+
 @app.post("/studio-iklan/generate")
 @app.post("/api/studio-iklan/generate")
 async def studio_iklan_generate(request: Request, current_user: dict = Depends(verify_token)):
-    return await _proxy_multipart_to_webhook(STUDIO_IKLAN_WEBHOOK_GENERATE, request)
+    result = await _proxy_multipart_to_webhook(STUDIO_IKLAN_WEBHOOK_GENERATE, request)
+    for item in (result.get("hasil") or []):
+        image_uri = item.get("image")
+        if image_uri:
+            _save_studio_iklan_image(current_user, image_uri, item.get("varian") or "generate")
+    return result
 
 
 @app.post("/studio-iklan/extract-pdf")
@@ -495,7 +577,10 @@ async def studio_iklan_extract_pdf(request: Request, current_user: dict = Depend
 @app.post("/studio-iklan/edit-image")
 @app.post("/api/studio-iklan/edit-image")
 async def studio_iklan_edit_image(request: Request, current_user: dict = Depends(verify_token)):
-    return await _proxy_multipart_to_webhook(STUDIO_IKLAN_WEBHOOK_EDIT, request)
+    result = await _proxy_multipart_to_webhook(STUDIO_IKLAN_WEBHOOK_EDIT, request)
+    if result.get("image"):
+        _save_studio_iklan_image(current_user, result["image"], "edit")
+    return result
 
 
 # ── Static & SPA ─────────────────────────────────────────────────────────────

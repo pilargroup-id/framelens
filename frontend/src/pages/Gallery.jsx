@@ -26,6 +26,7 @@
   import AutoAwesomeIcon                from "@mui/icons-material/AutoAwesome";
   import StorefrontIcon                 from "@mui/icons-material/Storefront";
   import CalendarMonthRoundedIcon       from "@mui/icons-material/CalendarMonthRounded";
+  import PersonRoundedIcon              from "@mui/icons-material/PersonRounded";
   import RestartAltRoundedIcon          from "@mui/icons-material/RestartAltRounded";
   import CheckBoxRoundedIcon            from "@mui/icons-material/CheckBoxRounded";
   import CheckBoxOutlineBlankRoundedIcon from "@mui/icons-material/CheckBoxOutlineBlankRounded";
@@ -70,10 +71,46 @@
         0%,100%{ box-shadow:0 10px 26px rgba(35,57,113,0.25); }
         50%    { box-shadow:0 14px 34px rgba(35,57,113,0.40); }
       }
+      @keyframes emptyIconFloat{
+        0%,100%{ transform:translateY(0) rotate(0deg); }
+        50%{ transform:translateY(-7px) rotate(-3deg); }
+      }
+      @keyframes emptyIconHalo{
+        0%{ transform:scale(0.88); opacity:0.28; }
+        55%{ transform:scale(1.28); opacity:0; }
+        100%{ transform:scale(1.28); opacity:0; }
+      }
+      @keyframes emptyIconSpark{
+        0%,100%{ transform:scale(0.72) rotate(0deg); opacity:0.34; }
+        50%{ transform:scale(1.08) rotate(16deg); opacity:0.95; }
+      }
     `}</style>
   );
 
   const F = { fontFamily:"'Sora',sans-serif" };
+  const HEADER_FILTER_BG = "#f1f5f9";
+  const HEADER_FILTER_BG_HOVER = "#e8eef6";
+
+  const headerFilterFieldSx = {
+    "& .MuiOutlinedInput-root":{
+      borderRadius:"999px",
+      background:HEADER_FILTER_BG,
+      ...F,
+      fontSize:"0.82rem",
+      transition:"background 0.2s ease,border-color 0.2s ease",
+      "& fieldset":{ borderColor:"rgba(100,116,139,0.24)" },
+      "&:hover":{
+        background:HEADER_FILTER_BG_HOVER,
+      },
+      "&:hover fieldset":{ borderColor:"rgba(100,116,139,0.38)" },
+      "&.Mui-focused":{
+        background:"#eef2f7",
+      },
+      "&.Mui-focused fieldset":{ borderColor:"#64748b", borderWidth:"1.5px" },
+    },
+    "& .MuiInputBase-input":{ px:"14px" },
+    "& .MuiSelect-select":{ ...F },
+  };
 
   const IMG_H          = 180;
   const CARD_H         = 320;
@@ -272,7 +309,7 @@ function DatePickerBox({ label, value, onChange }) {
             color:"#233971",
             background:"#fff",
             px:"4px",
-            borderRadius:"4px",
+            borderRadius:"999px",
             pointerEvents:"none",
             lineHeight:1,
           }}
@@ -320,9 +357,9 @@ function DatePickerBox({ label, value, onChange }) {
           sx={{
             position:"relative",
             zIndex:3,
-            borderRadius:"12px",
-            border:"1.5px solid rgba(35,57,113,0.25)",
-            background:"#fff",
+            borderRadius:"999px",
+            border:"1.5px solid rgba(100,116,139,0.24)",
+            background:HEADER_FILTER_BG,
             display:"flex",
             alignItems:"center",
             gap:"6px",
@@ -332,11 +369,13 @@ function DatePickerBox({ label, value, onChange }) {
             outline:"none",
             transition:"border-color 0.2s",
             "&:hover":{
-              borderColor:"rgba(35,57,113,0.45)",
+              background:HEADER_FILTER_BG_HOVER,
+              borderColor:"rgba(100,116,139,0.38)",
             },
             "&:focus-visible":{
-              borderColor:"#233971",
-              boxShadow:"0 0 0 3px rgba(35,57,113,0.12)",
+              background:"#eef2f7",
+              borderColor:"#64748b",
+              boxShadow:"0 0 0 3px rgba(100,116,139,0.14)",
             },
           }}
         >
@@ -393,6 +432,9 @@ function DatePickerBox({ label, value, onChange }) {
     const { user } = useAuth();
     const authorName = user?.name || user?.username || "Guest";
     const { search, dateFrom, dateTo, createdBy } = readGalleryFilterState(searchParams);
+    const [searchInput, setSearchInput] = useState(search);
+    const searchDebounceRef = useRef(null);
+    useEffect(() => { setSearchInput(search); }, [search]);
     const filterKey = `${search}\u0000${dateFrom}\u0000${dateTo}\u0000${createdBy}`;
     const [pagination, setPagination] = useState({ filterKey, page:1 });
     const page = pagination.filterKey === filterKey ? pagination.page : 1;
@@ -476,18 +518,25 @@ function DatePickerBox({ label, value, onChange }) {
     const onTouchEnd = () => { touchesRef.current = []; dragStartRef.current = null; };
 
     const handleSearchChange = (value) => {
-      updateGallerySearchParams({
-        [GALLERY_SEARCH_PARAM_KEY]: value,
-        [GALLERY_DATE_FROM_PARAM_KEY]: dateFrom,
-        [GALLERY_DATE_TO_PARAM_KEY]: dateTo,
-      });
+      setSearchInput(value);
+      if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+      searchDebounceRef.current = setTimeout(() => {
+        updateGallerySearchParams({
+          [GALLERY_SEARCH_PARAM_KEY]: value,
+          [GALLERY_DATE_FROM_PARAM_KEY]: dateFrom,
+          [GALLERY_DATE_TO_PARAM_KEY]: dateTo,
+          [GALLERY_CREATED_BY_PARAM_KEY]: createdBy,
+        });
+      }, 350);
     };
+    useEffect(() => () => { if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current); }, []);
 
     const handleDateFromChange = (value) => {
       updateGallerySearchParams({
         [GALLERY_SEARCH_PARAM_KEY]: search,
         [GALLERY_DATE_FROM_PARAM_KEY]: value,
         [GALLERY_DATE_TO_PARAM_KEY]: dateTo,
+        [GALLERY_CREATED_BY_PARAM_KEY]: createdBy,
       });
     };
 
@@ -496,6 +545,7 @@ function DatePickerBox({ label, value, onChange }) {
         [GALLERY_SEARCH_PARAM_KEY]: search,
         [GALLERY_DATE_FROM_PARAM_KEY]: dateFrom,
         [GALLERY_DATE_TO_PARAM_KEY]: value,
+        [GALLERY_CREATED_BY_PARAM_KEY]: createdBy,
       });
     };
 
@@ -701,20 +751,10 @@ function DatePickerBox({ label, value, onChange }) {
                       fullWidth
                       size="small"
                       placeholder="Search by prompt or file name..."
-                      value={search}
+                      value={searchInput}
                       onChange={e=>handleSearchChange(e.target.value)}
                       InputProps={{ startAdornment:<SearchRoundedIcon sx={{ color:"#94a3b8", mr:1, fontSize:18 }}/> }}
-                      sx={{
-                        "& .MuiOutlinedInput-root":{
-                          borderRadius:"12px",
-                          background:"#fff",
-                          ...F,
-                          fontSize:"0.82rem",
-                          "& fieldset":{ borderColor:"rgba(35,57,113,0.18)" },
-                          "&:hover fieldset":{ borderColor:"rgba(35,57,113,0.35)" },
-                          "&.Mui-focused fieldset":{ borderColor:"#233971", borderWidth:"1.5px" },
-                        },
-                      }}
+                      sx={headerFilterFieldSx}
                     />
                   </Box>
 
@@ -726,19 +766,12 @@ function DatePickerBox({ label, value, onChange }) {
                       size="small"
                       value={createdBy}
                       onChange={e=>handleCreatedByChange(e.target.value)}
-                      SelectProps={{ displayEmpty: true }}
-                      sx={{
-                        "& .MuiOutlinedInput-root":{
-                          borderRadius:"12px",
-                          background:"#fff",
-                          ...F,
-                          fontSize:"0.82rem",
-                          "& fieldset":{ borderColor:"rgba(35,57,113,0.18)" },
-                          "&:hover fieldset":{ borderColor:"rgba(35,57,113,0.35)" },
-                          "&.Mui-focused fieldset":{ borderColor:"#233971", borderWidth:"1.5px" },
-                        },
-                        "& .MuiSelect-select":{ ...F },
+                      InputProps={{ startAdornment:<PersonRoundedIcon sx={{ color:"#94a3b8", mr:1, fontSize:18 }}/> }}
+                      SelectProps={{
+                        displayEmpty: true,
+                        MenuProps:{ PaperProps:{ sx:{ ...F, background:"#f8fafc" } } },
                       }}
+                      sx={headerFilterFieldSx}
                     >
                       <MenuItem value="" sx={F}>All Creators</MenuItem>
                       {creators.map(c => (
@@ -769,16 +802,14 @@ function DatePickerBox({ label, value, onChange }) {
                         size="small"
                         value={perPage}
                         onChange={e=>{ setPerPage(Number(e.target.value)); setPage(1); }}
-                        SelectProps={{ MenuProps:{ PaperProps:{ sx:{ ...F } } } }}
+                        SelectProps={{ MenuProps:{ PaperProps:{ sx:{ ...F, background:"#f8fafc" } } } }}
                         sx={{
                           width:72,
-                          "& .MuiOutlinedInput-root":{
-                            borderRadius:"10px",
-                            background:"#fff",
-                            ...F, fontSize:"0.76rem",
-                            "& fieldset":{ borderColor:"rgba(35,57,113,0.22)" },
-                            "&:hover fieldset":{ borderColor:"rgba(35,57,113,0.4)" },
-                            "&.Mui-focused fieldset":{ borderColor:"#233971" },
+                          ...headerFilterFieldSx,
+                          "& .MuiOutlinedInput-root": {
+                            ...headerFilterFieldSx["& .MuiOutlinedInput-root"],
+                            borderRadius:"999px",
+                            fontSize:"0.76rem",
                           },
                           "& .MuiSelect-select":{ py:"5px !important", pl:"10px !important", minHeight:"unset !important" },
                         }}
@@ -876,8 +907,52 @@ function DatePickerBox({ label, value, onChange }) {
             >
               <CardContent sx={{ p:{ xs:1.5,md:"10px 18px" }, position:"relative", zIndex:2, flex:1, minHeight:0, display:"flex", alignItems:"center", justifyContent:"center", overflowY:"auto" }}>
                 <Stack spacing={1} alignItems="center" textAlign="center">
-                  <Box sx={{ width:56, height:56, borderRadius:"16px", background:"rgba(35,57,113,0.12)", display:"flex", alignItems:"center", justifyContent:"center" }}>
-                    <CollectionsRoundedIcon sx={{ fontSize:28, color:"#233971" }}/>
+                  <Box
+                    sx={{
+                      position:"relative",
+                      width:62,
+                      height:62,
+                      borderRadius:"18px",
+                      background:"rgba(100,116,139,0.14)",
+                      border:"1px solid rgba(100,116,139,0.2)",
+                      display:"flex",
+                      alignItems:"center",
+                      justifyContent:"center",
+                      animation:"emptyIconFloat 3.4s ease-in-out infinite",
+                      boxShadow:"0 14px 30px rgba(15,23,42,0.1), inset 0 1px 0 rgba(255,255,255,0.85)",
+                      "&::before":{
+                        content:'""',
+                        position:"absolute",
+                        inset:-8,
+                        borderRadius:"24px",
+                        border:"1.5px solid rgba(100,116,139,0.28)",
+                        animation:"emptyIconHalo 2.4s ease-out infinite",
+                      },
+                    }}
+                  >
+                    <AutoAwesomeIcon
+                      sx={{
+                        position:"absolute",
+                        top:-5,
+                        right:-4,
+                        fontSize:17,
+                        color:"#f59e0b",
+                        filter:"drop-shadow(0 3px 8px rgba(245,158,11,0.28))",
+                        animation:"emptyIconSpark 1.9s ease-in-out infinite",
+                      }}
+                    />
+                    <AutoAwesomeIcon
+                      sx={{
+                        position:"absolute",
+                        left:2,
+                        bottom:4,
+                        fontSize:11,
+                        color:"#64748b",
+                        opacity:0.75,
+                        animation:"emptyIconSpark 2.2s ease-in-out infinite 0.35s",
+                      }}
+                    />
+                    <CollectionsRoundedIcon sx={{ fontSize:30, color:"#64748b", position:"relative", zIndex:1 }}/>
                   </Box>
 
                   <Box>

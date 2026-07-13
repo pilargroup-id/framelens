@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
   Box,
@@ -10,8 +10,11 @@ import {
   Divider,
   IconButton,
   Paper,
+  Snackbar,
   Stack,
   Switch,
+  Tab,
+  Tabs,
   TextField,
   Typography,
 } from "@mui/material";
@@ -19,17 +22,17 @@ import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import PictureAsPdfRoundedIcon from "@mui/icons-material/PictureAsPdfRounded";
 import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
-import DownloadIcon from "@mui/icons-material/Download";
+import DownloadRoundedIcon from "@mui/icons-material/DownloadRounded";
+import EditRoundedIcon from "@mui/icons-material/EditRounded";
 import AutoFixHighRoundedIcon from "@mui/icons-material/AutoFixHighRounded";
-import CampaignRoundedIcon from "@mui/icons-material/CampaignRounded";
+import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import PaletteRoundedIcon from "@mui/icons-material/PaletteRounded";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
-import KeyboardArrowDownRoundedIcon from "@mui/icons-material/KeyboardArrowDownRounded";
-import KeyboardArrowUpRoundedIcon from "@mui/icons-material/KeyboardArrowUpRounded";
+import TuneRoundedIcon from "@mui/icons-material/TuneRounded";
 import api from "../api/client";
 
 /* ================================================================
-   Studio Iklan — generate 3 varian gambar produk + varian warna
+   Agent Mila — generate 3 varian gambar produk + varian warna
    Port dari studio-iklan.html ke React (logic canvas dipertahankan
    apa adanya, form diubah jadi controlled React state).
 ================================================================ */
@@ -37,18 +40,18 @@ import api from "../api/client";
 const VARIAN = [
   { num: 1, key: "1-reference", label: "Item + Reference" },
   { num: 2, key: "2-keypoint", label: "Item + Key Point Sell" },
-  { num: 3, key: "3-spesifikasi", label: "Item + Spesifikasi" },
-  { num: 4, key: "4-cara-penggunaan", label: "Item + Cara Penggunaan" },
-  { num: 5, key: "5-subjek", label: "Item dengan Subjek" },
+  { num: 3, key: "3-spesifikasi", label: "Item + Specification" },
+  { num: 4, key: "4-cara-penggunaan", label: "Item + How to Use" },
+  { num: 5, key: "5-subjek", label: "Item with Subject" },
   { num: 6, key: "6-improvement", label: "Item + Improvement" },
 ];
 
 const DEFAULT_VARIANT_STATE = { 1: false, 2: true, 3: true, 4: true, 5: false, 6: false };
-const MAX_VARIAN_GENERATE = 3;
+const MAX_VARIAN_GENERATE = VARIAN.length;
 const KEYPOINT_BACKGROUND_RULE =
-  "Khusus varian Key Point Sell: boleh meniru arah layout foto iklan marketplace seperti produk besar di kiri/tengah, judul di kanan atas, dan tepat 3 key point di kanan. Tapi JANGAN masukkan frame/template acuan: jangan buat border/bingkai tepi biru, rounded frame, kotak/logo brand di kiri atas, banner atas, watermark, tulisan GOSAVE/PASTI AMAN dari contoh, garis diagonal, atau elemen template lain. JANGAN buat panel/kolom biru solid di belakang 3 key point dan jangan buat wash/tint/bayangan/glow biru di background. Background di belakang 3 key point harus tetap foto natural yang menyatu dengan background utama. Untuk 3 key point, boleh pakai tepat 3 lingkaran icon kecil berwarna biru/navy seperti contoh, tapi hanya itu saja; jangan tambah badge, logo, teks 'AI approved', teks 'approved', stempel, atau elemen lain.";
+  "For the Key Point Sell variant only: you may mimic marketplace ad layout direction such as a large product left/center, title top right, and exactly 3 key points on the right. But DO NOT include the reference frame/template: no blue border/edge frame, rounded frame, brand box/logo top left, top banner, watermark, GOSAVE/PASTI AMAN text from the example, diagonal lines, or other template elements. DO NOT create a solid blue panel/column behind the 3 key points and do not add a blue wash/tint/shadow/glow to the background. The background behind the 3 key points must stay a natural photo blended with the main background. For the 3 key points, you may use exactly 3 small blue/navy icon circles like the example, but nothing else; do not add badges, logos, 'AI approved' text, 'approved' text, stamps, or other elements.";
 const EXTRA_NEGATIVE_PROMPT =
-  "frame acuan masuk ke hasil, border biru, bingkai tepi biru, rounded frame, logo GOSAVE, GOSAVE PASTI AMAN, banner logo kiri atas, watermark, panel biru solid, kolom biru solid, background biru solid, navy panel, navy wash, blue wash, blue tint, blue shadow, glow biru, bayangan biru, garis diagonal, garis geometris, pola garis, AI approved, approved, logo tambahan, badge tambahan selain 3 key point, stempel, label tambahan, ikon ekstra, elemen dekoratif aneh, teks tambahan di luar instruksi";
+  "reference frame appearing in result, blue border, blue edge frame, rounded frame, GOSAVE logo, GOSAVE PASTI AMAN, top-left logo banner, watermark, solid blue panel, solid blue column, solid blue background, navy panel, navy wash, blue wash, blue tint, blue shadow, blue glow, blue shadow, diagonal lines, geometric lines, line pattern, AI approved, approved, extra logo, extra badge besides the 3 key points, stamp, extra label, extra icon, odd decorative element, extra text outside the instructions";
 
 // n8n "Prompt 2 - Item + Key Point Sell" sekarang minta AI gambar judul/tagline/badge sendiri,
 // jadi overlay Canvas di sini dimatikan supaya tidak dobel. Set true lagi kalau n8n dikembalikan
@@ -348,7 +351,7 @@ async function tempelJudulProduk(imageDataUrl, judulText, taglineText) {
       document.fonts.load("800 80px Montserrat"),
       document.fonts.ready,
     ]);
-  } catch (e) { console.warn("Font Montserrat gagal dimuat, judul tetap ditempel pakai font fallback.", e); }
+  } catch (e) { console.warn("Montserrat font failed to load, title is still applied using a fallback font.", e); }
 
   const img = await new Promise((resolve, reject) => {
     const el = new Image();
@@ -436,7 +439,7 @@ async function tempelBadgeInfo(imageDataUrl, teksMentah, judulBottomY, opsi) {
       document.fonts.load("800 80px Montserrat"),
       document.fonts.ready,
     ]);
-  } catch (e) { console.warn("Font Montserrat gagal dimuat, badge tetap ditempel pakai font fallback.", e); }
+  } catch (e) { console.warn("Montserrat font failed to load, badge is still applied using a fallback font.", e); }
 
   const img = await new Promise((resolve, reject) => {
     const el = new Image();
@@ -459,19 +462,19 @@ async function tempelBadgeInfo(imageDataUrl, teksMentah, judulBottomY, opsi) {
   const blockGapFactor = 1.05;
 
   const LABEL_KATEGORI = {
-    lock: "Terkunci Aman",
-    water: "Tahan Air",
-    dust: "Anti Debu",
-    uv: "Anti UV",
-    star: "Kualitas Premium",
-    star2: "Desain Stylish",
-    clock: "Cas Cepat",
-    bolt: "Tenaga Kuat",
-    shield: "Aman Terlindungi",
-    box: "Praktis Dibawa",
-    leaf: "Ramah Lingkungan",
-    heart: "Nyaman Dipakai",
-    tag: "Harga Hemat",
+    lock: "Securely Locked",
+    water: "Waterproof",
+    dust: "Dustproof",
+    uv: "UV Resistant",
+    star: "Premium Quality",
+    star2: "Stylish Design",
+    clock: "Fast Charging",
+    bolt: "Powerful",
+    shield: "Safe & Protected",
+    box: "Easy to Carry",
+    leaf: "Eco-Friendly",
+    heart: "Comfortable",
+    tag: "Great Value",
   };
   const KATA_SAMBUNG = new Set(["dan", "atau", "yang", "dengan", "untuk", "ke", "di", "dari", "serta", "juga", "pada", "akan", "agar", "supaya", "ini", "itu", "adalah", "sebuah", "satu", "bisa", "dapat", "sudah", "tanpa", "saja", "sekali", "sangat", "banget", "tetap", "tak", "tidak", "jadi", "biar", "si", "se", "para"]);
   const ambilKataInti = (s, maksKata) => {
@@ -574,7 +577,7 @@ async function tempelBadgeInfo(imageDataUrl, teksMentah, judulBottomY, opsi) {
 
 async function tempelBadgeKeyPoint(imageDataUrl, keypointText, judulBottomY) {
   return tempelBadgeInfo(imageDataUrl, keypointText, judulBottomY, {
-    pesanKosong: 'Field "Key point sell" kosong atau nonaktif - tidak ada teks untuk ditempel jadi badge dilewati.',
+    pesanKosong: 'The "Key point sell" field is empty or disabled - no text to overlay, badge skipped.',
     jumlahTetap: 3,
   });
 }
@@ -636,26 +639,47 @@ const cardShell = {
 
 const inputSx = {
   "& .MuiOutlinedInput-root": {
-    borderRadius: "14px",
+    borderRadius: "12px",
     background: "rgba(241,245,249,0.9)",
     backdropFilter: "blur(8px)",
     ...F,
+    fontSize: "0.76rem",
     "& fieldset": { borderColor: "rgba(148,163,184,0.35)" },
     "&:hover fieldset": { borderColor: "rgba(148,163,184,0.6)" },
     "&.Mui-focused fieldset": { borderColor: "#233971", borderWidth: "1.5px" },
   },
+  "& .MuiInputBase-input": { py: "7px", fontSize: "0.76rem", lineHeight: 1.35 },
+  "& textarea.MuiInputBase-input": { py: 0, lineHeight: 1.32 },
+  "& .MuiInputBase-input::placeholder": { color: "#475569", opacity: 1 },
   "& .MuiInputLabel-root": { ...F, "&.Mui-focused": { color: "#233971" } },
   "& .MuiFormHelperText-root": { ...F },
 };
 
-const sectionLabel = { ...F, fontWeight: 700, fontSize: "0.78rem", letterSpacing: "0.06em", textTransform: "uppercase", color: "#0f172a" };
+const inputSxDark = {
+  ...inputSx,
+  "& .MuiOutlinedInput-root": {
+    ...inputSx["& .MuiOutlinedInput-root"],
+    background: "rgba(226,232,240,0.95)",
+  },
+};
+
+const sectionLabel = { ...F, fontWeight: 700, fontSize: "0.68rem", letterSpacing: "0.05em", textTransform: "uppercase", color: "#0f172a" };
 
 const sectionCardSx = {
-  borderRadius: "18px",
+  borderRadius: "14px",
   border: "1px solid rgba(35,57,113,0.13)",
   background: "rgba(255,255,255,0.7)",
   boxShadow: "0 1px 4px rgba(15,23,42,0.04), 0 8px 20px -10px rgba(35,57,113,0.14)",
-  p: 1.5,
+  p: 1,
+};
+
+const formBlockSx = {
+  minWidth: 0,
+  p: 0.5,
+  borderRadius: "14px",
+  border: "1px solid rgba(148,163,184,0.22)",
+  background: "rgba(248,250,252,0.78)",
+  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.72)",
 };
 
 const compactSwitchSx = {
@@ -699,42 +723,55 @@ const gridCanvasSx = {
 
 /* ---------------- UI helper components ---------------- */
 
-function ToggleField({ label, hint, value, onChange, active, onActiveChange, textarea = false, placeholder }) {
+function FieldLabel({ label, hint }) {
   return (
-    <Box sx={{ opacity: active ? 1 : 0.6, transition: "opacity 0.2s" }}>
-      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={0.6}>
-        <Typography sx={sectionLabel}>
-          {label}{" "}
-          {hint && <Typography component="span" sx={{ ...F, fontWeight: 400, textTransform: "none", fontSize: "0.7rem", color: "#94a3b8" }}>{hint}</Typography>}
-        </Typography>
+    <Stack direction="row" spacing={0.55} alignItems="center" sx={{ minWidth: 0 }}>
+      <Typography noWrap sx={sectionLabel}>
+        {label}{" "}
+        {hint && <Typography component="span" sx={{ ...F, fontWeight: 400, textTransform: "none", fontSize: "0.62rem", color: "#94a3b8" }}>{hint}</Typography>}
+      </Typography>
+    </Stack>
+  );
+}
+
+function ToggleField({ label, hint, value, onChange, active, onActiveChange, textarea = false, placeholder, sx, dark = false }) {
+  return (
+    <Box sx={{ ...formBlockSx, gridColumn: { xs: "1 / -1", md: "span 6" }, opacity: active ? 1 : 0.6, transition: "opacity 0.2s", ...sx }}>
+      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={0.35}>
+        <FieldLabel label={label} hint={hint} />
         <Switch size="small" checked={active} onChange={(e) => onActiveChange(e.target.checked)} sx={compactSwitchSx} />
       </Stack>
       <TextField
         fullWidth
         size="small"
         multiline={textarea}
-        minRows={textarea ? 3 : 1}
+        minRows={textarea ? 2 : 1}
+        maxRows={textarea ? 2 : 1}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         disabled={!active}
         placeholder={placeholder}
-        sx={inputSx}
+        sx={[dark ? inputSxDark : inputSx, !textarea && { "& .MuiOutlinedInput-root": { minHeight: "44px", boxSizing: "border-box" } }]}
       />
     </Box>
   );
 }
 
-function UploadBox({ icon, title, subtitle, accept, multiple = false, onFile, disabled = false, dashed = true, gradient = "linear-gradient(135deg,#233971,#2e4fa3)" }) {
+function UploadBox({ icon, title, subtitle, accept, multiple = false, onFile, disabled = false, dashed = true, iconBg = "rgba(100,116,139,0.12)", iconColor = "#64748b" }) {
   const inputRef = useRef(null);
   return (
     <Paper
       variant="outlined"
       onClick={() => { if (!disabled) inputRef.current?.click(); }}
       sx={{
-        p: 1.2,
+        p: 0.8,
+        minHeight: "44px",
+        boxSizing: "border-box",
+        display: "flex",
+        alignItems: "center",
         cursor: disabled ? "not-allowed" : "pointer",
         opacity: disabled ? 0.5 : 1,
-        borderRadius: "14px",
+        borderRadius: "12px",
         borderStyle: dashed ? "dashed" : "solid",
         borderWidth: 1.5,
         borderColor: "rgba(148,163,184,0.35)",
@@ -744,13 +781,30 @@ function UploadBox({ icon, title, subtitle, accept, multiple = false, onFile, di
         "&:hover": disabled ? undefined : { borderColor: "rgba(35,57,113,0.4)" },
       }}
     >
-      <Stack direction="row" spacing={1.2} alignItems="center">
-        <Box sx={{ width: 30, height: 30, flexShrink: 0, borderRadius: "10px", background: gradient, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 6px 16px rgba(35,57,113,0.35)" }}>
-          {icon}
-        </Box>
+      <Stack direction="row" spacing={0.8} alignItems="center" sx={{ width: "100%" }}>
+        {icon && (
+          <Box
+            sx={{
+              width: 28,
+              height: 28,
+              flexShrink: 0,
+              borderRadius: "9px",
+              background: iconBg,
+              color: iconColor,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              border: "1px solid rgba(255,255,255,0.65)",
+              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.65)",
+              "& svg": { fontSize: 15, color: "currentColor" },
+            }}
+          >
+            {icon}
+          </Box>
+        )}
         <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography noWrap sx={{ ...F, fontWeight: 700, fontSize: "0.75rem", color: "#1e293b" }}>{title}</Typography>
-          <Typography noWrap sx={{ ...F, fontSize: "0.64rem", color: "#94a3b8" }}>{subtitle}</Typography>
+          <Typography noWrap sx={{ ...F, fontWeight: 700, fontSize: "0.68rem", color: "#1e293b" }}>{title}</Typography>
+          <Typography noWrap sx={{ ...F, fontSize: "0.58rem", color: "#94a3b8" }}>{subtitle}</Typography>
         </Box>
         <input ref={inputRef} type="file" accept={accept} multiple={multiple} hidden onChange={(e) => { onFile(e.target.files); e.target.value = ""; }} />
       </Stack>
@@ -758,13 +812,17 @@ function UploadBox({ icon, title, subtitle, accept, multiple = false, onFile, di
   );
 }
 
-function ResultCard({ label, index, active, onToggleActive, status, data, onEdit, subtitle }) {
+const ResultCard = memo(function ResultCard({ label, index, active, toggleNum, onToggleActive, status, data, editKey, onEdit, onPreview, subtitle }) {
   return (
     <Paper
       variant="outlined"
       sx={{
-        p: 1,
-        borderRadius: "16px",
+        p: 0.75,
+        height: "100%",
+        minHeight: 0,
+        display: "flex",
+        flexDirection: "column",
+        borderRadius: "14px",
         background: active ? "rgba(255,255,255,0.72)" : "rgba(241,245,249,0.55)",
         backdropFilter: "blur(10px)",
         border: "1px solid rgba(148,163,184,0.3)",
@@ -772,34 +830,40 @@ function ResultCard({ label, index, active, onToggleActive, status, data, onEdit
         transition: "opacity 0.2s, box-shadow 0.2s",
       }}
     >
-      <Stack spacing={1}>
+      <Stack spacing={0.7} sx={{ flex: 1, minHeight: 0 }}>
         <Stack direction="row" justifyContent="space-between" alignItems="center">
-          <Typography noWrap sx={{ ...F, fontWeight: 700, fontSize: "0.72rem", color: "#334155" }}>
+          <Typography noWrap sx={{ ...F, fontWeight: 700, fontSize: "0.64rem", color: "#334155" }}>
             {String(index + 1).padStart(2, "0")}. {subtitle || label}
           </Typography>
           {onToggleActive && (
-            <Switch size="small" checked={active} onChange={(e) => onToggleActive(e.target.checked)} sx={compactSwitchSx} />
+            <Switch size="small" checked={active} onChange={(e) => onToggleActive(toggleNum, e.target.checked)} sx={compactSwitchSx} />
           )}
         </Stack>
-        <Box sx={gridCanvasSx}>
+        <Box sx={{ ...gridCanvasSx, flex: 1, minHeight: 0, aspectRatio: "auto" }}>
           {status === "loading" && <CircularProgress size={26} thickness={4} sx={{ color: "#233971" }} />}
           {status === "idle" && (
             <Typography sx={{ ...F, fontSize: "0.66rem", color: "#94a3b8", textAlign: "center", px: 2 }}>
-              Hasil akan muncul di sini
+              Result will appear here
             </Typography>
           )}
           {status === "skip" && (
             <Typography sx={{ ...F, fontSize: "0.66rem", color: "#94a3b8", textAlign: "center", px: 2 }}>
-              Dinonaktifkan
+              Disabled
             </Typography>
           )}
           {status === "error" && (
             <Typography sx={{ ...F, fontSize: "0.66rem", color: "#b45309", textAlign: "center", px: 2 }}>
-              {data?.errorMsg || "Gagal generate"}
+              {data?.errorMsg || "Failed to generate"}
             </Typography>
           )}
           {status === "done" && (
-            <Box component="img" src={data.image} alt={label} sx={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+            <Box
+              component="img"
+              src={data.image}
+              alt={label}
+              onClick={() => onPreview && onPreview({ image: data.image, label: subtitle || label, editKey, fileName: data.fileName })}
+              sx={{ width: "100%", height: "100%", objectFit: "cover", display: "block", cursor: "zoom-in" }}
+            />
           )}
         </Box>
         {status === "done" && (
@@ -807,8 +871,8 @@ function ResultCard({ label, index, active, onToggleActive, status, data, onEdit
             <Button
               size="small"
               variant="outlined"
-              onClick={onEdit}
-              startIcon={<AutoFixHighRoundedIcon sx={{ fontSize: "14px !important" }} />}
+              onClick={() => onEdit(editKey)}
+              startIcon={<EditRoundedIcon sx={{ fontSize: "14px !important" }} />}
               sx={{ ...F, flex: 1, borderRadius: "999px", textTransform: "none", fontWeight: 700, fontSize: "0.68rem", color: "#233971", borderColor: "rgba(35,57,113,0.25)", "&:hover": { borderColor: "rgba(35,57,113,0.45)", background: "rgba(35,57,113,0.06)" } }}
             >
               Edit
@@ -819,21 +883,21 @@ function ResultCard({ label, index, active, onToggleActive, status, data, onEdit
               component="a"
               href={data.image}
               download={data.fileName}
-              startIcon={<DownloadIcon sx={{ fontSize: "14px !important" }} />}
+              startIcon={<DownloadRoundedIcon sx={{ fontSize: "14px !important" }} />}
               sx={{ ...F, flex: 1, borderRadius: "999px", textTransform: "none", fontWeight: 700, fontSize: "0.68rem", background: "linear-gradient(135deg,#233971,#2e4fa3)", boxShadow: "0 6px 16px rgba(35,57,113,0.3)" }}
             >
-              Unduh
+              Download
             </Button>
           </Stack>
         )}
       </Stack>
     </Paper>
   );
-}
+});
 
 /* ================================================================ */
 
-export default function StudioIklanPage() {
+export default function AgentMilaPage() {
   const MAX_PRODUK = 10;
 
   const [filePdf, setFilePdf] = useState(null);
@@ -858,13 +922,13 @@ export default function StudioIklanPage() {
   const [cara, setCara] = useState("");
   const [caraOn, setCaraOn] = useState(true);
   const [negativePrompt, setNegativePrompt] = useState("");
-  const [negativePromptOn, setNegativePromptOn] = useState(false);
+  const [negativePromptOn, setNegativePromptOn] = useState(true);
   const [subjek, setSubjek] = useState("");
-  const [subjekOn, setSubjekOn] = useState(false);
+  const [subjekOn, setSubjekOn] = useState(true);
   const [improvement, setImprovement] = useState("");
-  const [improvementOn, setImprovementOn] = useState(false);
+  const [improvementOn, setImprovementOn] = useState(true);
   const [background, setBackground] = useState("");
-  const [backgroundOn, setBackgroundOn] = useState(false);
+  const [backgroundOn, setBackgroundOn] = useState(true);
 
   const [warnaList, setWarnaList] = useState([]);
   const [warnaOn, setWarnaOn] = useState(false);
@@ -884,6 +948,12 @@ export default function StudioIklanPage() {
   const editCanvasRef = useRef(null);
 
   const [lainLainOpen, setLainLainOpen] = useState(false);
+  const [resultTab, setResultTab] = useState("utama");
+  const [warnaPage, setWarnaPage] = useState(0);
+
+  const [previewItem, setPreviewItem] = useState(null);
+  const [previewZoom, setPreviewZoom] = useState(1);
+  const closePreview = () => { setPreviewItem(null); setPreviewZoom(1); };
 
   const produkPreviews = useMemo(() => produkFiles.map((f) => URL.createObjectURL(f)), [produkFiles]);
   useEffect(() => () => produkPreviews.forEach((u) => URL.revokeObjectURL(u)), [produkPreviews]);
@@ -905,11 +975,11 @@ export default function StudioIklanPage() {
   const extractFromPdf = async (file) => {
     const fd = new FormData();
     fd.append("pdf", file);
-    setPdfStatus({ type: "", text: "Membaca PDF dengan AI…" });
+    setPdfStatus({ type: "", text: "Reading PDF with AI…" });
     try {
       const res = await api.post("/studio-iklan/extract-pdf", fd);
       const data = res.data;
-      if (data.sukses === false) throw new Error(data.error || "Ekstraksi gagal tanpa keterangan.");
+      if (data.sukses === false) throw new Error(data.error || "Extraction failed with no details.");
 
       let terisi = 0;
       const setIfVal = (val, setter, toggleSetter) => {
@@ -954,11 +1024,11 @@ export default function StudioIklanPage() {
 
       setPdfStatus({
         type: "ok",
-        text: terisi > 0 ? `${terisi} field terisi otomatis dari PDF. Cek & edit sebelum generate.` : "PDF terbaca tapi tidak ada field yang bisa diisi otomatis.",
+        text: terisi > 0 ? `${terisi} field auto-filled from the PDF. Check & edit before generating.` : "PDF was read but no fields could be auto-filled.",
       });
     } catch (err) {
       const msg = err?.response?.data?.detail || err.message;
-      setPdfStatus({ type: "err", text: "Gagal membaca PDF: " + msg });
+      setPdfStatus({ type: "err", text: "Failed to read PDF: " + msg });
     }
   };
 
@@ -1002,25 +1072,25 @@ export default function StudioIklanPage() {
 
   const handleGenerate = async () => {
     setStatus({ type: "", text: "" });
-    if (produkFiles.length === 0) { setStatus({ type: "err", text: "Foto produk belum dipilih (minimal 1, maks 10)." }); return; }
+    if (produkFiles.length === 0) { setStatus({ type: "err", text: "No product photo selected (minimum 1, maximum 10)." }); return; }
     const gunakanFrame = frameOn;
-    if (gunakanFrame && !fileFrame) { setStatus({ type: "err", text: "Frame acuan belum dipilih (atau nonaktifkan toggle Frame Acuan)." }); return; }
+    if (gunakanFrame && !fileFrame) { setStatus({ type: "err", text: "No reference frame selected (or turn off the Reference Frame toggle)." }); return; }
     const totalAktif = totalAktifVarian();
     const warnaAktif = warnaOn && warnaList.length > 0;
     const keypointAktif = isVarianAktifUntukGenerate(VARIAN.find((v) => v.key === "2-keypoint"));
     const keypointList = [keypoint1, keypoint2, keypoint3].map((s) => s.trim());
     if (keypointAktif && (!keypointOn || keypointList.some((s) => !s))) {
-      setStatus({ type: "err", text: "Untuk varian Key Point Sell, isi tepat 3 key point dulu supaya AI tidak menambah poin aneh sendiri." });
+      setStatus({ type: "err", text: "For the Key Point Sell variant, fill in exactly 3 key points first so the AI doesn't add odd points on its own." });
       return;
     }
     if (totalAktif === 0 && !warnaAktif) {
-      setStatus({ type: "err", text: "Pilih minimal 1 varian gambar (toggle di kartu hasil) atau tambahkan minimal 1 warna untuk digenerate." });
+      setStatus({ type: "err", text: "Select at least 1 image variant (toggle on a result card) or add at least 1 color to generate." });
       return;
     }
 
     const totalSemua = totalAktif + (warnaAktif ? warnaList.length : 0);
     setGenerating(true);
-    setStatus({ type: "", text: `Mengirim ke n8n. Generate + cleanup AI berjalan, proses sekitar 2-4 menit untuk ${totalSemua} gambar.` });
+    setStatus({ type: "", text: `Sending to n8n. Generating + AI cleanup running for ${totalSemua} images.` });
 
     const initialSlots = {};
     VARIAN.forEach((v) => { initialSlots[v.key] = isVarianAktifUntukGenerate(v) ? { status: totalAktif > 0 ? "loading" : "skip" } : { status: "skip" }; });
@@ -1046,7 +1116,7 @@ export default function StudioIklanPage() {
           if (item && item.image) {
             okTotal++;
             let finalImage = item.image;
-            try { finalImage = await bersihkanPojokKiriAtas(finalImage); } catch (e) { console.warn("Gagal membersihkan pojok kiri atas:", e); }
+            try { finalImage = await bersihkanPojokKiriAtas(finalImage); } catch (e) { console.warn("Failed to clean up top-left corner:", e); }
             let badgeError = "";
             if (v.key === "2-keypoint" && CANVAS_OVERLAY_KEYPOINT) {
               let judulBottomY = null;
@@ -1054,14 +1124,14 @@ export default function StudioIklanPage() {
                 const hasilJudul = await tempelJudulProduk(finalImage, judulOn ? judulProduk : "", taglineOn ? tagline : "");
                 finalImage = hasilJudul.image;
                 judulBottomY = hasilJudul.bottomY;
-              } catch (e) { console.warn("Gagal menempel judul produk:", e); }
+              } catch (e) { console.warn("Failed to overlay product title:", e); }
               const sebelumBadge = finalImage;
               try {
                 const keypointGabung = keypointOn ? [keypoint1, keypoint2, keypoint3].map((s) => s.trim()).filter(Boolean).join("\n") : "";
                 finalImage = await tempelBadgeKeyPoint(sebelumBadge, keypointGabung, judulBottomY);
               } catch (e) {
-                console.error("Gagal menempel badge key point sell:", e);
-                badgeError = e && e.message ? e.message : "Badge key point gagal ditempel.";
+                console.error("Failed to overlay key point sell badge:", e);
+                badgeError = e && e.message ? e.message : "Failed to overlay key point badge.";
                 finalImage = sebelumBadge;
               }
             }
@@ -1075,7 +1145,7 @@ export default function StudioIklanPage() {
               badgeError,
             };
           } else {
-            newSlots[v.key] = { status: "error", errorMsg: "Tidak ada gambar dari API" };
+            newSlots[v.key] = { status: "error", errorMsg: "No image returned from API" };
           }
         }
         setVariantSlots(newSlots);
@@ -1095,23 +1165,23 @@ export default function StudioIklanPage() {
             const res = await api.post("/studio-iklan/generate", fd);
             const data = res.data;
             const item = (data.hasil || []).find((h) => h.varian === "7-warna");
-            if (!item || !item.image) throw new Error("Tidak ada gambar dari API");
+            if (!item || !item.image) throw new Error("No image returned from API");
 
             okTotal++;
             let finalImage = item.image;
-            try { finalImage = await bersihkanPojokKiriAtas(finalImage); } catch (e) { console.warn("Gagal membersihkan pojok kiri atas:", e); }
+            try { finalImage = await bersihkanPojokKiriAtas(finalImage); } catch (e) { console.warn("Failed to clean up top-left corner:", e); }
             const m = /^data:([^;]+);base64,(.*)$/.exec(finalImage);
             slotsAcc[i] = {
               warna,
               status: "done",
               image: finalImage,
-              fileName: item.fileName || ("warna-" + warna + ".png"),
+              fileName: item.fileName || ("color-" + warna + ".png"),
               mimeType: m ? m[1] : "image/png",
               base64: m ? m[2] : "",
             };
           } catch (e) {
-            console.error('Gagal generate warna "' + warna + '":', e);
-            slotsAcc[i] = { warna, status: "error", errorMsg: e?.response?.data?.detail || e.message || "Gagal" };
+            console.error('Failed to generate color "' + warna + '":', e);
+            slotsAcc[i] = { warna, status: "error", errorMsg: e?.response?.data?.detail || e.message || "Failed" };
           }
           setWarnaSlots([...slotsAcc]);
         }
@@ -1119,19 +1189,19 @@ export default function StudioIklanPage() {
 
       setStatus({
         type: "ok",
-        text: okTotal === totalSemua ? `Selesai! ${totalSemua} gambar berhasil dibuat.` : `Selesai dengan ${okTotal} dari ${totalSemua} gambar.`,
+        text: okTotal === totalSemua ? `Done! ${totalSemua} images generated successfully.` : `Done with ${okTotal} of ${totalSemua} images.`,
       });
     } catch (err) {
       setVariantSlots({});
       setWarnaSlots([]);
       const msg = err?.response?.data?.detail || err.message;
-      setStatus({ type: "err", text: "Gagal: " + msg + ". Pastikan workflow n8n aktif." });
+      setStatus({ type: "err", text: "Failed: " + msg + ". Make sure the n8n workflow is active." });
     } finally {
       setGenerating(false);
     }
   };
 
-  const openEditor = (key) => {
+  const openEditor = useCallback((key) => {
     const data = key.startsWith("7-warna-") ? warnaSlots[Number(key.split("-").pop())] : variantSlots[key];
     if (!data || !data.image) return;
     const img = new Image();
@@ -1145,17 +1215,17 @@ export default function StudioIklanPage() {
       canvas.getContext("2d").drawImage(img, 0, 0);
     };
     img.src = data.image;
-  };
+  }, [warnaSlots, variantSlots]);
 
   const closeEditor = () => setEditKey(null);
 
   const handleEditAi = async () => {
     if (!editKey) return;
     const instruksi = editInstruksi.trim();
-    if (!instruksi) { setEditStatus({ type: "err", text: "Isi dulu instruksi editnya (contoh: ganti background jadi biru)." }); return; }
+    if (!instruksi) { setEditStatus({ type: "err", text: "Enter an edit instruction first (e.g. change the background to blue)." }); return; }
 
     setEditLoading(true);
-    setEditStatus({ type: "", text: "Mengirim gambar + instruksi ke AI, proses sekitar 30-60 detik…" });
+    setEditStatus({ type: "", text: "Sending image + instruction to AI, this takes about 30-60 seconds…" });
     try {
       const canvas = editCanvasRef.current;
       const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
@@ -1165,7 +1235,7 @@ export default function StudioIklanPage() {
 
       const res = await api.post("/studio-iklan/edit-image", fd);
       const data = res.data;
-      if (data.sukses === false || !data.image) throw new Error(data.error || "AI tidak mengembalikan gambar.");
+      if (data.sukses === false || !data.image) throw new Error(data.error || "AI did not return an image.");
 
       const img2 = await new Promise((resolve, reject) => {
         const el = new Image();
@@ -1177,10 +1247,10 @@ export default function StudioIklanPage() {
       canvas.height = img2.naturalHeight;
       canvas.getContext("2d").drawImage(img2, 0, 0);
 
-      setEditStatus({ type: "ok", text: "Selesai! Cek hasilnya, kalau sudah pas tekan Simpan Perubahan. Bisa juga kirim instruksi lain lagi buat edit lanjutan." });
+      setEditStatus({ type: "ok", text: "Done! Check the result, and press Save Changes once it looks right. You can also send another instruction for further edits." });
     } catch (err) {
       const msg = err?.response?.data?.detail || err.message;
-      setEditStatus({ type: "err", text: "Gagal edit: " + msg });
+      setEditStatus({ type: "err", text: "Edit failed: " + msg });
     } finally {
       setEditLoading(false);
     }
@@ -1205,17 +1275,24 @@ export default function StudioIklanPage() {
   const warnaAktif = warnaOn && warnaList.length > 0;
   const doneCount = VARIAN.reduce((n, v) => n + (variantSlots[v.key]?.status === "done" ? 1 : 0), 0);
   const warnaDoneCount = warnaSlots.reduce((n, s) => n + (s.status === "done" ? 1 : 0), 0);
-  const handleVariantToggle = (num, checked) => {
+  const warnaPageSize = 6;
+  const warnaTotalPages = Math.max(1, Math.ceil(warnaList.length / warnaPageSize));
+  const visibleWarnaList = warnaList.slice(warnaPage * warnaPageSize, warnaPage * warnaPageSize + warnaPageSize);
+  useEffect(() => {
+    if (!warnaAktif && resultTab === "warna") setResultTab("utama");
+    if (warnaPage > warnaTotalPages - 1) setWarnaPage(Math.max(0, warnaTotalPages - 1));
+  }, [warnaAktif, resultTab, warnaPage, warnaTotalPages]);
+  const handleVariantToggle = useCallback((num, checked) => {
     setVariantState((prev) => {
       if (!checked) return { ...prev, [num]: false };
       if (totalAktifVarian(prev) >= MAX_VARIAN_GENERATE && prev[num] === false) {
-        setStatus({ type: "err", text: `Maksimal ${MAX_VARIAN_GENERATE} varian utama per generate. Matikan salah satu varian dulu kalau mau ganti.` });
+        setStatus({ type: "err", text: `Maximum ${MAX_VARIAN_GENERATE} main variants per generate. Turn off another variant first to swap.` });
         return prev;
       }
-      setStatus((current) => current.type === "err" && current.text.includes("Maksimal") ? { type: "", text: "" } : current);
+      setStatus((current) => current.type === "err" && current.text.includes("Maximum") ? { type: "", text: "" } : current);
       return { ...prev, [num]: true };
     });
-  };
+  }, []);
 
   return (
     <Box sx={{ position: "relative", ...F, height: "100%", display: "flex", flexDirection: "column", overflow: "hidden" }}>
@@ -1228,105 +1305,403 @@ export default function StudioIklanPage() {
           sx={{ position: "fixed", inset: 0, zIndex: 1300, display: "flex", alignItems: "center", justifyContent: "center", p: 2, background: "rgba(2,6,23,0.6)", backdropFilter: "blur(6px)" }}
         >
           <Paper sx={{ ...cardShell, borderRadius: "24px", maxWidth: 900, width: "100%", maxHeight: "92vh", overflow: "auto", display: "flex", flexDirection: "column" }}>
-            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ px: 2.5, py: 1.6, borderBottom: "1px solid rgba(148,163,184,0.25)" }}>
-              <Typography sx={{ ...F, fontWeight: 700, fontSize: "0.95rem", color: "#0f172a" }}>Edit Gambar dengan AI</Typography>
-              <IconButton size="small" onClick={closeEditor}><CloseRoundedIcon fontSize="small" /></IconButton>
-            </Stack>
-            <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ p: 2.5 }}>
-              <Box sx={{ flex: 1, minWidth: 280, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "14px", overflow: "hidden", background: "linear-gradient(135deg,rgba(232,237,248,0.9),rgba(234,240,251,0.9))" }}>
-                <canvas ref={editCanvasRef} style={{ maxWidth: "100%", maxHeight: "60vh", display: "block" }} />
-              </Box>
-              <Stack spacing={1.2} sx={{ width: { xs: "100%", sm: 240 }, flexShrink: 0 }}>
-                <Typography sx={{ ...F, fontWeight: 700, fontSize: "0.7rem", color: "#64748b" }}>Instruksi edit</Typography>
-                <TextField
-                  multiline
-                  minRows={4}
-                  size="small"
-                  value={editInstruksi}
-                  onChange={(e) => setEditInstruksi(e.target.value)}
-                  placeholder="Contoh: ganti background jadi gradasi biru, hapus bayangan di kiri, perbesar produk sedikit"
-                  sx={inputSx}
-                />
-                <Button
-                  variant="contained"
-                  disabled={editLoading}
-                  onClick={handleEditAi}
-                  startIcon={editLoading ? <CircularProgress size={14} sx={{ color: "#fff" }} /> : <AutoFixHighRoundedIcon />}
-                  sx={{ ...F, fontWeight: 700, textTransform: "none", borderRadius: "999px", background: "linear-gradient(135deg,#233971,#2e4fa3)" }}
-                >
-                  {editLoading ? "Sedang diedit AI…" : "Edit dengan AI"}
-                </Button>
-                {editStatus.text && (
-                  <Alert severity={editStatus.type === "err" ? "error" : editStatus.type === "ok" ? "success" : "info"} sx={{ ...F, fontSize: "0.72rem", borderRadius: "12px" }}>
-                    {editStatus.text}
-                  </Alert>
-                )}
-                <Button
-                  variant="outlined"
-                  onClick={handleEditSave}
-                  sx={{ ...F, fontWeight: 700, textTransform: "none", borderRadius: "999px", color: "#233971", borderColor: "rgba(35,57,113,0.3)" }}
-                >
-                  Simpan Perubahan
-                </Button>
+            <Stack
+              direction="row"
+              justifyContent="space-between"
+              alignItems="center"
+              sx={{
+                px: 2.5,
+                py: 1.8,
+                background: "linear-gradient(180deg,rgba(24,43,88,1) 0%,rgba(27,55,112,0.96) 100%)",
+                borderBottom: "1px solid rgba(255,255,255,0.1)",
+                gap: 1,
+              }}
+            >
+              <Stack direction="row" spacing={1.2} alignItems="center" sx={{ minWidth: 0 }}>
+                <Box sx={{ width: 34, height: 34, borderRadius: "10px", flexShrink: 0, background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.18)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <AutoFixHighRoundedIcon sx={{ fontSize: 17, color: "rgba(233,196,106,0.95)" }} />
+                </Box>
+                <Box sx={{ minWidth: 0 }}>
+                  <Typography sx={{ ...F, fontWeight: 800, fontSize: "0.95rem", color: "#fff", lineHeight: 1.2 }}>
+                    Edit Image with AI
+                  </Typography>
+                  <Typography sx={{ ...F, fontWeight: 500, fontSize: "0.66rem", color: "rgba(255,255,255,0.55)", lineHeight: 1.2, mt: "2px" }}>
+                    Describe the change you want, AI will apply it
+                  </Typography>
+                </Box>
               </Stack>
+              <IconButton size="small" onClick={closeEditor} sx={{ width: 32, height: 32, borderRadius: "9px", flexShrink: 0, border: "1px solid rgba(255,255,255,0.18)", background: "rgba(255,255,255,0.08)", color: "#fff", "&:hover": { background: "rgba(255,255,255,0.18)" } }}>
+                <CloseRoundedIcon sx={{ fontSize: 16 }} />
+              </IconButton>
+            </Stack>
+            <Box sx={{ p: 2.5, overflow: "hidden" }}>
+              <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+                <Box sx={{ flex: 1, minWidth: 280, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "14px", overflow: "hidden", background: "linear-gradient(135deg,rgba(232,237,248,0.9),rgba(234,240,251,0.9))" }}>
+                  <canvas ref={editCanvasRef} style={{ maxWidth: "100%", maxHeight: "60vh", display: "block" }} />
+                </Box>
+                <Stack spacing={1.2} sx={{ width: { xs: "100%", sm: 240 }, flexShrink: 0 }}>
+                  <Typography sx={{ ...F, fontWeight: 700, fontSize: "0.7rem", color: "#64748b" }}>Edit instruction</Typography>
+                  <TextField
+                    multiline
+                    minRows={4}
+                    size="small"
+                    value={editInstruksi}
+                    onChange={(e) => setEditInstruksi(e.target.value)}
+                    placeholder="Example: change the background to a blue gradient, remove the shadow on the left, enlarge the product slightly"
+                    sx={inputSxDark}
+                  />
+                  <Button
+                    variant="contained"
+                    disabled={editLoading}
+                    onClick={handleEditAi}
+                    startIcon={editLoading ? <CircularProgress size={14} sx={{ color: "#fff" }} /> : <AutoFixHighRoundedIcon />}
+                    sx={{ ...F, fontWeight: 700, textTransform: "none", borderRadius: "999px", background: "linear-gradient(135deg,#233971,#2e4fa3)" }}
+                  >
+                    {editLoading ? "AI is editing…" : "Edit with AI"}
+                  </Button>
+                </Stack>
+              </Stack>
+            </Box>
+
+            <Stack direction="row" justifyContent="flex-end" sx={{ px: 1.5, py: 1.2, borderTop: "1px solid rgba(148,163,184,0.18)" }}>
+              <Button
+                variant="contained"
+                onClick={handleEditSave}
+                sx={{ ...F, borderRadius: "999px", textTransform: "none", fontWeight: 800, fontSize: "0.76rem", px: 2.2, background: "linear-gradient(135deg,#2a9d8f,#23857a)", boxShadow: "0 6px 16px rgba(42,157,143,0.32)", "&:hover": { background: "linear-gradient(135deg,#23857a,#1c6b62)" } }}
+              >
+                Save Changes
+              </Button>
+            </Stack>
+          </Paper>
+        </Box>
+      )}
+
+      {previewItem && (
+        <Box
+          onClick={(e) => { if (e.target === e.currentTarget) closePreview(); }}
+          sx={{ position: "fixed", inset: 0, zIndex: 1320, display: "flex", alignItems: "center", justifyContent: "center", p: 2, background: "rgba(2,6,23,0.65)", backdropFilter: "blur(6px)" }}
+        >
+          <Paper sx={{ ...cardShell, borderRadius: "24px", width: "min(900px, 94vw)", maxHeight: "92vh", overflow: "hidden", display: "flex", flexDirection: "column" }}>
+            <Stack
+              direction="row"
+              justifyContent="space-between"
+              alignItems="center"
+              sx={{
+                px: 2.5,
+                py: 1.8,
+                background: "linear-gradient(180deg,rgba(24,43,88,1) 0%,rgba(27,55,112,0.96) 100%)",
+                borderBottom: "1px solid rgba(255,255,255,0.1)",
+                gap: 1,
+              }}
+            >
+              <Stack direction="row" spacing={1.2} alignItems="center" sx={{ minWidth: 0 }}>
+                <Box sx={{ width: 34, height: 34, borderRadius: "10px", flexShrink: 0, background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.18)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <PaletteRoundedIcon sx={{ fontSize: 17, color: "rgba(233,196,106,0.95)" }} />
+                </Box>
+                <Box sx={{ minWidth: 0 }}>
+                  <Typography noWrap sx={{ ...F, fontWeight: 800, fontSize: "0.95rem", color: "#fff", lineHeight: 1.2 }}>
+                    Image Preview
+                  </Typography>
+                  <Typography noWrap sx={{ ...F, fontWeight: 500, fontSize: "0.66rem", color: "rgba(255,255,255,0.55)", lineHeight: 1.2, mt: "2px" }}>
+                    {previewItem.label}
+                  </Typography>
+                </Box>
+              </Stack>
+              <IconButton size="small" onClick={closePreview} sx={{ width: 32, height: 32, borderRadius: "9px", flexShrink: 0, border: "1px solid rgba(255,255,255,0.18)", background: "rgba(255,255,255,0.08)", color: "#fff", "&:hover": { background: "rgba(255,255,255,0.18)" } }}>
+                <CloseRoundedIcon sx={{ fontSize: 16 }} />
+              </IconButton>
+            </Stack>
+
+            <Box sx={{ p: 2.5, overflow: "auto" }}>
+              <Stack spacing={1.2}>
+                <Stack direction="row" justifyContent="flex-end" alignItems="center" sx={{ px: 1, py: 0.6, borderRadius: "10px", background: "rgba(232,237,248,0.6)", border: "1px solid rgba(35,57,113,0.1)" }}>
+                  <Stack direction="row" spacing={0.6} alignItems="center">
+                    <Typography sx={{ ...F, fontSize: "0.72rem", color: "#233971", fontWeight: 700, minWidth: 38, textAlign: "center" }}>
+                      {Math.round(previewZoom * 100)}%
+                    </Typography>
+                    <Button size="small" variant="outlined" onClick={() => setPreviewZoom((v) => Math.max(0.25, parseFloat((v - 0.25).toFixed(2))))} sx={{ ...F, minWidth: 32, px: 0, borderRadius: "8px", fontWeight: 800 }}>−</Button>
+                    <Button size="small" variant="outlined" onClick={() => setPreviewZoom(1)} sx={{ ...F, minWidth: 0, px: 1, borderRadius: "8px", fontSize: "0.66rem", fontWeight: 800, textTransform: "none" }}>Reset</Button>
+                    <Button size="small" variant="outlined" onClick={() => setPreviewZoom((v) => Math.min(5, parseFloat((v + 0.25).toFixed(2))))} sx={{ ...F, minWidth: 32, px: 0, borderRadius: "8px", fontWeight: 800 }}>+</Button>
+                  </Stack>
+                </Stack>
+
+                <Box
+                  sx={{
+                    width: "100%",
+                    height: "58vh",
+                    minHeight: 260,
+                    overflow: "auto",
+                    borderRadius: "16px",
+                    background: "linear-gradient(135deg,rgba(232,237,248,0.9),rgba(234,240,251,0.9))",
+                    border: "1px solid rgba(35,57,113,0.15)",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                >
+                  <Box
+                    component="img"
+                    src={previewItem.image}
+                    alt={previewItem.label}
+                    sx={{
+                      display: "block",
+                      maxWidth: "100%",
+                      maxHeight: "100%",
+                      objectFit: "contain",
+                      transform: `scale(${previewZoom})`,
+                      transformOrigin: "center center",
+                      transition: "transform 0.15s ease",
+                      borderRadius: "8px",
+                    }}
+                  />
+                </Box>
+              </Stack>
+            </Box>
+
+            <Stack direction="row" spacing={1} sx={{ px: 2.5, py: 1.5, borderTop: "1px solid rgba(148,163,184,0.18)" }}>
+              <Button
+                variant="outlined"
+                onClick={() => { const key = previewItem.editKey; closePreview(); openEditor(key); }}
+                startIcon={<EditRoundedIcon sx={{ fontSize: "16px !important" }} />}
+                sx={{ ...F, flex: 1, borderRadius: "999px", textTransform: "none", fontWeight: 700, color: "#233971", borderColor: "rgba(35,57,113,0.25)", "&:hover": { borderColor: "rgba(35,57,113,0.45)", background: "rgba(35,57,113,0.06)" } }}
+              >
+                Edit
+              </Button>
+              <Button
+                variant="contained"
+                component="a"
+                href={previewItem.image}
+                download={previewItem.fileName}
+                startIcon={<DownloadRoundedIcon sx={{ fontSize: "16px !important" }} />}
+                sx={{ ...F, flex: 1, borderRadius: "999px", textTransform: "none", fontWeight: 700, background: "linear-gradient(135deg,#233971,#2e4fa3)", boxShadow: "0 6px 16px rgba(35,57,113,0.3)" }}
+              >
+                Download
+              </Button>
+            </Stack>
+          </Paper>
+        </Box>
+      )}
+
+      {lainLainOpen && (
+        <Box
+          onClick={(e) => { if (e.target === e.currentTarget) setLainLainOpen(false); }}
+          sx={{ position: "fixed", inset: 0, zIndex: 1250, display: "flex", alignItems: "center", justifyContent: "center", p: 2, background: "rgba(2,6,23,0.45)", backdropFilter: "blur(6px)" }}
+        >
+          <Paper sx={{ ...cardShell, width: "min(820px, 94vw)", maxHeight: "90vh", overflow: "hidden", borderRadius: "24px", display: "flex", flexDirection: "column" }}>
+            <Stack
+              direction="row"
+              justifyContent="space-between"
+              alignItems="center"
+              sx={{
+                px: 2.5,
+                py: 1.8,
+                background: "linear-gradient(180deg,rgba(24,43,88,1) 0%,rgba(27,55,112,0.96) 100%)",
+                borderBottom: "1px solid rgba(255,255,255,0.1)",
+                gap: 1,
+              }}
+            >
+              <Stack direction="row" spacing={1.2} alignItems="center" sx={{ minWidth: 0 }}>
+                <Box sx={{ width: 34, height: 34, borderRadius: "10px", flexShrink: 0, background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.18)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <TuneRoundedIcon sx={{ fontSize: 17, color: "rgba(233,196,106,0.95)" }} />
+                </Box>
+                <Box sx={{ minWidth: 0 }}>
+                  <Typography sx={{ ...F, fontWeight: 800, fontSize: "0.95rem", color: "#fff", lineHeight: 1.2 }}>
+                    Advanced Options
+                  </Typography>
+                  <Typography noWrap sx={{ ...F, fontWeight: 500, fontSize: "0.66rem", color: "rgba(255,255,255,0.55)", lineHeight: 1.2, mt: "2px" }}>
+                    Extra fields stay available without pushing down the main layout
+                  </Typography>
+                </Box>
+              </Stack>
+              <IconButton size="small" onClick={() => setLainLainOpen(false)} sx={{ width: 32, height: 32, borderRadius: "9px", flexShrink: 0, border: "1px solid rgba(255,255,255,0.18)", background: "rgba(255,255,255,0.08)", color: "#fff", "&:hover": { background: "rgba(255,255,255,0.18)" } }}>
+                <CloseRoundedIcon sx={{ fontSize: 16 }} />
+              </IconButton>
+            </Stack>
+
+            <Box sx={{ p: 1.5, display: "grid", gridTemplateColumns: { xs: "1fr", sm: "repeat(2,minmax(0,1fr))" }, gap: 1.1, overflow: "hidden" }}>
+              <ToggleField
+                label="How to use"
+                value={cara}
+                onChange={setCara}
+                active={caraOn}
+                onActiveChange={setCaraOn}
+                textarea
+                placeholder="Example: 1) Fill with fruit & water 2) Attach the lid 3) Press the button 2x"
+                sx={{ gridColumn: "span 1" }}
+                dark
+              />
+              <ToggleField
+                label="Negative prompt"
+                value={negativePrompt}
+                onChange={setNegativePrompt}
+                active={negativePromptOn}
+                onActiveChange={setNegativePromptOn}
+                textarea
+                placeholder="Example: blurry text, watermark, deformed fingers, wrong proportions"
+                sx={{ gridColumn: "span 1" }}
+                dark
+              />
+              <ToggleField
+                label="Subject / model"
+                value={subjek}
+                onChange={setSubjek}
+                active={subjekOn}
+                onActiveChange={setSubjekOn}
+                placeholder="Example: young woman in a modern kitchen"
+                sx={{ gridColumn: "span 1" }}
+                dark
+              />
+              <ToggleField
+                label="Creative improvement"
+                value={improvement}
+                onChange={setImprovement}
+                active={improvementOn}
+                onActiveChange={setImprovementOn}
+                placeholder="Example: fresh fruit splash, dynamic feel"
+                sx={{ gridColumn: "span 1" }}
+                dark
+              />
+              <ToggleField
+                label="Background & lighting"
+                value={background}
+                onChange={setBackground}
+                active={backgroundOn}
+                onActiveChange={setBackgroundOn}
+                placeholder="Example: orange gradient, warm morning light"
+                sx={{ gridColumn: "span 1" }}
+                dark
+              />
+
+              <Box sx={{ ...sectionCardSx, opacity: warnaOn ? 1 : 0.72 }}>
+                <Stack direction="row" justifyContent="space-between" alignItems="center" mb={0.6}>
+                  <FieldLabel label="Color variants" />
+                  <Switch size="small" checked={warnaOn} onChange={(e) => setWarnaOn(e.target.checked)} sx={compactSwitchSx} />
+                </Stack>
+                <Stack direction="row" spacing={0.8}>
+                  <TextField
+                    size="small"
+                    fullWidth
+                    value={warnaInput}
+                    onChange={(e) => setWarnaInput(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); tambahWarna(); } }}
+                    disabled={!warnaOn}
+                    placeholder="Example: black"
+                    sx={inputSxDark}
+                  />
+                  <Button
+                    variant="contained"
+                    disabled={!warnaOn}
+                    onClick={tambahWarna}
+                    startIcon={<AddRoundedIcon sx={{ fontSize: "15px !important" }} />}
+                    sx={{
+                      ...F,
+                      flexShrink: 0,
+                      borderRadius: "999px",
+                      textTransform: "none",
+                      fontWeight: 800,
+                      fontSize: "0.68rem",
+                      px: 1.3,
+                      color: "#fff",
+                      background: "linear-gradient(135deg,#233971,#2e4fa3)",
+                      "&.Mui-disabled": { color: "rgba(255,255,255,0.75)", background: "rgba(100,116,139,0.45)" },
+                    }}
+                  >
+                    Add
+                  </Button>
+                </Stack>
+                {warnaList.length > 0 && (
+                  <Stack direction="row" flexWrap="wrap" gap={0.6} sx={{ mt: 0.8, maxHeight: 58, overflow: "hidden" }}>
+                    {warnaList.map((warna, i) => (
+                      <Chip
+                        key={warna + i}
+                        label={warna}
+                        onDelete={() => hapusWarna(i)}
+                        size="small"
+                        icon={<PaletteRoundedIcon sx={{ fontSize: "13px !important" }} />}
+                        sx={{ ...F, height: 22, fontWeight: 700, fontSize: "0.64rem", background: "rgba(35,57,113,0.08)", color: "#233971", border: "1px solid rgba(35,57,113,0.2)" }}
+                      />
+                    ))}
+                  </Stack>
+                )}
+              </Box>
+            </Box>
+
+            <Stack direction="row" justifyContent="flex-end" sx={{ px: 1.5, py: 1.2, borderTop: "1px solid rgba(148,163,184,0.18)" }}>
+              <Button
+                variant="contained"
+                onClick={() => setLainLainOpen(false)}
+                sx={{ ...F, borderRadius: "999px", textTransform: "none", fontWeight: 800, fontSize: "0.76rem", px: 2.2, background: "linear-gradient(135deg,#2a9d8f,#23857a)", boxShadow: "0 6px 16px rgba(42,157,143,0.32)", "&:hover": { background: "linear-gradient(135deg,#23857a,#1c6b62)" } }}
+              >
+                Done
+              </Button>
             </Stack>
           </Paper>
         </Box>
       )}
 
       <Card elevation={0} sx={{ ...cardShell, flex: 1, height: "100%", minHeight: 0, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-        <Stack direction={{ xs: "column", lg: "row" }} spacing={0} alignItems="stretch" sx={{ flex: 1, minHeight: 0, overflow: { xs: "auto", lg: "hidden" } }}>
+        <Stack direction={{ xs: "column", lg: "row" }} spacing={0} alignItems="stretch" sx={{ flex: 1, minHeight: 0, overflow: "hidden" }}>
 
           {/* ============ FORM ============ */}
           <Box sx={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", minHeight: 0, borderRight: { lg: "1px solid rgba(148,163,184,0.18)" } }}>
-            <CardContent sx={{ p: { xs: 1.5, md: "16px 24px" }, overflowY: "auto", flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
-              <Stack spacing={2.2}>
-                <Stack direction="row" spacing={1.2} alignItems="center">
-                  <Box sx={{ width: 34, height: 34, borderRadius: "11px", flexShrink: 0, background: "linear-gradient(135deg,#233971,#2e4fa3)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 6px 16px rgba(35,57,113,0.35)" }}>
-                    <CampaignRoundedIcon sx={{ fontSize: 18, color: "#fff" }} />
-                  </Box>
-                  <Box>
-                    <Typography sx={{ ...F, fontSize: "0.8rem", fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "#0f172a" }}>
-                      Studio Iklan
-                    </Typography>
-                    <Typography sx={{ ...F, fontSize: "0.7rem", color: "#94a3b8", mt: "2px" }}>
-                      Upload foto produk + frame acuan, generate 3 varian gambar iklan otomatis
-                    </Typography>
-                  </Box>
-                </Stack>
+            <CardContent sx={{ p: { xs: 1.1, md: "10px 14px" }, overflow: "hidden", flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
+              <Box
+                sx={{
+                  flex: 1,
+                  minHeight: 0,
+                  overflow: "hidden",
+                  display: "grid",
+                  gridTemplateColumns: { xs: "1fr", md: "repeat(12,minmax(0,1fr))" },
+                  gridAutoRows: "min-content",
+                  gap: 0.4,
+                  alignContent: "space-between",
+                  alignItems: "start",
+                }}
+              >
+                <Box sx={{ gridColumn: "1 / -1" }}>
+                  <Typography sx={{ ...F, fontSize: "0.76rem", fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "#0f172a" }}>
+                    Agent Mila
+                  </Typography>
+                  <Typography noWrap sx={{ ...F, fontSize: "0.6rem", color: "#94a3b8", mt: 0.2 }}>
+                    Upload product photos + reference frame, generate ad image variants automatically
+                  </Typography>
+                </Box>
 
-                <Divider sx={{ borderColor: "rgba(148,163,184,0.25)" }} />
+                <Divider sx={{ gridColumn: "1 / -1", borderColor: "rgba(148,163,184,0.25)" }} />
 
-                <Box>
-                  <Typography sx={{ ...sectionLabel, mb: 0.6 }}>Upload PDF Produk <Typography component="span" sx={{ ...F, fontWeight: 400, textTransform: "none", fontSize: "0.68rem", color: "#94a3b8" }}>(opsional, auto isi form)</Typography></Typography>
+                <Box sx={{ ...formBlockSx, gridColumn: { xs: "1 / -1", md: "span 6" } }}>
+                  <Box sx={{ mb: 0.35 }}>
+                    <FieldLabel label="Upload Product PDF" hint="(optional)" />
+                  </Box>
                   <UploadBox
-                    icon={<PictureAsPdfRoundedIcon sx={{ fontSize: 15, color: "#fff" }} />}
-                    title={filePdf ? filePdf.name : "Upload PDF produk"}
-                    subtitle={filePdf ? "Terisi otomatis · klik untuk ganti" : "Klik untuk pilih, form terisi otomatis"}
+                    icon={<PictureAsPdfRoundedIcon />}
+                    iconBg="rgba(100,116,139,0.12)"
+                    iconColor="#64748b"
+                    title={filePdf ? filePdf.name : "Upload product PDF"}
+                    subtitle={filePdf ? "Auto-filled · click to change" : "Click to select, form auto-fills"}
                     accept="application/pdf"
                     onFile={handlePdfSelected}
                   />
-                  {pdfStatus.text && (
-                    <Alert severity={pdfStatus.type === "err" ? "error" : pdfStatus.type === "ok" ? "success" : "info"} sx={{ ...F, fontSize: "0.68rem", borderRadius: "10px", mt: 0.8, py: 0 }}>
-                      {pdfStatus.text}
-                    </Alert>
-                  )}
                 </Box>
 
-                <Box>
-                  <Typography sx={{ ...sectionLabel, mb: 0.6 }}>Foto Produk <Typography component="span" sx={{ ...F, fontWeight: 400, textTransform: "none", fontSize: "0.68rem", color: "#94a3b8" }}>(maks {MAX_PRODUK})</Typography></Typography>
+                <Box sx={{ ...formBlockSx, gridColumn: { xs: "1 / -1", md: "span 6" } }}>
+                  <Box sx={{ mb: 0.35 }}>
+                    <FieldLabel label="Product Photos" hint={`(max ${MAX_PRODUK})`} />
+                  </Box>
                   {produkFiles.length === 0 ? (
                     <UploadBox
-                      icon={<CloudUploadIcon sx={{ fontSize: 15, color: "#fff" }} />}
-                      title="Upload foto produk"
-                      subtitle="Klik atau drag & drop · bisa multi-select"
+                      icon={<CloudUploadIcon />}
+                      iconBg="rgba(100,116,139,0.12)"
+                      iconColor="#64748b"
+                      title="Upload product photos"
+                      subtitle="Click or drag & drop · multi-select supported"
                       accept="image/*"
                       multiple
                       onFile={handleProdukFilesSelected}
                     />
                   ) : (
-                    <Paper variant="outlined" sx={{ p: 1.2, borderRadius: "14px", borderColor: "rgba(35,57,113,0.25)", background: "rgba(241,245,249,0.9)" }}>
-                      <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(56px,1fr))", gap: 0.8 }}>
+                    <Paper variant="outlined" sx={{ p: 0.75, borderRadius: "12px", borderColor: "rgba(35,57,113,0.25)", background: "rgba(241,245,249,0.9)" }}>
+                      <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(42px,1fr))", gap: 0.6, maxHeight: 96, overflow: "hidden" }}>
                         {produkPreviews.map((url, i) => (
                           <Box key={i} sx={{ position: "relative", borderRadius: "8px", overflow: "hidden", aspectRatio: "1/1" }}>
                             <Box component="img" src={url} alt={`produk-${i}`} sx={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
@@ -1349,20 +1724,22 @@ export default function StudioIklanPage() {
                         )}
                       </Box>
                       <input id="siqFileProduk" type="file" accept="image/*" multiple hidden onChange={(e) => { handleProdukFilesSelected(e.target.files); e.target.value = ""; }} />
-                      <Typography sx={{ ...F, fontSize: "0.64rem", color: "#94a3b8", mt: 0.8 }}>{produkFiles.length} / {MAX_PRODUK} foto dipilih</Typography>
+                      <Typography sx={{ ...F, fontSize: "0.58rem", color: "#94a3b8", mt: 0.5 }}>{produkFiles.length} / {MAX_PRODUK} photos selected</Typography>
                     </Paper>
                   )}
                 </Box>
 
-                <Box sx={{ opacity: frameOn ? 1 : 0.6 }}>
-                  <Stack direction="row" justifyContent="space-between" alignItems="center" mb={0.6}>
-                    <Typography sx={sectionLabel}>Frame Acuan <Typography component="span" sx={{ ...F, fontWeight: 400, textTransform: "none", fontSize: "0.68rem", color: "#94a3b8" }}>(untuk rasio/layout)</Typography></Typography>
+                <Box sx={{ ...formBlockSx, gridColumn: { xs: "1 / -1", md: "span 6" }, opacity: frameOn ? 1 : 0.6 }}>
+                  <Stack direction="row" justifyContent="space-between" alignItems="center" mb={0.35}>
+                    <FieldLabel label="Reference Frame" hint="(ratio/layout)" />
                     <Switch size="small" checked={frameOn} onChange={(e) => setFrameOn(e.target.checked)} sx={compactSwitchSx} />
                   </Stack>
                   <UploadBox
-                    icon={<AddPhotoAlternateIcon sx={{ fontSize: 15, color: "#fff" }} />}
-                    title={fileFrame ? fileFrame.name : "Upload frame acuan"}
-                    subtitle="Tidak ikut muncul di hasil"
+                    icon={<AddPhotoAlternateIcon />}
+                    iconBg="rgba(100,116,139,0.12)"
+                    iconColor="#64748b"
+                    title={fileFrame ? fileFrame.name : "Upload reference frame"}
+                    subtitle="Not included in the result"
                     accept="image/*"
                     disabled={!frameOn}
                     onFile={(files) => setFileFrame(files && files[0] ? files[0] : null)}
@@ -1370,230 +1747,291 @@ export default function StudioIklanPage() {
                 </Box>
 
                 <ToggleField
-                  label="Judul Produk"
-                  hint="(judul besar di gambar hasil, khusus varian Key Point)"
+                  label="Product Title"
+                  hint="(large title on the result image, Key Point variant only)"
                   value={judulProduk}
                   onChange={setJudulProduk}
                   active={judulOn}
                   onActiveChange={setJudulOn}
-                  placeholder="Contoh: Eco Brava Fashion Safety Glasses"
+                  placeholder="Example: Eco Brava Fashion Safety Glasses"
+                  sx={{ gridColumn: { xs: "1 / -1", md: "span 6" } }}
+                  dark
                 />
 
                 <ToggleField
                   label="Tagline"
-                  hint="(subjudul kecil di bawah judul)"
+                  hint="(small subtitle below the title)"
                   value={tagline}
                   onChange={setTagline}
                   active={taglineOn}
                   onActiveChange={setTaglineOn}
-                  placeholder="Contoh: Gaya Dalam Safety"
+                  placeholder="Example: Style Meets Safety"
+                  sx={{ gridColumn: "1 / -1" }}
+                  dark
                 />
 
                 <ToggleField
-                  label="Deskripsi produk"
+                  label="Product description"
                   value={deskripsi}
                   onChange={setDeskripsi}
                   active={deskripsiOn}
                   onActiveChange={setDeskripsiOn}
                   textarea
-                  placeholder="Contoh: Blender portabel untuk kebutuhan sehari-hari, desain ringkas dan mudah dibawa…"
+                  placeholder="Example: Portable blender for everyday needs, compact design, easy to carry…"
+                  sx={{ gridColumn: { xs: "1 / -1", md: "span 6" } }}
+                  dark
                 />
 
                 <ToggleField
-                  label="Spesifikasi"
+                  label="Specification"
                   value={spesifikasi}
                   onChange={setSpesifikasi}
                   active={spesifikasiOn}
                   onActiveChange={setSpesifikasiOn}
                   textarea
-                  placeholder="Contoh: Kapasitas 500ml, baterai 2000mAh, 6 mata pisau stainless, waktu cas 2 jam"
+                  placeholder="Example: 500ml capacity, 2000mAh battery, 6 stainless blades, 2-hour charge time"
+                  sx={{ gridColumn: { xs: "1 / -1", md: "span 6" } }}
+                  dark
                 />
 
-                <Box sx={{ opacity: keypointOn ? 1 : 0.6 }}>
-                  <Stack direction="row" justifyContent="space-between" alignItems="center" mb={0.6}>
-                    <Typography sx={sectionLabel}>Key point sell <Typography component="span" sx={{ ...F, fontWeight: 400, textTransform: "none", fontSize: "0.68rem", color: "#94a3b8" }}>(tepat 3 poin)</Typography></Typography>
+                <Box sx={{ ...formBlockSx, gridColumn: "1 / -1", opacity: keypointOn ? 1 : 0.6 }}>
+                  <Stack direction="row" justifyContent="space-between" alignItems="center" mb={0.35}>
+                    <FieldLabel label="Key point sell" hint="(3 points)" />
                     <Switch size="small" checked={keypointOn} onChange={(e) => setKeypointOn(e.target.checked)} sx={compactSwitchSx} />
                   </Stack>
-                  <Stack spacing={0.8}>
-                    <TextField size="small" fullWidth value={keypoint1} onChange={(e) => setKeypoint1(e.target.value)} disabled={!keypointOn} placeholder="Poin 1: Charge sekali, blend 15x" sx={inputSx} />
-                    <TextField size="small" fullWidth value={keypoint2} onChange={(e) => setKeypoint2(e.target.value)} disabled={!keypointOn} placeholder="Poin 2: Bisa dibawa ke mana saja" sx={inputSx} />
-                    <TextField size="small" fullWidth value={keypoint3} onChange={(e) => setKeypoint3(e.target.value)} disabled={!keypointOn} placeholder="Poin 3: Baterai tahan seharian" sx={inputSx} />
+                  <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", md: "repeat(3,minmax(0,1fr))" }, gap: 0.6 }}>
+                    <TextField size="small" fullWidth value={keypoint1} onChange={(e) => setKeypoint1(e.target.value)} disabled={!keypointOn} placeholder="Point 1: Charge once, blend 15x" sx={inputSxDark} />
+                    <TextField size="small" fullWidth value={keypoint2} onChange={(e) => setKeypoint2(e.target.value)} disabled={!keypointOn} placeholder="Point 2: Take it anywhere" sx={inputSxDark} />
+                    <TextField size="small" fullWidth value={keypoint3} onChange={(e) => setKeypoint3(e.target.value)} disabled={!keypointOn} placeholder="Point 3: All-day battery life" sx={inputSxDark} />
+                  </Box>
+                </Box>
+
+                <Box sx={{ ...formBlockSx, gridColumn: "1 / -1" }}>
+                  <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={1}>
+                    <Box sx={{ minWidth: 0 }}>
+                      <FieldLabel label="Advanced options" />
+                      <Typography noWrap sx={{ ...F, fontSize: "0.58rem", color: "#94a3b8", mt: 0.2 }}>
+                        How to use, negative prompt, subject, background, color variants
+                      </Typography>
+                    </Box>
+                    <Button
+                      size="small"
+                      variant="contained"
+                      onClick={() => setLainLainOpen(true)}
+                      endIcon={<TuneRoundedIcon sx={{ fontSize: "15px !important" }} />}
+                      sx={{
+                        ...F,
+                        flexShrink: 0,
+                        borderRadius: "999px",
+                        textTransform: "none",
+                        fontWeight: 700,
+                        fontSize: "0.66rem",
+                        px: 1.6,
+                        py: 0.35,
+                        color: "#fff",
+                        background: "linear-gradient(135deg,#233971,#2e4fa3)",
+                        boxShadow: "0 4px 12px rgba(35,57,113,0.28)",
+                        "&:hover": { background: "linear-gradient(135deg,#1c2e5c,#233971)", boxShadow: "0 6px 16px rgba(35,57,113,0.38)" },
+                      }}
+                    >
+                      Adjust
+                    </Button>
                   </Stack>
                 </Box>
 
-                <ToggleField
-                  label="Cara penggunaan"
-                  value={cara}
-                  onChange={setCara}
-                  active={caraOn}
-                  onActiveChange={setCaraOn}
-                  textarea
-                  placeholder="Contoh: 1) Isi buah & air 2) Pasang tutup 3) Tekan tombol 2x"
-                />
-
-                <ToggleField
-                  label="Negative prompt"
-                  value={negativePrompt}
-                  onChange={setNegativePrompt}
-                  active={negativePromptOn}
-                  onActiveChange={setNegativePromptOn}
-                  textarea
-                  placeholder="Contoh: teks buram, watermark, jari cacat, proporsi salah, latar berantakan"
-                />
-
-                <Box sx={sectionCardSx}>
-                  <Stack direction="row" justifyContent="space-between" alignItems="center" onClick={() => setLainLainOpen((v) => !v)} sx={{ cursor: "pointer" }}>
-                    <Typography sx={sectionLabel}>Lain-lain <Typography component="span" sx={{ ...F, fontWeight: 400, textTransform: "none", fontSize: "0.68rem", color: "#94a3b8" }}>(subjek, improvement, background, warna)</Typography></Typography>
-                    <IconButton size="small">{lainLainOpen ? <KeyboardArrowUpRoundedIcon fontSize="small" /> : <KeyboardArrowDownRoundedIcon fontSize="small" />}</IconButton>
-                  </Stack>
-                  {lainLainOpen && (
-                    <Stack spacing={2} sx={{ mt: 1.5 }}>
-                      <ToggleField
-                        label="Subjek / model"
-                        value={subjek}
-                        onChange={setSubjek}
-                        active={subjekOn}
-                        onActiveChange={setSubjekOn}
-                        placeholder="Contoh: wanita muda di dapur modern"
-                      />
-                      <ToggleField
-                        label="Improvement kreatif"
-                        value={improvement}
-                        onChange={setImprovement}
-                        active={improvementOn}
-                        onActiveChange={setImprovementOn}
-                        placeholder="Contoh: splash buah segar, kesan dinamis"
-                      />
-                      <ToggleField
-                        label="Background & cahaya"
-                        value={background}
-                        onChange={setBackground}
-                        active={backgroundOn}
-                        onActiveChange={setBackgroundOn}
-                        placeholder="Contoh: gradasi oranye, cahaya pagi hangat"
-                      />
-
-                      <Box sx={{ opacity: warnaOn ? 1 : 0.6 }}>
-                        <Stack direction="row" justifyContent="space-between" alignItems="center" mb={0.6}>
-                          <Typography sx={sectionLabel}>Varian warna <Typography component="span" sx={{ ...F, fontWeight: 400, textTransform: "none", fontSize: "0.68rem", color: "#94a3b8" }}>(1 gambar per warna)</Typography></Typography>
-                          <Switch size="small" checked={warnaOn} onChange={(e) => setWarnaOn(e.target.checked)} sx={compactSwitchSx} />
-                        </Stack>
-                        <Stack direction="row" spacing={0.8}>
-                          <TextField
-                            size="small"
-                            fullWidth
-                            value={warnaInput}
-                            onChange={(e) => setWarnaInput(e.target.value)}
-                            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); tambahWarna(); } }}
-                            disabled={!warnaOn}
-                            placeholder="Contoh: hitam, lalu tekan Tambah"
-                            sx={inputSx}
-                          />
-                          <Button
-                            variant="contained"
-                            disabled={!warnaOn}
-                            onClick={tambahWarna}
-                            startIcon={<AddRoundedIcon sx={{ fontSize: "16px !important" }} />}
-                            sx={{ ...F, flexShrink: 0, borderRadius: "999px", textTransform: "none", fontWeight: 700, fontSize: "0.75rem", background: "linear-gradient(135deg,#233971,#2e4fa3)" }}
-                          >
-                            Tambah
-                          </Button>
-                        </Stack>
-                        {warnaList.length > 0 && (
-                          <Stack direction="row" flexWrap="wrap" gap={0.8} sx={{ mt: 1 }}>
-                            {warnaList.map((warna, i) => (
-                              <Chip
-                                key={warna + i}
-                                label={warna}
-                                onDelete={() => hapusWarna(i)}
-                                size="small"
-                                icon={<PaletteRoundedIcon sx={{ fontSize: "14px !important" }} />}
-                                sx={{ ...F, fontWeight: 600, background: "rgba(35,57,113,0.08)", color: "#233971", border: "1px solid rgba(35,57,113,0.2)" }}
-                              />
-                            ))}
-                          </Stack>
-                        )}
-                      </Box>
-                    </Stack>
-                  )}
-                </Box>
-
+              </Box>
+              <Box sx={{ flexShrink: 0, pt: 0.6, mt: 0.6, borderTop: "1px solid rgba(148,163,184,0.18)" }}>
                 <Button
                   fullWidth
                   variant="contained"
                   disabled={generating}
                   onClick={handleGenerate}
-                  startIcon={generating ? <CircularProgress size={16} sx={{ color: "#fff" }} /> : <CampaignRoundedIcon />}
-                  sx={{ ...F, fontWeight: 700, textTransform: "none", fontSize: "0.85rem", borderRadius: "999px", py: 1.1, background: "linear-gradient(135deg,#233971,#2e4fa3)", boxShadow: "0 8px 20px rgba(35,57,113,0.35)" }}
+                  startIcon={generating ? <CircularProgress size={16} sx={{ color: "#fff" }} /> : <AutoAwesomeIcon />}
+                  sx={{ ...F, fontWeight: 700, textTransform: "none", fontSize: "0.85rem", borderRadius: "999px", py: 0.85, background: "linear-gradient(135deg,#2a9d8f,#23857a)", boxShadow: "0 8px 22px rgba(42,157,143,0.32)", "&:hover": { background: "linear-gradient(135deg,#23857a,#1c6b62)", boxShadow: "0 12px 30px rgba(42,157,143,0.42)", transform: "translateY(-2px)" }, "&:disabled": { background: "rgba(148,163,184,0.28)", boxShadow: "none" }, transition: "all 0.25s ease" }}
                 >
-                  {generating ? "Sedang generate…" : "Generate 3 Gambar"}
+                  {generating ? "Generating..." : "Generate All"}
                 </Button>
-                {status.text && (
-                  <Alert severity={status.type === "err" ? "error" : status.type === "ok" ? "success" : "info"} sx={{ ...F, fontSize: "0.72rem", borderRadius: "12px" }}>
-                    {status.text}
-                  </Alert>
-                )}
-              </Stack>
+              </Box>
             </CardContent>
           </Box>
 
           {/* ============ HASIL ============ */}
           <Box sx={{ flex: 1.15, display: "flex", flexDirection: "column", overflow: "hidden", minHeight: 0 }}>
-            <CardContent sx={{ p: { xs: 1.5, md: "16px 24px" }, overflowY: "auto", flex: 1, minHeight: 0 }}>
-              <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1.2}>
-                <Typography sx={sectionLabel}>Hasil Generate</Typography>
-                <Chip size="small" label={`${doneCount} / ${totalAktif}`} sx={{ ...F, fontWeight: 700, fontSize: "0.68rem", background: "rgba(35,57,113,0.08)", color: "#233971" }} />
+            <CardContent sx={{ p: { xs: 1.1, md: "12px 16px" }, overflow: "hidden", flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
+              <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={1} sx={{ flexShrink: 0 }}>
+                <Box sx={{ minWidth: 0 }}>
+                  <Typography sx={sectionLabel}>Generated Results</Typography>
+                  <Typography noWrap sx={{ ...F, fontSize: "0.6rem", color: "#94a3b8", mt: 0.2 }}>
+                    {resultTab === "warna" ? "Product color variants" : "Main ad image variants"}
+                  </Typography>
+                </Box>
+                <Tabs
+                  value={resultTab}
+                  onChange={(_, value) => setResultTab(value)}
+                  sx={{
+                    minHeight: 30,
+                    p: 0.25,
+                    borderRadius: "999px",
+                    background: "linear-gradient(135deg,rgba(226,232,240,0.85),rgba(241,245,249,0.92))",
+                    border: "1px solid rgba(148,163,184,0.3)",
+                    boxShadow: "inset 0 1px 2px rgba(15,23,42,0.05)",
+                    "& .MuiTabs-indicator": { display: "none" },
+                    "& .MuiTab-root": {
+                      ...F,
+                      minHeight: 26,
+                      minWidth: 0,
+                      px: 1.3,
+                      py: 0,
+                      borderRadius: "999px",
+                      textTransform: "none",
+                      fontSize: "0.68rem",
+                      fontWeight: 800,
+                      color: "#334155",
+                      transition: "all 0.2s ease",
+                      "&.Mui-disabled": { color: "rgba(51,65,85,0.4)" },
+                      "&:hover:not(.Mui-selected):not(.Mui-disabled)": { color: "#233971", background: "rgba(255,255,255,0.6)" },
+                    },
+                    "& .Mui-selected": {
+                      color: "#fff !important",
+                      background: "linear-gradient(135deg,#233971,#2e4fa3)",
+                      boxShadow: "0 4px 14px rgba(35,57,113,0.4)",
+                    },
+                  }}
+                >
+                  <Tab value="utama" label={`Main ${doneCount}/${totalAktif}`} />
+                  <Tab value="warna" disabled={!warnaAktif} label={`Colors ${warnaDoneCount}/${warnaList.length}`} />
+                </Tabs>
               </Stack>
-              <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(190px,1fr))", gap: 1.2 }}>
-                {VARIAN.map((v, i) => {
-                  const aktif = isVarianAktifUntukGenerate(v);
-                  const slot = variantSlots[v.key];
-                  const status2 = aktif ? (slot?.status || "idle") : "skip";
-                  return (
-                    <ResultCard
-                      key={v.key}
-                      label={v.label}
-                      index={i}
-                      active={aktif}
-                      onToggleActive={(checked) => handleVariantToggle(v.num, checked)}
-                      status={status2}
-                      data={slot}
-                      onEdit={() => openEditor(v.key)}
-                    />
-                  );
-                })}
-              </Box>
 
-              {warnaAktif && (
+              <Divider sx={{ my: 0.8, borderColor: "rgba(148,163,184,0.25)", flexShrink: 0 }} />
+
+              {resultTab === "utama" ? (
+                <Box sx={{ flex: 1, minHeight: 0, display: "grid", gridTemplateColumns: { xs: "repeat(2,minmax(0,1fr))", xl: "repeat(3,minmax(0,1fr))" }, gridTemplateRows: "repeat(2,minmax(0,1fr))", gap: 1 }}>
+                  {VARIAN.map((v, i) => {
+                    const aktif = isVarianAktifUntukGenerate(v);
+                    const slot = variantSlots[v.key];
+                    const status2 = aktif ? (slot?.status || "idle") : "skip";
+                    return (
+                      <ResultCard
+                        key={v.key}
+                        label={v.label}
+                        index={i}
+                        active={aktif}
+                        toggleNum={v.num}
+                        onToggleActive={handleVariantToggle}
+                        status={status2}
+                        data={slot}
+                        editKey={v.key}
+                        onEdit={openEditor}
+                        onPreview={setPreviewItem}
+                      />
+                    );
+                  })}
+                </Box>
+              ) : (
                 <>
-                  <Stack direction="row" justifyContent="space-between" alignItems="center" mt={2.5} mb={1.2}>
-                    <Typography sx={sectionLabel}>Varian Warna</Typography>
-                    <Chip size="small" label={`${warnaDoneCount} / ${warnaList.length}`} sx={{ ...F, fontWeight: 700, fontSize: "0.68rem", background: "rgba(35,57,113,0.08)", color: "#233971" }} />
-                  </Stack>
-                  <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(190px,1fr))", gap: 1.2 }}>
-                    {warnaList.map((warna, i) => {
+                  <Box sx={{ flex: 1, minHeight: 0, display: "grid", gridTemplateColumns: { xs: "repeat(2,minmax(0,1fr))", xl: "repeat(3,minmax(0,1fr))" }, gridTemplateRows: "repeat(2,minmax(0,1fr))", gap: 1, overflow: "hidden" }}>
+                    {visibleWarnaList.map((warna, localIndex) => {
+                      const i = warnaPage * warnaPageSize + localIndex;
                       const slot = warnaSlots[i];
                       const status2 = slot?.status || "idle";
                       return (
                         <ResultCard
                           key={warna + i}
-                          label={`Warna ${warna}`}
-                          subtitle={`Warna: ${warna}`}
+                          label={`Color ${warna}`}
+                          subtitle={`Color: ${warna}`}
                           index={i}
                           active
                           status={status2}
                           data={slot}
-                          onEdit={() => openEditor("7-warna-" + i)}
+                          editKey={"7-warna-" + i}
+                          onEdit={openEditor}
+                          onPreview={setPreviewItem}
                         />
                       );
                     })}
                   </Box>
+                  {warnaTotalPages > 1 && (
+                    <Stack direction="row" justifyContent="space-between" alignItems="center" mt={0.8} sx={{ flexShrink: 0 }}>
+                      <Typography sx={{ ...F, fontSize: "0.62rem", color: "#94a3b8", fontWeight: 700 }}>
+                        Page {warnaPage + 1} / {warnaTotalPages}
+                      </Typography>
+                      <Stack direction="row" spacing={0.6}>
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          disabled={warnaPage === 0}
+                          onClick={() => setWarnaPage((p) => Math.max(0, p - 1))}
+                          sx={{ ...F, minWidth: 58, borderRadius: "999px", textTransform: "none", fontWeight: 800, fontSize: "0.66rem", py: 0.25 }}
+                        >
+                          Prev
+                        </Button>
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          disabled={warnaPage >= warnaTotalPages - 1}
+                          onClick={() => setWarnaPage((p) => Math.min(warnaTotalPages - 1, p + 1))}
+                          sx={{ ...F, minWidth: 58, borderRadius: "999px", textTransform: "none", fontWeight: 800, fontSize: "0.66rem", py: 0.25 }}
+                        >
+                          Next
+                        </Button>
+                      </Stack>
+                    </Stack>
+                  )}
                 </>
               )}
             </CardContent>
           </Box>
         </Stack>
       </Card>
+
+      <Snackbar
+        open={!!pdfStatus.text}
+        autoHideDuration={pdfStatus.type ? 4000 : null}
+        onClose={() => setPdfStatus({ type: "", text: "" })}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+      >
+        <Alert
+          onClose={() => setPdfStatus({ type: "", text: "" })}
+          severity={pdfStatus.type === "err" ? "error" : pdfStatus.type === "ok" ? "success" : "info"}
+          variant="filled"
+          sx={{ ...F, borderRadius: "12px", fontSize: "0.82rem" }}
+        >
+          {pdfStatus.text}
+        </Alert>
+      </Snackbar>
+
+      <Snackbar
+        open={!!status.text}
+        autoHideDuration={status.type ? (status.type === "err" ? 6000 : 4000) : null}
+        onClose={() => setStatus({ type: "", text: "" })}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+      >
+        <Alert
+          onClose={() => setStatus({ type: "", text: "" })}
+          severity={status.type === "err" ? "error" : status.type === "ok" ? "success" : "info"}
+          variant="filled"
+          sx={{ ...F, borderRadius: "12px", fontSize: "0.82rem" }}
+        >
+          {status.text}
+        </Alert>
+      </Snackbar>
+
+      <Snackbar
+        open={!!editStatus.text}
+        autoHideDuration={editStatus.type ? (editStatus.type === "err" ? 6000 : 4000) : null}
+        onClose={() => setEditStatus({ type: "", text: "" })}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+      >
+        <Alert
+          onClose={() => setEditStatus({ type: "", text: "" })}
+          severity={editStatus.type === "err" ? "error" : editStatus.type === "ok" ? "success" : "info"}
+          variant="filled"
+          sx={{ ...F, borderRadius: "12px", fontSize: "0.82rem" }}
+        >
+          {editStatus.text}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }
